@@ -27,7 +27,7 @@
     { k: 'purple',  c: '#643992', r: 72,    a: [150, 295] },
     { k: 'red',     c: '#d8323f', r: 72,    a: [116, 14] },
     { k: 'violet',  c: '#8252a4', r: 112.5, a: [171, 285] },   // runs on towards the blue bar (was 268: a hole there bothered the user, 2026-11-12)
-    { k: 'purple',  c: '#623a93', r: 112.5, a: [146.5, 99] },
+    { k: 'purple',  c: '#623a93', r: 112.5, a: [153, 99] },   // starts closer to the violet piece (was 146.5: gap too wide, 2026-11-12)
     { k: 'red',     c: '#e9444b', r: 112.5, a: [77.5, 0], tail: 215 },
     { k: 'dkblue',  c: '#326a9f', r: 154,   a: [168.5, 144] },
     { k: 'blue',    c: '#4da5eb', r: 154,   a: [218, 184.5] },
