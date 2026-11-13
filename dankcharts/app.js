@@ -28174,28 +28174,57 @@ function _buildAlbTrackPanelHTML(s, totalPlays, crY, crM, crW, allTimeSPM) {
   const fmtWeekKey = wk => { const d = new Date(wk + 'T00:00:00'); return t('sm_week_of', { date: `${d.getDate()} ${MO[d.getMonth()]} ${d.getFullYear()}` }); };
   const fmtMonthKey = mk => { const [y, m] = mk.split('-'); return `${MO[parseInt(m) - 1]} ${y}`; };
 
-  const statItem = (val, label, sub = '') => `<div class="alb-stat-item">
-    <strong>${val}</strong>
-    <span>${label}</span>
-    ${sub ? `<div class="alb-stat-date">${sub}</div>` : ''}
-  </div>`;
-
-  let statsHTML = `<div class="alb-track-stats-grid">`;
-  if (allTimeRank) statsHTML += statItem(`#${allTimeRank}`, t('am_most_heard_song'));
-  statsHTML += statItem(calDays, t('am_cal_days'));
-  if (consecDays > 1) statsHTML += statItem(`${consecDays}d`, t('am_day_streak'));
-  if (consecMonths > 1) statsHTML += statItem(`${consecMonths}mo`, t('am_month_streak'));
-  if (consecPlays > 1) statsHTML += statItem(`${consecPlays}×`, t('am_play_streak'));
-  if (peaks.peakDay) statsHTML += statItem(peaks.peakDay[1], t('am_peak_day'), peaks.peakDay[0]);
-  if (peaks.peakWeek) statsHTML += statItem(peaks.peakWeek[1], t('am_peak_week'), fmtWeekKey(peaks.peakWeek[0]));
-  if (peaks.peakMonth) statsHTML += statItem(peaks.peakMonth[1], t('am_peak_month'), fmtMonthKey(peaks.peakMonth[0]));
-  if (peaks.peakYear) statsHTML += statItem(peaks.peakYear[1], t('am_peak_year'), peaks.peakYear[0]);
-  const crYD = crY?.result?.songs?.[sk];
-  if (crYD) {
-    statsHTML += statItem(crYD.peakDays, t('am_peak_days_year'));
-    statsHTML += statItem(crYD.peakMonths, t('am_peak_months_year'));
+  // Redone 2026-11-12 (was 11 same-looking cells with labels like "Peak
+  // Days in a Year"): three big tiles up top (all-time rank, days played,
+  // best year), then two plain lists — "In a row" (streaks) and "Busiest
+  // times" (best day / week / month with its date). Emoji icons, per the
+  // site's emoji-over-line-icons rule.
+  const fmtDay = dk => { const d = new Date(dk + 'T00:00:00'); return `${d.getDate()} ${MO[d.getMonth()]} ${d.getFullYear()}`; };
+  // Days / months played in the best year (counted here, so they are about
+  // that same year — the chart run's peakDays can come from another year)
+  let yrDays = 0, yrMonths = 0;
+  if (peaks.peakYear) {
+    const yd = new Set(), ym = new Set();
+    for (const p of songPlays) {
+      const d = tzDateOf(p);
+      if (String(d.getFullYear()) !== peaks.peakYear[0]) continue;
+      yd.add(localDateStr(d)); ym.add(d.getMonth());
+    }
+    yrDays = yd.size; yrMonths = ym.size;
   }
-  statsHTML += `</div>`;
+  const hl = (emoji, tone, label, val, sub) => `<div class="tp-hl tp-hl--${tone}">
+      <span class="tp-hl-ico" aria-hidden="true">${emoji}</span>
+      <span class="tp-hl-v">${val}</span>
+      <span class="tp-hl-l">${esc(label)}</span>
+      ${sub ? `<span class="tp-hl-sub">${esc(sub)}</span>` : ''}
+    </div>`;
+  const row = (emoji, label, val, sub) => `<div class="tp-row">
+      <span class="tp-row-ico" aria-hidden="true">${emoji}</span>
+      <span class="tp-row-txt"><span class="tp-row-l">${esc(label)}</span>${sub ? `<span class="tp-row-sub">${esc(sub)}</span>` : ''}</span>
+      <span class="tp-row-v">${esc(val)}</span>
+    </div>`;
+
+  const hls = [];
+  if (allTimeRank) hls.push(hl('🏆', 'gold', t('tp_hl_rank'), `#${allTimeRank.toLocaleString()}`, t('tp_hl_rank_sub')));
+  hls.push(hl('📅', 'violet', t('tp_hl_days'), calDays.toLocaleString(), t('tp_hl_days_sub')));
+  if (peaks.peakYear) hls.push(hl('⭐', 'accent', t('tp_hl_year'), peaks.peakYear[0],
+    t('tp_hl_year_sub', { plays: tCount('plays', peaks.peakYear[1]), days: tCount('days', yrDays) }) +
+      (yrMonths > 1 ? ' · ' + t('tp_hl_year_months', { months: tCount('months', yrMonths) }) : '')));
+
+  const streaks = [];
+  if (consecDays > 1) streaks.push(row('🔥', t('tp_st_days'), tCount('days', consecDays)));
+  if (consecMonths > 1) streaks.push(row('🗓️', t('tp_st_months'), tCount('months', consecMonths)));
+  if (consecPlays > 1) streaks.push(row('🔁', t('tp_st_plays'), tCount('plays', consecPlays)));
+  const busy = [];
+  if (peaks.peakDay) busy.push(row('☀️', t('tp_b_day'), tCount('plays', peaks.peakDay[1]), fmtDay(peaks.peakDay[0])));
+  if (peaks.peakWeek) busy.push(row('📆', t('tp_b_week'), tCount('plays', peaks.peakWeek[1]), fmtWeekKey(peaks.peakWeek[0])));
+  if (peaks.peakMonth) busy.push(row('🌙', t('tp_b_month'), tCount('plays', peaks.peakMonth[1]), fmtMonthKey(peaks.peakMonth[0])));
+  const box = (title, rows) => rows.length ? `<div class="tp-box"><div class="tp-box-h">${esc(title)}</div>${rows.join('')}</div>` : '';
+
+  const statsHTML = `<div class="tp-stats">
+    <div class="tp-hls tp-hls--${hls.length}">${hls.join('')}</div>
+    <div class="tp-boxes${streaks.length && busy.length ? '' : ' tp-boxes--one'}">${box(t('tp_sec_streaks'), streaks)}${box(t('tp_sec_busiest'), busy)}</div>
+  </div>`;
 
   // Chart run subsections (pre-rendered)
   const preSection = (label, period, crData) => {
