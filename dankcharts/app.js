@@ -63439,9 +63439,20 @@ function renderAlbumRatingSection(albumKey) {
   // window still uses .rt-block.
   const bnd = ratingBand(res.score);
   const card = (title, body, extra = '') => `<div class="rt-al-card${extra}"><div class="rt-al-card-h"><span class="ao-kicker">${esc(title)}</span></div>${body}</div>`;
-  const pill = h => `<button type="button" class="rt-al-pill" onclick="openSongModal(${esc(JSON.stringify(h.key))})"><span>${esc(h.title)}</span>${ratingChip(h.score)}</button>`;
-  const hiHTML = ins && ins.highlights.length ? `<div class="rt-al-stand"><span class="rt-al-stand-l">${esc(t('rtp_highlights'))}</span><div class="rt-al-pills">${ins.highlights.map(pill).join('')}</div></div>` : '';
-  const skHTML = ins && ins.skips.length ? `<div class="rt-al-stand"><span class="rt-al-stand-l">${esc(t('rtp_skips'))}</span><div class="rt-al-pills">${ins.skips.map(pill).join('')}</div></div>` : '';
+  // Standouts, redone 2026-11-12 (the pill row looked messy and cut long
+  // titles): Highlights and Skips as two side-by-side lists. Each row is a
+  // score tile in its band colour + the full title; tap opens the song.
+  // One list alone takes the full width.
+  const stRow = h => { const b = ratingBand(h.score); return `<button type="button" class="rt-al-st ${b.cls}" onclick="openSongModal(${esc(JSON.stringify(h.key))})">
+      <span class="rt-al-st-s">${ratingFmt(h.score)}</span>
+      <span class="rt-al-st-t">${esc(h.title)}</span>
+    </button>`; };
+  const stCol = (emoji, title, hint, list) => `<div class="rt-al-stcol">
+      <div class="rt-al-stcol-h"><span class="rt-al-stcol-e" aria-hidden="true">${emoji}</span><span class="rt-al-stcol-l">${esc(title)}</span><span class="rt-al-stcol-hint">${esc(hint)}</span></div>
+      ${list.map(stRow).join('')}
+    </div>`;
+  const hiHTML = ins && ins.highlights.length ? stCol('🔥', t('rtp_highlights'), t('rt_al_hi_hint'), ins.highlights) : '';
+  const skHTML = ins && ins.skips.length ? stCol('⏭️', t('rtp_skips'), t('rt_al_sk_hint'), ins.skips) : '';
   el.innerHTML = `<div class="ar rt-al">
     <div class="ar-hero ${bnd.cls}">
       ${ratingRing(res.score, { size: 120 })}
@@ -63459,7 +63470,7 @@ function renderAlbumRatingSection(albumKey) {
     ${acts}
     ${insightStrip}
     ${aspectBars ? card(t('rtp_aspects'), `<div class="rt-critbars">${aspectBars}</div>`) : ''}
-    ${hiHTML || skHTML ? card(t('rt_al_standouts'), hiHTML + skHTML) : ''}
+    ${hiHTML || skHTML ? card(t('rt_al_standouts'), `<div class="rt-al-stcols${hiHTML && skHTML ? '' : ' rt-al-stcols--one'}">${hiHTML}${skHTML}</div>`) : ''}
     ${trackTable ? card(t('rtp_track_scores'), trackTable) : ''}
   </div>`;
 }

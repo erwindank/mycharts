@@ -5563,6 +5563,8 @@ const TRANSLATIONS = {
     rt_ins_filler_sub: '{{n}} of {{total}} under 5.0',
     rt_al_tracks_rated: 'Tracks rated',
     rt_al_standouts: 'Standouts',
+    rt_al_hi_hint: '8.0 and up',
+    rt_al_sk_hint: 'under 5.0',
     ra_card_eyebrow: 'Discography scores',
     ra_card_per_page: 'Albums per page',
     ra_card_page: 'Page {{n}} of {{total}}',

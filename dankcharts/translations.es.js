@@ -5400,6 +5400,8 @@ TRANSLATIONS['es'] = Object.assign({
     rt_ins_filler_sub: '{{n}} de {{total}} bajo 5.0',
     rt_al_tracks_rated: 'Canciones calificadas',
     rt_al_standouts: 'Lo más destacado',
+    rt_al_hi_hint: '8.0 o más',
+    rt_al_sk_hint: 'menos de 5.0',
     ra_card_eyebrow: 'Notas de la discografía',
     ra_card_per_page: 'Álbumes por página',
     ra_card_page: 'Página {{n}} de {{total}}',
