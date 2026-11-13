@@ -3593,6 +3593,41 @@
        its verdict colour (band class sets --rt-c). */
     .dp-body .rt-acts { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-3); margin: var(--sp-4) 0 var(--sp-2); }
     .dp-body .rt-acts .ar-next { margin-top: 0; }
+    /* Album Rating tab: Peak / Weakest / Consistency / Filler tiles.
+       Centred, uppercase compact labels, number in the verdict colour
+       (band class sets --rt-c), a thin bar and a detail line under a
+       divider. Four across, two on phones. */
+    .dp-body .rt-ins-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--sp-3); margin: var(--sp-2) 0 var(--sp-4); }
+    /* no verdict class: the artwork accent (a band class sets its own --rt-c) */
+    .dp-body .rt-ins:not([class*="rt--"]) { --rt-c: var(--dp-ac); }
+    .dp-body .rt-ins {
+      display: flex; flex-direction: column; align-items: center; text-align: center;
+      min-width: 0;
+      padding: var(--sp-4) var(--sp-3) var(--sp-3);
+      color: var(--text);
+      background:
+        radial-gradient(120% 70% at 50% 0%, color-mix(in srgb, var(--rt-c) 16%, transparent), transparent 70%),
+        var(--raised);
+      border: 1px solid color-mix(in srgb, var(--rt-c) 30%, var(--border));
+      border-radius: var(--r-md);
+    }
+    .dp-body .rt-ins-ico {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 34px; height: 34px; margin-bottom: var(--sp-2);
+      border-radius: 50%;
+      color: var(--rt-c);
+      background: color-mix(in srgb, var(--rt-c) 16%, transparent);
+    }
+    .dp-body .rt-ins-ico svg { width: 18px; height: 18px; }
+    .dp-body .rt-ins-v { font-family: var(--font-display); font-size: 1.75rem; font-weight: 800; line-height: 1.05; color: var(--rt-c); font-variant-numeric: tabular-nums; }
+    .dp-body .rt-ins-l { margin-top: 4px; font-size: var(--fs-xs); font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text2); }
+    .dp-body .rt-ins-bar { display: block; width: 100%; height: 4px; margin: var(--sp-3) 0 var(--sp-2); border-radius: 4px; background: color-mix(in srgb, var(--text) 9%, transparent); overflow: hidden; }
+    .dp-body .rt-ins-bar i { display: block; height: 100%; min-width: 3px; border-radius: inherit; background: var(--rt-c); transform-origin: left; animation: aoGrow 0.9s var(--ease) both; }
+    .dp-body .rt-ins-sub {
+      width: 100%; font-size: var(--fs-xs); color: var(--text3); line-height: 1.35;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    @media (max-width: 640px) { .dp-body .rt-ins-grid { grid-template-columns: 1fr 1fr; } }
     /* album Tracks tab share card: sits between the plays split bar and the chart switch */
     .dp-body .am-share-card { margin: 0 0 var(--sp-3); }
     .dp-body .rt-act-pic { align-items: center; padding: 0; color: var(--dp-ac); }

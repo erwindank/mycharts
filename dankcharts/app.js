@@ -63337,11 +63337,26 @@ function renderAlbumRatingSection(albumKey) {
 
   // The auto-derived stats. None of these are typed in — they all fall out of
   // the track scores, which is exactly what makes them worth showing.
-  const insightStrip = ins ? `<div class="modal-stats-strip rt-insights">
-    <div class="modal-stat"><div class="se">⛰️</div><div class="sv ${ratingBand(ins.peak.score).cls}">${ratingFmt(ins.peak.score)}</div><div class="sl">${t('rtp_peak_track')}</div></div>
-    <div class="modal-stat"><div class="se">🕳️</div><div class="sv ${ratingBand(ins.floor.score).cls}">${ratingFmt(ins.floor.score)}</div><div class="sl">${t('rtp_weakest_track')}</div></div>
-    <div class="modal-stat"><div class="se">📐</div><div class="sv ${ratingBand(ins.consistency).cls}">${ratingFmt(ins.consistency)}</div><div class="sl">${t('rtp_consistency')}</div></div>
-    <div class="modal-stat"><div class="se">🗑️</div><div class="sv">${ins.fillerPct}%</div><div class="sl">${t('rtp_filler')}</div></div>
+  // Redone 2026-11-12: four full-width tiles, each with its own icon, the
+  // number in its verdict colour, a small bar, and a line under a divider
+  // that says what the number is about (which song / how spread / how many).
+  // Own classes (rt-ins-*), not .modal-stat, so panel.js doesn't swap the
+  // icons for the generic sparkle.
+  const insTile = (icon, val, num, label, sub, pct, bandScore) => {
+    const b = bandScore == null ? null : ratingBand(bandScore);
+    return `<div class="rt-ins ${b ? b.cls : ''}">
+      <span class="rt-ins-ico">${_amIco(icon)}</span>
+      <span class="rt-ins-v">${val}</span>
+      <span class="rt-ins-l">${esc(label)}</span>
+      <span class="rt-ins-bar"><i style="width:${Math.max(0, Math.min(100, pct)).toFixed(0)}%"></i></span>
+      <span class="rt-ins-sub" title="${esc(sub)}">${esc(sub)}</span>
+    </div>`;
+  };
+  const insightStrip = ins ? `<div class="rt-ins-grid">
+    ${insTile('trophy', ratingFmt(ins.peak.score), ins.peak.score, t('rtp_peak_track'), ins.peak.title, ins.peak.score * 10, ins.peak.score)}
+    ${insTile('alert', ratingFmt(ins.floor.score), ins.floor.score, t('rtp_weakest_track'), ins.floor.title, ins.floor.score * 10, ins.floor.score)}
+    ${insTile('bars', ratingFmt(ins.consistency), ins.consistency, t('rtp_consistency'), t('rt_ins_spread', { n: ins.stdev.toFixed(1) }), ins.consistency * 10, ins.consistency)}
+    ${insTile('trash', ins.fillerPct + '%', ins.fillerPct, t('rtp_filler'), t('rt_ins_filler_sub', { n: ins.fillerCount, total: ins.ratedCount }), ins.fillerPct, 10 - ins.fillerPct / 10)}
   </div>` : '';
 
   // Full track table, best first, so the album reads like a review scorecard.

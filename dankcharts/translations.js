@@ -5542,6 +5542,9 @@ const TRANSLATIONS = {
     at_share_title: 'Your top tracks from this album',
     at_share_sub: "All {{n}} tracks you've played, ranked by plays, in one picture",
     at_share_sub_one: "The 1 track you've played, in one picture",
+    // album Rating tab tiles: detail lines
+    rt_ins_spread: 'Spread ±{{n}}',
+    rt_ins_filler_sub: '{{n}} of {{total}} under 5.0',
     ra_card_eyebrow: 'Discography scores',
     ra_card_per_page: 'Albums per page',
     ra_card_page: 'Page {{n}} of {{total}}',

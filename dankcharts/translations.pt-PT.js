@@ -5379,6 +5379,9 @@ TRANSLATIONS['pt-PT'] = Object.assign({
     at_share_title: 'As tuas faixas mais ouvidas deste álbum',
     at_share_sub: 'As {{n}} faixas que ouviste, por plays, numa imagem',
     at_share_sub_one: 'A faixa que ouviste, numa imagem',
+    // album Rating tab tiles: detail lines
+    rt_ins_spread: 'Dispersão ±{{n}}',
+    rt_ins_filler_sub: '{{n}} de {{total}} abaixo de 5.0',
     ra_card_eyebrow: 'Notas da discografia',
     ra_card_per_page: 'Álbuns por página',
     ra_card_page: 'Página {{n}} de {{total}}',
