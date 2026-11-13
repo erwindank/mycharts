@@ -3184,7 +3184,7 @@ window.GL_TEXT.en = {
           bar: ['A month', 'Click it for that month’s plays and top artist.']
         } },
         loyalty: { title: '{{t:st_loyalty_title}}', spots: {
-          head: ['Who came back', 'Last year’s top 10 artists: still in your top 10 (full point), still played (half a point) or gone.'],
+          head: ['Who came back', 'Last year’s top 10 artists: still in your top 10 (full point), still in your top 100 (half a point) or out.'],
           ring: ['The score', 'With a name: from {{t:st_loyalty_explorer}} to {{t:st_loyalty_die_hard}}.'],
           row: ['{{t:st_loyalty_artists_title}}', 'The artists who stayed, with their top songs.'],
           next: ['More', 'Slide the row.']

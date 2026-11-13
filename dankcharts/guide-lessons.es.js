@@ -2062,7 +2062,7 @@ window.GL_TEXT.es = {
           bar: ['Un mes', 'Haz clic para ver sus escuchas y su artista top.']
         } },
         loyalty: { title: '{{t:st_loyalty_title}}', spots: {
-          head: ['Quién volvió', 'Tu top 10 de artistas del año pasado: siguen en el top 10 (un punto), siguen sonando (medio punto) o se fueron.'],
+          head: ['Quién volvió', 'Tu top 10 de artistas del año pasado: siguen en el top 10 (un punto), siguen en el top 100 (medio punto) o quedaron fuera.'],
           ring: ['La puntuación', 'Con un nombre: de {{t:st_loyalty_explorer}} a {{t:st_loyalty_die_hard}}.'],
           row: ['{{t:st_loyalty_artists_title}}', 'Los artistas que se quedaron, con sus canciones top.'],
           next: ['Más', 'Desliza la fila.']

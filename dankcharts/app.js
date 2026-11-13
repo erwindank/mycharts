@@ -57674,12 +57674,12 @@ function stRenderLoyalty(plays) {
 
   // Every artist from last year's top 10, in last year's order, with a status:
   //   'top'    — still in this period's top 10 (full credit)
-  //   'around' — dropped out of the top 10 but still played (half credit)
-  //   'gone'   — no plays at all this period (no credit)
+  //   'around' — dropped out of the top 10 but still in the top 100 (half credit)
+  //   'gone'   — outside the top 100 or not played at all (no credit)
   // Before 2026-11-12 only 'top' counted, so an artist who slipped from #4 to
   // #12 read as "gone" and the score looked harsher than the listening was.
   const prevTopKeys = prevRanked.slice(0, 10);
-  const statusOf = ak => !curCounts[ak] ? 'gone' : curRank[ak] <= 10 ? 'top' : 'around';
+  const statusOf = ak => !curCounts[ak] || curRank[ak] > 100 ? 'gone' : curRank[ak] <= 10 ? 'top' : 'around';
   const nTop = prevTopKeys.filter(ak => statusOf(ak) === 'top').length;
   const nAround = prevTopKeys.filter(ak => statusOf(ak) === 'around').length;
   const nGone = prevTopKeys.length - nTop - nAround;
@@ -57702,7 +57702,8 @@ function stRenderLoyalty(plays) {
   for (const p of prevPlays) { const ak = p.artist.toLowerCase(); if (!nameByKey[ak]) nameByKey[ak] = p.artist; }
 
   // For each of last year's top 10: status, rank move, and this period's top 5
-  // songs (none for 'gone' artists — the card says so instead)
+  // songs (none for 'gone' artists — the card says so instead). The rank only
+  // shows inside the top 100, matching the cut-off above.
   const loyaltyArtists = prevTopKeys.map((ak, idx) => {
     const name = nameByKey[ak] || ak;
     const songCounts = {};
@@ -57712,8 +57713,9 @@ function stRenderLoyalty(plays) {
       if (!songCounts[sk]) songCounts[sk] = { title: p.title, count: 0 };
       songCounts[sk].count++;
     }
-    const topSongs = Object.values(songCounts).sort((a, b) => b.count - a.count).slice(0, 5);
-    return { name, status: statusOf(ak), prevRank: idx + 1, rank: curRank[ak] || null, plays: curCounts[ak] || 0, prevPlays: prevCounts[ak], topSongs };
+    const status = statusOf(ak);
+    const topSongs = status === 'gone' ? [] : Object.values(songCounts).sort((a, b) => b.count - a.count).slice(0, 5);
+    return { name, status, prevRank: idx + 1, rank: status === 'gone' ? null : curRank[ak], plays: curCounts[ak] || 0, prevPlays: prevCounts[ak], topSongs };
   });
   // Header photo: the most-played artist who stayed in the top 10
   const headArtist = loyaltyArtists.filter(a => a.status === 'top').sort((a, b) => b.plays - a.plays)[0];

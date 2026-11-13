@@ -2062,7 +2062,7 @@ window.GL_TEXT['pt-PT'] = {
           bar: ['Um mês', 'Clica para veres os plays e o artista top desse mês.']
         } },
         loyalty: { title: '{{t:st_loyalty_title}}', spots: {
-          head: ['Quem voltou', 'O teu top 10 de artistas do ano passado: ainda no top 10 (um ponto), ainda por cá (meio ponto) ou saíram.'],
+          head: ['Quem voltou', 'O teu top 10 de artistas do ano passado: ainda no top 10 (um ponto), ainda no top 100 (meio ponto) ou ficaram fora.'],
           ring: ['A pontuação', 'Com um nome: de {{t:st_loyalty_explorer}} a {{t:st_loyalty_die_hard}}.'],
           row: ['{{t:st_loyalty_artists_title}}', 'Os artistas que ficaram, com as músicas top.'],
           next: ['Mais', 'Desliza a fila.']
