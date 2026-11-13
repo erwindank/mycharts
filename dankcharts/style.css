@@ -3588,6 +3588,18 @@
     .dp-body .ar-share-pic i:nth-child(2) { opacity: .75; }
     .dp-body .ar-share-pic i:nth-child(3) { opacity: .5; }
     .dp-body .ar-share-card .ar-next-name { white-space: normal; }
+    /* Album Rating tab: Edit + Make a picture cards, two side by side
+       (one per row on phones). The thumb shows a pencil, or the score in
+       its verdict colour (band class sets --rt-c). */
+    .dp-body .rt-acts { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-3); margin: var(--sp-4) 0 var(--sp-2); }
+    .dp-body .rt-acts .ar-next { margin-top: 0; }
+    .dp-body .rt-act-pic { align-items: center; padding: 0; color: var(--dp-ac); }
+    .dp-body .rt-act-pic svg { width: 22px; height: 22px; }
+    .dp-body .rt-act-score { font-family: var(--font-display); font-size: 1.15rem; font-weight: 800; color: var(--rt-c, var(--dp-ac)); font-variant-numeric: tabular-nums; }
+    .dp-body .rt-act .ar-next-name { white-space: normal; }
+    .dp-body .rt-act-go { flex-shrink: 0; display: inline-flex; color: var(--dp-ac); }
+    .dp-body .rt-act-go svg { width: 18px; height: 18px; }
+    @media (max-width: 640px) { .dp-body .rt-acts { grid-template-columns: 1fr; } }
 
     /* Next to rate */
     .dp-body .ar-next {

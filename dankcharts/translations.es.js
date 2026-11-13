@@ -5369,6 +5369,12 @@ TRANSLATIONS['es'] = Object.assign({
     ra_share_sub_singles: 'Tus {{n}} sencillos y EPs calificados, del mejor al peor, en una imagen',
     ra_share_sub_singles_one: 'Tu sencillo o EP calificado en una imagen',
     ra_share_cta: 'Crear imagen',
+    // album Rating tab: Edit / Make a picture cards
+    rt_act_edit_kicker: 'Tu reseña',
+    rt_act_edit_title: 'Editar valoración',
+    rt_act_edit_sub: 'Cambia las notas de las canciones, los aspectos o tu comentario',
+    rt_act_share_title: 'Crear imagen',
+    rt_act_share_sub: 'Tu {{score}} y {{n}} notas de canciones, lista para publicar',
     ra_card_eyebrow: 'Notas de la discografía',
     ra_card_per_page: 'Álbumes por página',
     ra_card_page: 'Página {{n}} de {{total}}',

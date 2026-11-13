@@ -63342,6 +63342,33 @@ function renderAlbumRatingSection(albumKey) {
         </button>`).join('')}
   </div>` : '';
 
+  // Edit + Share as two cards side by side under the score (were two plain
+  // buttons, easy to miss, and "Share score" didn't say it makes a picture).
+  // Same card look as the artist Rating tab's "Compare albums" / "Next to rate".
+  const ak = esc(JSON.stringify(albumKey));
+  const onKey = `onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}"`;
+  const nTr = tracks.filter(tr => ratingSongScore(tr.key) != null).length;
+  const acts = `<div class="rt-acts">
+    <div class="ar-next rt-act" role="button" tabindex="0" onclick="openRatingModal('album', ${ak})" ${onKey}>
+      <span class="ar-share-pic rt-act-pic">${_amIco('edit')}</span>
+      <span class="ar-next-txt">
+        <span class="ao-kicker">${esc(t('rt_act_edit_kicker'))}</span>
+        <span class="ar-next-name">${esc(t('rt_act_edit_title'))}</span>
+        <span class="ar-next-sub">${esc(t('rt_act_edit_sub'))}</span>
+      </span>
+      <span class="rt-act-go">${_amIco('next')}</span>
+    </div>
+    <div class="ar-next ar-share-card rt-act" role="button" tabindex="0" onclick="rtOpenCard(${ak})" ${onKey}>
+      <span class="ar-share-pic rt-act-pic rt-act-score ${ratingBand(res.score).cls}">${ratingFmt(res.score)}</span>
+      <span class="ar-next-txt">
+        <span class="ao-kicker">${esc(t('ra_share_kicker'))}</span>
+        <span class="ar-next-name">${esc(t('rt_act_share_title'))}</span>
+        <span class="ar-next-sub">${esc(t('rt_act_share_sub', { score: ratingFmt(res.score), n: nTr }))}</span>
+      </span>
+      <span class="rt-act-go">${_amIco('image')}</span>
+    </div>
+  </div>`;
+
   el.innerHTML = `<div class="rt-block">
     <div class="rt-block-head">
       ${ratingRing(res.score)}
@@ -63349,12 +63376,9 @@ function renderAlbumRatingSection(albumKey) {
         <div class="rt-block-verdict ${ratingBand(res.score).cls}">${esc(ratingBand(res.score).label)}</div>
         <div class="rt-formula rt-formula--static">${_ratingFormulaHTML(res)}</div>
         ${e?.note ? `<blockquote class="rt-block-note">${esc(e.note)}</blockquote>` : ''}
-        <div class="rt-btn-row">
-          <button class="dc-btn dc-btn-normal" onclick="openRatingModal('album', ${esc(JSON.stringify(albumKey))})">${t('rtp_edit')}</button>
-          <button class="dc-btn dc-btn-normal" onclick="rtOpenCard(${esc(JSON.stringify(albumKey))})">${esc(t('rt_card_share_btn'))}</button>
-        </div>
       </div>
     </div>
+    ${acts}
     ${insightStrip}
     ${aspectBars ? `<div class="rt-sub-label">${t('rtp_aspects')}</div><div class="rt-critbars">${aspectBars}</div>` : ''}
     ${ins && ins.highlights.length ? `<div class="rt-sub-label">${t('rtp_highlights')}</div>

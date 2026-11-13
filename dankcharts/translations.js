@@ -5532,6 +5532,12 @@ const TRANSLATIONS = {
     ra_share_sub_singles: 'Your {{n}} rated singles & EPs, best to worst, in one picture',
     ra_share_sub_singles_one: 'Your 1 rated single or EP in one picture',
     ra_share_cta: 'Make picture',
+    // album Rating tab: Edit / Make a picture cards
+    rt_act_edit_kicker: 'Your review',
+    rt_act_edit_title: 'Edit rating',
+    rt_act_edit_sub: 'Change track scores, album aspects or your note',
+    rt_act_share_title: 'Make a picture',
+    rt_act_share_sub: 'Your {{score}} and {{n}} track scores, ready to post',
     ra_card_eyebrow: 'Discography scores',
     ra_card_per_page: 'Albums per page',
     ra_card_page: 'Page {{n}} of {{total}}',
