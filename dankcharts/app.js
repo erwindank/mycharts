@@ -25452,6 +25452,9 @@ function shArt(p, url, size, opt) {
 //   o.size   name size in px · o.color name colour (default p.text)
 //   o.fm     .fm badge colour (default p.accent)
 // No letter-spacing here: html2canvas would draw it glyph by glyph.
+// The .fm badge is a solid fill with black or white text picked by _shOn
+// (2026-11-12): the old faint tint with accent text vanished on some
+// backgrounds and palettes; a solid tag reads on any of them.
 function shBrandLockup(p, opt) {
   const o = opt || {};
   const sz = o.size || 28;
@@ -25464,7 +25467,7 @@ function shBrandLockup(p, opt) {
     <img src="${logo}" width="${w}" height="${h}" alt="" style="width:${w}px;height:${h}px;display:block;flex-shrink:0;position:relative;top:${Math.round(sz * 0.08)}px;margin-right:${Math.max(1, Math.round(sz * 0.04))}px;">
     <span style="font-family:${SH_FONT.sans};font-size:${sz}px;font-weight:700;color:${name};">ank</span>
     <span style="font-family:${SH_FONT.sans};font-size:${sz}px;font-weight:300;color:${_shA(name, 0.82)};">charts</span>
-    <span style="align-self:center;font-family:${SH_FONT.mono};font-size:${fs}px;font-weight:500;line-height:1.4;color:${fm};background:${_shA(fm, 0.16)};border:${Math.max(1, Math.round(sz / 28))}px solid ${_shA(fm, 0.4)};border-radius:${Math.max(3, Math.round(fs * 0.22))}px;padding:0 ${Math.round(fs * 0.4)}px;margin-left:${Math.round(sz * 0.12)}px;">.fm</span>
+    <span style="align-self:center;font-family:${SH_FONT.mono};font-size:${fs}px;font-weight:700;line-height:1.4;color:${_shOn(fm)};background:${fm};border:${Math.max(1, Math.round(sz / 28))}px solid ${fm};border-radius:${Math.max(3, Math.round(fs * 0.22))}px;padding:0 ${Math.round(fs * 0.4)}px;margin-left:${Math.round(sz * 0.12)}px;">.fm</span>
   </span>`;
 }
 
@@ -64466,7 +64469,9 @@ function _tpSub(ctx) {
 }
 
 function _tpEyebrow(ctx) {
-  return `<div style="flex-shrink:0;">${shEyebrow(ctx.p, 'dankcharts.fm · ' + t(_tpMode === 'artist' ? 'tp_card_eyebrow_artist' : 'tp_card_eyebrow'), { size: _shS(ctx, 20) })}</div>`;
+  // Size 25 (was 20) makes the logo up top bigger — the user wanted the brand
+  // easier to spot on a shared card (2026-11-12).
+  return `<div style="flex-shrink:0;">${shEyebrow(ctx.p, 'dankcharts.fm · ' + t(_tpMode === 'artist' ? 'tp_card_eyebrow_artist' : 'tp_card_eyebrow'), { size: _shS(ctx, 25) })}</div>`;
 }
 
 // Square tiles: try every column count and keep the one with the biggest tiles.
@@ -64584,9 +64589,9 @@ function _tpBackdrop(ctx) {
 function _tpFooter(ctx, padX) {
   const p = ctx.p, fmt = ctx.fmt;
   if (!ctx.opts.showFooter) return `<div style="flex-shrink:0;height:${shSafeBottom(fmt)}px;"></div>`;
-  const fs = 20;
+  const fs = 22;   // the logo beside it is 40 (was 28): bigger brand on the card
   return `<div style="flex-shrink:0;padding:22px ${padX}px ${shSafeBottom(fmt)}px;display:flex;align-items:center;justify-content:space-between;gap:16px;">
-    ${shBrandLockup(p, { size: 28 })}
+    ${shBrandLockup(p, { size: 40 })}
     <span style="flex-shrink:0;font-family:${SH_FONT.sans};font-size:${fs}px;font-weight:700;line-height:1;color:${p.onAccent};background:${p.accent};border-radius:12px;padding:${Math.round(fs * 0.6)}px ${Math.round(fs * 0.85)}px;white-space:nowrap;">${esc(t('tp_card_cta'))} →</span>
   </div>`;
 }
