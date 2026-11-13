@@ -41,20 +41,15 @@
     { k: 'olive',   c: '#b9a247', x: 398,   y: [132, 24],  bar: 3 }
   ];
 
-  // Small-size drawing: same outline (nothing cut from the edge), short
-  // pieces joined into longer ones, wider gaps — readable at 16–40px.
-  var SMALL = [
-    { k: 'purple',  c: '#643992', r: 72,    a: [152, 296] },
-    { k: 'red',     c: '#d8323f', r: 72,    a: [112, 14] },
-    { k: 'violet',  c: '#7a4aa0', r: 112.5, a: [103, 262] },
-    { k: 'red',     c: '#e9444b', r: 112.5, a: [77.5, 0], tail: 215 },
-    { k: 'blue',    c: '#4da5eb', r: 154,   a: [150, 283] },
-    { k: 'yellow',  c: '#fbb738', r: 154,   a: [131, 6] },
-    { k: 'blue',    c: '#4ca4eb', x: 316,   y: [237, 85],  bar: 0 },
-    { k: 'purple',  c: '#623995', x: 356.5, y: [167, 53],  bar: 1 },
-    { k: 'orange',  c: '#f6962c', x: 398,   y: [300, 176], bar: 2 },
-    { k: 'olive',   c: '#b9a247', x: 398,   y: [132, 24],  bar: 3 }
-  ];
+  // Small-size drawing (top bar, spinners, share pictures, favicon).
+  // 2026-11-12: it used to merge the pieces into a few long ones and drop
+  // the short magenta bar, which made the top bar logo look like pieces were
+  // missing. The user prefers the original brand drawing, so the small one
+  // now has the same pieces as FULL (same splits, the magenta bar back),
+  // only drawn with a thicker line (SMALL_SW) so it reads at 16–40px.
+  var SMALL = FULL;
+
+  var SMALL_SW = 30;   // line width of the small drawing (FULL uses 24)
 
   function pt(r, a) {
     var t = a * Math.PI / 180;
@@ -79,7 +74,7 @@
   function dcLogoSvg(o) {
     o = o || {};
     var segs = o.small ? SMALL : FULL;
-    var sw = o.small ? 32 : 24;
+    var sw = o.small ? SMALL_SW : 24;
     var e = (sw - 24) / 2;                      // frame grows with the line, so nothing clips
     var vb = (76 - e) + ' ' + (10 - e) + ' ' + (336 + 2 * e) + ' ' + (500 + 2 * e);
     var size = o.size ? ' width="' + Math.round(o.size * (336 + 2 * e) / (500 + 2 * e)) + '" height="' + o.size + '"' : '';
@@ -126,8 +121,10 @@
     var mono = o.mono || "'JetBrains Mono', ui-monospace, monospace";
     var color = o.color || '#ffffff';
     var accent = o.accent || '#72bbff';
-    // Logo: small drawing (frame 72 6 344 508), 1.1em tall like on the site
-    var lh = size * 1.1, ls = lh / 508, lw = 344 * ls, gap = size * 0.04;
+    // Logo: small drawing, 1.1em tall like on the site. Its frame grows
+    // with the line width (same sum as dcLogoSvg's viewBox).
+    var fe = (SMALL_SW - 24) / 2, fw = 336 + 2 * fe, fh = 500 + 2 * fe;
+    var lh = size * 1.1, ls = lh / fh, lw = fw * ls, gap = size * 0.04;
     g.save();
     g.textAlign = 'left';
     g.textBaseline = 'alphabetic';
@@ -146,8 +143,8 @@
     g.save();
     g.translate(left, top);
     g.scale(ls, ls);
-    g.translate(-72, -6);
-    g.lineWidth = 32; g.lineCap = 'round'; g.lineJoin = 'round';
+    g.translate(-(76 - fe), -(10 - fe));
+    g.lineWidth = SMALL_SW; g.lineCap = 'round'; g.lineJoin = 'round';
     SMALL.forEach(function (s) {
       g.strokeStyle = segColor(s, o);
       g.stroke(new Path2D(pathD(s)));

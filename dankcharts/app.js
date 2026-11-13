@@ -25458,7 +25458,7 @@ function shArt(p, url, size, opt) {
 function shBrandLockup(p, opt) {
   const o = opt || {};
   const sz = o.size || 28;
-  const h = Math.round(sz * 1.1), w = Math.round(h * 344 / 508);
+  const h = Math.round(sz * 1.1), w = Math.round(h * 342 / 506);   // the small logo's frame (logo.js, line width 30)
   const name = o.color || p.text;
   const fm = o.fm || p.accent;
   const fs = Math.max(9, Math.round(sz * 0.42));
