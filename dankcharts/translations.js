@@ -5527,7 +5527,10 @@ const TRANSLATIONS = {
     // artist Rating tab: the card that opens the discography picture
     ra_share_kicker: 'Share as a picture',
     ra_share_title: "Compare {{artist}}'s albums",
-    ra_share_sub: 'Your {{n}} rated albums and singles, ranked by your score in one picture',
+    ra_share_sub_albums: 'Your {{n}} rated albums, best to worst, in one picture',
+    ra_share_sub_albums_one: 'Your 1 rated album in one picture',
+    ra_share_sub_singles: 'Your {{n}} rated singles & EPs, best to worst, in one picture',
+    ra_share_sub_singles_one: 'Your 1 rated single or EP in one picture',
     ra_share_cta: 'Make picture',
     ra_card_eyebrow: 'Discography scores',
     ra_card_per_page: 'Albums per page',

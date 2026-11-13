@@ -5364,7 +5364,10 @@ TRANSLATIONS['pt-PT'] = Object.assign({
     // artist Rating tab: the card that opens the discography picture
     ra_share_kicker: 'Partilhar como imagem',
     ra_share_title: 'Compara os álbuns de {{artist}}',
-    ra_share_sub: 'Os teus {{n}} álbuns e singles avaliados, por ordem da tua nota numa imagem',
+    ra_share_sub_albums: 'Os teus {{n}} álbuns avaliados, do melhor ao pior, numa imagem',
+    ra_share_sub_albums_one: 'O teu álbum avaliado numa imagem',
+    ra_share_sub_singles: 'Os teus {{n}} singles e EPs avaliados, do melhor ao pior, numa imagem',
+    ra_share_sub_singles_one: 'O teu single ou EP avaliado numa imagem',
     ra_share_cta: 'Criar imagem',
     ra_card_eyebrow: 'Notas da discografia',
     ra_card_per_page: 'Álbuns por página',

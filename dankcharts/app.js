@@ -65047,12 +65047,17 @@ function renderArtistRatingSection(artistName) {
   // "compare the albums"). The three bars on the left are only a drawing of
   // the ranked picture, not real scores.
   const nRated = (sum.ratedAlbums || 0) + (sum.ratedSingles || 0);
+  // The picture is about the albums (singles & EPs only behind a switch in
+  // the picture maker), so the line counts albums; singles only when no
+  // album is rated yet. Separate words for 1 so it reads "1 rated album".
+  const shareN = sum.ratedAlbums || sum.ratedSingles || 0;
+  const shareSubKey = 'ra_share_sub_' + (sum.ratedAlbums ? 'albums' : 'singles') + (shareN === 1 ? '_one' : '');
   const share = nRated ? `<div class="ar-next ar-share-card" role="button" tabindex="0" onclick="raOpenCard(${key(artistName)})" ${onKey}>
       <span class="ar-share-pic" aria-hidden="true"><i style="width:92%"></i><i style="width:74%"></i><i style="width:55%"></i></span>
       <span class="ar-next-txt">
         <span class="ao-kicker">${esc(t('ra_share_kicker'))}</span>
         <span class="ar-next-name">${esc(t('ra_share_title', { artist: artistName }))}</span>
-        <span class="ar-next-sub">${esc(t('ra_share_sub', { n: nRated }))}</span>
+        <span class="ar-next-sub">${esc(t(shareSubKey, { n: shareN }))}</span>
       </span>
       <span class="ar-next-cta">${ic('image')}<span>${esc(t('ra_share_cta'))}</span></span>
     </div>` : '';
