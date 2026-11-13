@@ -5398,6 +5398,8 @@ TRANSLATIONS['es'] = Object.assign({
     // album Rating tab tiles: detail lines
     rt_ins_spread: 'Dispersión ±{{n}}',
     rt_ins_filler_sub: '{{n}} de {{total}} bajo 5.0',
+    rt_al_tracks_rated: 'Canciones calificadas',
+    rt_al_standouts: 'Lo más destacado',
     ra_card_eyebrow: 'Notas de la discografía',
     ra_card_per_page: 'Álbumes por página',
     ra_card_page: 'Página {{n}} de {{total}}',

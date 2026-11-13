@@ -5561,6 +5561,8 @@ const TRANSLATIONS = {
     // album Rating tab tiles: detail lines
     rt_ins_spread: 'Spread ±{{n}}',
     rt_ins_filler_sub: '{{n}} of {{total}} under 5.0',
+    rt_al_tracks_rated: 'Tracks rated',
+    rt_al_standouts: 'Standouts',
     ra_card_eyebrow: 'Discography scores',
     ra_card_per_page: 'Albums per page',
     ra_card_page: 'Page {{n}} of {{total}}',

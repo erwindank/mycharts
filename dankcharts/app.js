@@ -63388,16 +63388,21 @@ function renderAlbumRatingSection(albumKey) {
     ${insTile('trash', ins.fillerPct + '%', ins.fillerPct, t('rtp_filler'), t('rt_ins_filler_sub', { n: ins.fillerCount, total: ins.ratedCount }), ins.fillerPct, 10 - ins.fillerPct / 10)}
   </div>` : '';
 
-  // Full track table, best first, so the album reads like a review scorecard.
-  const trackTable = tracks.length ? `<div class="rt-tracktable">
-    ${tracks.map(tr => ({ ...tr, score: ratingSongScore(tr.key) }))
-      .sort((a, b) => (b.score ?? -1) - (a.score ?? -1))
-      .map(tr => `<button class="rt-tracktable-row${tr.score == null ? ' rt-tracktable-row--unrated' : ''}"
-            onclick="openSongModal(${esc(JSON.stringify(tr.key))})">
-          <span class="rt-tt-title">${esc(tr.title)}</span>
-          <span class="rt-tt-plays">${tr.count} ${tUnit('plays', tr.count)}</span>
+  // Full track list, best first, so the album reads like a review scorecard.
+  // Redone 2026-11-12 (album Rating tab restyle): place number, title, plays,
+  // a bar for the score and the score chip; unrated tracks last, no number.
+  const scored = tracks.map(tr => ({ ...tr, score: ratingSongScore(tr.key) }))
+    .sort((a, b) => (b.score ?? -1) - (a.score ?? -1));
+  const trackTable = tracks.length ? `<div class="rt-al-tracks">
+    ${scored.map((tr, i) => {
+      const b = tr.score == null ? null : ratingBand(tr.score);
+      return `<button type="button" class="rt-al-tr ${b ? b.cls : 'rt-al-tr--unrated'}" onclick="openSongModal(${esc(JSON.stringify(tr.key))})">
+          <span class="rt-al-tr-n">${tr.score == null ? '–' : i + 1}</span>
+          <span class="rt-al-tr-txt"><span class="rt-al-tr-title">${esc(tr.title)}</span><span class="rt-al-tr-plays">${tCount('plays', tr.count)}</span></span>
+          <span class="rt-al-tr-bar"><i style="width:${tr.score == null ? 0 : (tr.score / RATING_MAX * 100).toFixed(1)}%"></i></span>
           ${tr.score == null ? `<span class="rt-tt-unrated">${t('rtp_unrated')}</span>` : ratingChip(tr.score)}
-        </button>`).join('')}
+        </button>`;
+    }).join('')}
   </div>` : '';
 
   // Edit + Share as two cards side by side under the score (were two plain
@@ -63427,23 +63432,35 @@ function renderAlbumRatingSection(albumKey) {
     </div>
   </div>`;
 
-  el.innerHTML = `<div class="rt-block">
-    <div class="rt-block-head">
-      ${ratingRing(res.score)}
-      <div class="rt-block-meta">
-        <div class="rt-block-verdict ${ratingBand(res.score).cls}">${esc(ratingBand(res.score).label)}</div>
-        <div class="rt-formula rt-formula--static">${_ratingFormulaHTML(res)}</div>
-        ${e?.note ? `<blockquote class="rt-block-note">${esc(e.note)}</blockquote>` : ''}
+  // Layout redone 2026-11-12 to match the artist Rating tab: a hero box
+  // (ring, "Your verdict", the formula, a tracks-rated bar, your note), then
+  // the Edit / Picture cards, the stat tiles, and each part in its own card
+  // with a small uppercase heading. rt-al-* classes are album-only; the song
+  // window still uses .rt-block.
+  const bnd = ratingBand(res.score);
+  const card = (title, body, extra = '') => `<div class="rt-al-card${extra}"><div class="rt-al-card-h"><span class="ao-kicker">${esc(title)}</span></div>${body}</div>`;
+  const pill = h => `<button type="button" class="rt-al-pill" onclick="openSongModal(${esc(JSON.stringify(h.key))})"><span>${esc(h.title)}</span>${ratingChip(h.score)}</button>`;
+  const hiHTML = ins && ins.highlights.length ? `<div class="rt-al-stand"><span class="rt-al-stand-l">${esc(t('rtp_highlights'))}</span><div class="rt-al-pills">${ins.highlights.map(pill).join('')}</div></div>` : '';
+  const skHTML = ins && ins.skips.length ? `<div class="rt-al-stand"><span class="rt-al-stand-l">${esc(t('rtp_skips'))}</span><div class="rt-al-pills">${ins.skips.map(pill).join('')}</div></div>` : '';
+  el.innerHTML = `<div class="ar rt-al">
+    <div class="ar-hero ${bnd.cls}">
+      ${ratingRing(res.score, { size: 120 })}
+      <div class="ar-hero-txt">
+        <span class="ao-kicker">${esc(t('ar_kicker'))}</span>
+        <div class="ar-verdict">${esc(bnd.label)}</div>
+        <div class="rt-formula rt-al-formula">${_ratingFormulaHTML(res)}</div>
+        <div class="ar-meters"><div class="ar-meter">
+          <div class="ar-meter-top"><span>${esc(t('rt_al_tracks_rated'))}</span><b>${res.ratedTracks}<span> / ${res.totalTracks}</span></b></div>
+          <div class="ar-meter-track"><span style="width:${(res.totalTracks ? res.ratedTracks / res.totalTracks * 100 : 0).toFixed(1)}%"></span></div>
+        </div></div>
+        ${e?.note ? `<blockquote class="rt-al-note">${esc(e.note)}</blockquote>` : ''}
       </div>
     </div>
     ${acts}
     ${insightStrip}
-    ${aspectBars ? `<div class="rt-sub-label">${t('rtp_aspects')}</div><div class="rt-critbars">${aspectBars}</div>` : ''}
-    ${ins && ins.highlights.length ? `<div class="rt-sub-label">${t('rtp_highlights')}</div>
-      <div class="rt-pill-row">${ins.highlights.map(h => `<span class="rt-pill ${ratingBand(h.score).cls}">${esc(h.title)} ${ratingFmt(h.score)}</span>`).join('')}</div>` : ''}
-    ${ins && ins.skips.length ? `<div class="rt-sub-label">${t('rtp_skips')}</div>
-      <div class="rt-pill-row">${ins.skips.map(h => `<span class="rt-pill ${ratingBand(h.score).cls}">${esc(h.title)} ${ratingFmt(h.score)}</span>`).join('')}</div>` : ''}
-    ${trackTable ? `<div class="rt-sub-label">${t('rtp_track_scores')}</div>${trackTable}` : ''}
+    ${aspectBars ? card(t('rtp_aspects'), `<div class="rt-critbars">${aspectBars}</div>`) : ''}
+    ${hiHTML || skHTML ? card(t('rt_al_standouts'), hiHTML + skHTML) : ''}
+    ${trackTable ? card(t('rtp_track_scores'), trackTable) : ''}
   </div>`;
 }
 

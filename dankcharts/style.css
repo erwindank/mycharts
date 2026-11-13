@@ -3628,6 +3628,70 @@
       display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
     }
     @media (max-width: 640px) { .dp-body .rt-ins-grid { grid-template-columns: 1fr 1fr; } }
+    /* ── Album Rating tab layout (renderAlbumRatingSection, 2026-11-12) ──
+       Matches the artist Rating tab: .ar-hero box on top, then cards with
+       a small uppercase heading. Scoped to .rt-al so the song window's
+       .rt-block look is untouched. */
+    .dp-body .rt-al .ar-hero { margin-bottom: 0; }
+    /* the formula reads as a line of text under the verdict, not a box;
+       "14/14 tracks rated" moves to the bar below it */
+    .dp-body .rt-al-formula { margin: 6px 0 0; padding: 0; background: none; border: 0; font-size: var(--fs-sm); }
+    .dp-body .rt-al-formula .rt-formula-note { display: none; }
+    .dp-body .rt-al-formula .rt-formula-total { color: var(--rt-c); }
+    .dp-body .rt-al .ar-meters { grid-template-columns: minmax(0, 320px); }
+    .dp-body .rt-al-note {
+      margin: var(--sp-3) 0 0; padding: var(--sp-2) var(--sp-3);
+      font-size: var(--fs-sm); font-style: italic; color: var(--text2); line-height: 1.5;
+      border-left: 3px solid var(--rt-c);
+      background: color-mix(in srgb, var(--rt-c) 8%, transparent);
+      border-radius: 0 var(--r-sm) var(--r-sm) 0;
+    }
+    .dp-body .rt-al-card { margin-bottom: var(--sp-3); padding: var(--sp-3) var(--sp-4) var(--sp-4); background: var(--raised); border: 1px solid var(--border); border-radius: var(--r-lg); }
+    .dp-body .rt-al-card-h { margin-bottom: var(--sp-3); }
+    .dp-body .rt-al .rt-critbars { margin-top: 0; gap: var(--sp-3) var(--sp-5); }
+    .dp-body .rt-al .rt-critbar-label { font-size: var(--fs-sm); color: var(--text); }
+    .dp-body .rt-al .rt-critbar-val { font-family: var(--font-display); font-size: var(--fs-md); }
+    .dp-body .rt-al .rt-critbar-track { height: 6px; border-radius: 6px; background: color-mix(in srgb, var(--text) 9%, transparent); }
+    .dp-body .rt-al .rt-critbar-fill { border-radius: 6px; transform-origin: left; animation: aoGrow 0.9s var(--ease) both; }
+    /* Standouts: Highlights / Skips, each song a pill with its score chip */
+    .dp-body .rt-al-stand + .rt-al-stand { margin-top: var(--sp-3); padding-top: var(--sp-3); border-top: 1px solid var(--border); }
+    .dp-body .rt-al-stand-l { display: block; margin-bottom: var(--sp-2); font-size: var(--fs-xs); font-weight: 600; color: var(--text2); }
+    .dp-body .rt-al-pills { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+    .dp-body .rt-al-pill {
+      display: inline-flex; align-items: center; gap: 2px; max-width: 100%;
+      padding: 5px 6px 5px 12px;
+      font: inherit; font-size: var(--fs-sm); font-weight: 600; color: var(--text);
+      background: var(--bg3); border: 1px solid var(--border); border-radius: var(--r-sm);
+      cursor: pointer; transition: border-color var(--t-fast) var(--ease), transform var(--t-fast) var(--ease);
+    }
+    .dp-body .rt-al-pill > span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .dp-body .rt-al-pill:hover { border-color: var(--dp-ac); transform: translateY(-1px); }
+    /* Track scores: place, title + plays, score bar, chip */
+    .dp-body .rt-al-tracks { display: flex; flex-direction: column; }
+    .dp-body .rt-al-tr {
+      display: grid; grid-template-columns: 28px minmax(0, 1fr) minmax(60px, 160px) auto; align-items: center; gap: var(--sp-3);
+      width: 100%; padding: 9px var(--sp-2); text-align: left;
+      font: inherit; color: var(--text); background: none; border: 0;
+      border-top: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+      border-radius: var(--r-sm); cursor: pointer;
+    }
+    .dp-body .rt-al-tr:first-child { border-top-color: transparent; }
+    .dp-body .rt-al-tr:hover { background: var(--hover); }
+    .dp-body .rt-al-tr-n { font-family: var(--font-display); font-weight: 800; font-size: var(--fs-sm); color: var(--text3); text-align: center; font-variant-numeric: tabular-nums; }
+    .dp-body .rt-al-tr:nth-child(-n+3):not(.rt-al-tr--unrated) .rt-al-tr-n { color: var(--rt-c); }
+    .dp-body .rt-al-tr-txt { display: flex; flex-direction: column; min-width: 0; }
+    .dp-body .rt-al-tr-title { font-weight: 700; font-size: var(--fs-sm); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .dp-body .rt-al-tr-plays { font-size: var(--fs-xs); color: var(--text3); }
+    .dp-body .rt-al-tr-bar { height: 6px; border-radius: 6px; background: color-mix(in srgb, var(--text) 9%, transparent); overflow: hidden; }
+    .dp-body .rt-al-tr-bar i { display: block; height: 100%; border-radius: inherit; background: var(--rt-c); transform-origin: left; animation: aoGrow 0.9s var(--ease) both; }
+    .dp-body .rt-al-tr .rt-chip { margin-left: 0; font-size: var(--fs-xs); min-width: 3.2em; }
+    .dp-body .rt-al-tr--unrated { opacity: 0.6; }
+    @media (max-width: 640px) {
+      .dp-body .rt-al-card { padding: var(--sp-3); }
+      .dp-body .rt-al-tr { grid-template-columns: 22px minmax(0, 1fr) 48px auto; gap: var(--sp-2); }
+      .dp-body .rt-al .ar-meters { grid-template-columns: 1fr; }
+    }
+
     /* album Tracks tab share card: sits between the plays split bar and the chart switch */
     .dp-body .am-share-card { margin: 0 0 var(--sp-3); }
     .dp-body .rt-act-pic { align-items: center; padding: 0; color: var(--dp-ac); }
