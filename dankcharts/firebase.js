@@ -20,6 +20,7 @@ const SYNC_KEYS = [
   'dc_events_artist_limit', 'dc_theme', 'dc_lang',
   'dc_autocorrect_rules', 'dc_autocorrect_deleted', 'dc_compilation_albums', 'dc_release_types',
   'dc_joint_albums',   // album owners / joint albums (app.js JOINT_ALBUMS_KEY)
+  'dc_album_release_dates',   // album release dates for singles counted toward albums (app.js ALBUM_RD_KEY)
   'dc_release_separation', 'dc_release_autodetect', 'dc_single_rollup',
   'dc_no_artist_split', 'dc_tm_api_key',
   'dc_tm_toggles',
@@ -110,7 +111,7 @@ async function _loadAndApplyConfig(uid) {
         // Same guard for the release-type map, whose empty form is an object.
         // It is hand-built (and later machine-detected) over a whole library,
         // so an empty remote value must never flatten a populated local one.
-        if ((key === 'dc_release_types' || key === 'dc_joint_albums') && data[key] === '{}') {
+        if ((key === 'dc_release_types' || key === 'dc_joint_albums' || key === 'dc_album_release_dates') && data[key] === '{}') {
           const local = localStorage.getItem(key);
           if (local && local !== '{}' && local !== '') { applied = true; continue; }
         }
@@ -178,6 +179,18 @@ async function dcSaveJointAlbumsToFirestore(mapJson) {
     await _configRef(_currentUser.uid).set({ dc_joint_albums: mapJson }, { merge: true });
   } catch (err) {
     console.warn('[dankcharts] Firebase joint albums save error:', err);
+  }
+}
+
+// Targeted, like the saves above: a release date is typed on the album page,
+// and looked-up dates are written in one batch (app.js _ardSave).
+async function dcSaveAlbumReleaseDatesToFirestore(mapJson) {
+  if (!_currentUser) return;
+  await _ensureDb();
+  try {
+    await _configRef(_currentUser.uid).set({ dc_album_release_dates: mapJson }, { merge: true });
+  } catch (err) {
+    console.warn('[dankcharts] Firebase album release dates save error:', err);
   }
 }
 
@@ -975,6 +988,7 @@ _auth.onAuthStateChanged(async (user) => {
   if (applied && typeof dcResetCompilationsCache === 'function') dcResetCompilationsCache();
   if (applied && typeof dcResetReleaseTypesCache === 'function') dcResetReleaseTypesCache();
   if (applied && typeof dcResetJointAlbumsCache === 'function') dcResetJointAlbumsCache();
+  if (applied && typeof dcResetAlbumReleaseDatesCache === 'function') dcResetAlbumReleaseDatesCache();
   if (applied && typeof dcApplyDisplayToggles === 'function') dcApplyDisplayToggles();
   if (applied && typeof dcApplyAllSettings    === 'function') dcApplyAllSettings();
 

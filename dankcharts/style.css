@@ -39460,6 +39460,45 @@ body.green-light :is(.sv--bronze, .modal-cb-detail-peak--bronze) {
   cursor: help;
 }
 
+/* "Counts on the charts from <date>": when the singles start counting toward
+   this album on the weekly / monthly / daily charts. Same quiet chip look as
+   the roll-up note beside it; the date box is editable, the source says
+   whether the date was found online, typed by the user or is the first play. */
+.alb-reldate {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.45rem;
+  margin-left: 0.4rem;
+  padding: 0.15rem 0.55rem;
+  border: 1px dashed currentColor;
+  border-radius: var(--r-full);
+  font-family: var(--font-sans);
+  font-size: var(--fs-xs);
+  color: currentColor;
+}
+.alb-reldate > span:first-child { opacity: 0.6; }
+.alb-reldate input[type="date"] {
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  color-scheme: light dark;
+  cursor: pointer;
+}
+.alb-reldate-src { opacity: 0.6; font-style: italic; }
+.alb-reldate-reset {
+  font: inherit;
+  color: var(--accent);
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
 /* ── Single, then album ──
    On the album page the split shows as a chip button (both halves open the
    editor); the "shares its name with an album?" ask is the roll-up chip made

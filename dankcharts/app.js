@@ -1332,6 +1332,11 @@ let _releaseTypeMap = null;
    library is not re-walked. That is what makes marking hundreds of singles
    cheap where marking one compilation is not. */
 let _releaseEpoch = 0;
+/* Album release dates for "singles count toward their album" (see
+   albumChartStart). Declared up here because the roll-up map can be built
+   while the rest of the file is still loading. */
+const ALBUM_RD_KEY = 'dc_album_release_dates';
+let _albumRdMap = null;   // parsed map, null = not read yet
 
 // Called by the Firestore sync when the map arrives from another device.
 window.dcResetReleaseTypesCache = () => {
@@ -1954,11 +1959,13 @@ function applyAlbumsFilterByKey(counts) {
    they counted on their own, a #10 album that owed two plays to its single
    was ranked #11 by Off the Chart and listed as having dropped out.
    `make(key)` builds a fresh entry in whatever shape the caller keeps. */
-function tallyAlbumPlay(map, p, roll, make) {
+/* `full` = a running total (the All-Time chart): the single's plays from
+   before the album's release count too. Left out on period charts. */
+function tallyAlbumPlay(map, p, roll, make, full) {
   if (!p.album || p.album === '—') return;
   const ak = albumKeyOf(p);
   (map[ak] || (map[ak] = make(ak, p))).count++;
-  const par = roll ? rollupParentOf(p) : null;
+  const par = roll ? rollupParentOf(p, full) : null;
   if (par && par !== ak) (map[par] || (map[par] = make(par, p))).count++;
 }
 
@@ -2059,9 +2066,15 @@ function rollupMap() {
      reads this rather than walking the plays again per single. */
   const songAlbums = new Map();   // songKey -> Map(albumKey -> { n, first })
   const isSingleKey = new Map();  // albumKey -> true/false, memoised
+  // albumKey -> first play of that release, in the chart's timezone. The
+  // fallback start for an album with no known release date.
+  const albumFirstTz = new Map();
   for (const p of allPlays) {
     if (!p.album || p.album === '—') continue;
     const ak = albumKeyOf(p);
+    const tms = tzMsOf(p);
+    const af = albumFirstTz.get(ak);
+    if (af === undefined || tms < af) albumFirstTz.set(ak, tms);
     if (!isSingleKey.has(ak)) {
       isSingleKey.set(ak, releaseTypeOf(p.album, albumArtist(p)) === 'single');
     }
@@ -2112,26 +2125,44 @@ function rollupMap() {
       const m = songAlbums.get(sk);
       if (m && m.has(parent)) shared.add(sk);
     }
-    if (shared.size) _rollupCache.set(singleKey, { parent, tracks: shared });
+    /* since: from when the single's plays also count on the album's
+       PERIOD charts (week, month, day, year). Before the album came out a
+       single cannot have helped it chart — see albumChartStart(). */
+    if (shared.size) _rollupCache.set(singleKey, { parent, tracks: shared, since: albumChartStart(parent, albumFirstTz.get(parent)) });
   }
+  // Albums still waiting for a real release date are looked up in the
+  // background; the charts redraw once the dates are in.
+  if (_rollupCache.size && rollupAffectsCharts()) setTimeout(_ardQueueLookups, 0);
   return _rollupCache;
 }
 
 /* The album a play should ALSO be credited to, or null. Called once per play
    inside the chart loops at the 'charts' level, so the off path is one string
-   comparison and the on path is one Map.get plus one Set.has. */
-function rollupParentOf(p) {
+   comparison and the on path is one Map.get plus one Set.has.
+
+   full = false (the default) is for PERIOD charts — weekly, monthly, daily,
+   yearly and everything built from them (runs, peaks, Records, Bubbling
+   Under…): a single's play only counts toward the album from the album's
+   release date on, like a real chart. So the album debuts the week it came
+   out and old charts stay as they were.
+   full = true is for running totals: the album page, certifications and the
+   All-Time chart, which count every play of the single, early ones included —
+   the way a real certification counts a lead single's streams. */
+function rollupParentOf(p, full) {
   if (singleRollup === 'off') return null;
   const m = rollupMap();
   if (!m.size) return null;
   const e = m.get(albumKeyOf(p));
   if (!e) return null;
-  return e.tracks.has(songKey(p)) ? e.parent : null;
+  if (!e.tracks.has(songKey(p))) return null;
+  if (!full && tzMsOf(p) < e.since) return null;
+  return e.parent;
 }
 
-// Does this play roll up into that particular album? The album modal's filter.
+// Does this play roll up into that particular album? The album modal's filter
+// — the page shows the whole total, so plays from before the release count.
 function rollupBelongsTo(p, albumKey) {
-  return rollupParentOf(p) === albumKey;
+  return rollupParentOf(p, true) === albumKey;
 }
 
 // The singles counted toward one album, for the line the album page shows.
@@ -2141,6 +2172,224 @@ function rollupSourcesFor(albumKey) {
     if (e.parent === albumKey) out.push(singleKey);
   }
   return out;
+}
+
+// ─── ALBUM RELEASE DATES (singles count from the album's release) ─────────
+/* A lead single is out weeks before its album. Counting all of its plays
+   toward the album put the album on weekly charts from before it existed and
+   moved its debut. So on PERIOD charts a single's play only counts toward the
+   album from the album's start date on (see rollupParentOf's `full`):
+     1. a date the user typed on the album page — always wins
+     2. the real release date, looked up on Deezer
+     3. the user's first play of the album itself, when no date is found —
+        and also when the found date is LATER than that first play, because
+        then it is a deluxe edition / reissue date, not the original one
+   From that date on the single's plays count even in weeks the user had not
+   played the album yet, like a real chart. Running totals — album page,
+   certifications, All-Time — count every play regardless.
+
+   Stored in dc_album_release_dates, keyed like the release-type map
+   (releaseTypeKey: credit|||album, lower case), synced to Firestore:
+     { a: 'Album', c: 'Credit', d: 'YYYY-MM-DD' | '', s: 'user' | 'auto', t: ms }
+   ad = on a typed date, the date found online before it (Reset goes back to it).
+   d '' = looked up, nothing found; asked again after ARD_RETRY_MS.
+   Works the same for every data source: it needs only album + artist names. */
+const ARD_RETRY_MS = 30 * 864e5;   // a "not found" is asked again after a month
+const ARD_SESSION_MAX = 150;        // lookups per page session, to spare the proxy
+let _ardBusy = false;
+const _ardTried = new Set();        // asked this session (found, missed or failed)
+
+// Called by the Firestore sync when the map arrives from another device.
+window.dcResetAlbumReleaseDatesCache = () => { _albumRdMap = null; _ardChanged(); };
+
+function _ardMap() {
+  if (_albumRdMap === null) {
+    try {
+      const raw = JSON.parse(localStorage.getItem(ALBUM_RD_KEY) || '{}');
+      _albumRdMap = (raw && typeof raw === 'object' && !Array.isArray(raw)) ? raw : {};
+    } catch { _albumRdMap = {}; }
+  }
+  return _albumRdMap;
+}
+
+/* Writes the map and pushes it straight to Firestore with the in-memory value —
+   not dcSaveUserConfig(), for the same race reason as _saveJointAlbums(). */
+function _ardSave(map) {
+  const json = JSON.stringify(map);
+  try { localStorage.setItem(ALBUM_RD_KEY, json); } catch (e) {}
+  _albumRdMap = map;
+  if (typeof dcSaveAlbumReleaseDatesToFirestore === 'function') dcSaveAlbumReleaseDatesToFirestore(json);
+}
+
+/* A start date moved: every period chart that ranks albums has to rebuild.
+   The release epoch retires the chart-run caches and the roll-up map; Records
+   is built from the same period charts. Certifications do not move (they
+   count every play), so the cert timeline is left alone. */
+function _ardChanged() {
+  _releaseEpoch++;
+  _rollupCache = null;
+  if (typeof dcInvalidateRecords === 'function') dcInvalidateRecords();
+}
+
+function _ardSplitKey(albumKey) {
+  const i = albumKey.lastIndexOf('|||');
+  return [albumKey.slice(0, i), albumKey.slice(i + 3)];
+}
+
+// The saved entry for an album (albumKey = album|||artist), or null
+function albumReleaseDateOf(albumKey) {
+  const [album, artist] = _ardSplitKey(albumKey);
+  return _ardMap()[releaseTypeKey(album, artist)] || null;
+}
+
+// 'YYYY-MM-DD' -> midnight of that day on the chart's clock (fake-local ms,
+// the same scale as tzMsOf), or null if it is not a real date.
+function _ardDayMs(str) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(str || ''));
+  if (!m || +m[1] < 1900) return null;
+  const d = new Date(+m[1], +m[2] - 1, +m[3]);
+  return isNaN(d) ? null : d.getTime();
+}
+
+// The other way round, for the date box on the album page.
+function _ardDayStr(ms) {
+  if (ms == null || !isFinite(ms)) return '';
+  const d = new Date(ms);
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
+/* From when (chart-clock ms) a single's plays also count toward this album on
+   period charts. firstTz = the album's own first play (tzMsOf scale). The
+   order of the three sources is explained at the top of this section. */
+function albumChartStart(parentKey, firstTz) {
+  let first = Infinity;
+  if (firstTz != null && isFinite(firstTz)) { const d = new Date(firstTz); d.setHours(0, 0, 0, 0); first = d.getTime(); }
+  const e = albumReleaseDateOf(parentKey);
+  const rel = e && e.d ? _ardDayMs(e.d) : null;
+  if (rel == null) return first;
+  if (e.s === 'user') return rel;
+  return Math.min(rel, first);
+}
+
+/* Where an album's start date came from, for the album page:
+   { ms, src: 'user' | 'found' | 'first' }, or null if no single counts toward it. */
+function albumChartStartInfo(albumKey) {
+  for (const e of rollupMap().values()) {
+    if (e.parent !== albumKey) continue;
+    const r = albumReleaseDateOf(albumKey);
+    const src = r && r.s === 'user' && r.d ? 'user'
+      : (r && r.d && _ardDayMs(r.d) === e.since ? 'found' : 'first');
+    return { ms: e.since, src };
+  }
+  return null;
+}
+
+/* The user typed a date on the album page ('' or null = forget it and go back
+   to the looked-up date / first play). */
+function setAlbumReleaseDate(albumKey, dateStr) {
+  const [album, artist] = _ardSplitKey(albumKey);
+  const k = releaseTypeKey(album, artist);
+  const map = { ..._ardMap() };
+  const prev = map[k];
+  // The date found online, kept under a typed one so Reset can go straight back to it
+  const found = prev ? (prev.s === 'user' ? prev.ad : prev.d) : '';
+  if (dateStr && _ardDayMs(dateStr) != null) {
+    map[k] = { a: album, c: artist, d: dateStr, s: 'user', t: Date.now() };
+    if (found) map[k].ad = found;
+  } else if (found) {
+    map[k] = { a: album, c: artist, d: found, s: 'auto', t: Date.now() };
+  } else {
+    delete map[k];
+    _ardTried.delete(k);   // nothing was found before: look the real date up again
+  }
+  _ardSave(map);
+  _ardChanged();
+  if (typeof renderAll === 'function') renderAll();
+  // Redraw the album page so the date line says where the date now comes from
+  if (_currentAlbumKey === albumKey) openAlbumModal(albumKey);
+}
+window.setAlbumReleaseDate = setAlbumReleaseDate;
+
+/* Deezer's release date for one album.
+   'YYYY-MM-DD' found · null = asked, no confident answer · undefined = the
+   request failed (offline, proxy busy) — not saved, so it is asked again.
+   An exact title match counts first (so "Red (Taylor's Version)" is not
+   dated 2012); failing that, the same title without its bracket / " - " tags
+   ("Lover (Deluxe)" -> "Lover"). Of up to three matches the EARLIEST date
+   wins, which picks the original over a later deluxe edition. */
+async function _ardLookup(album, artist) {
+  try {
+    const comp = artist === VARIOUS_ARTISTS;
+    const search = async q => {
+      const r = await deezerFetch(`search/album?q=${encodeURIComponent(q)}&limit=10`);
+      if (!r.ok) throw new Error('deezer ' + r.status);
+      return (await r.json())?.data || [];
+    };
+    let items = await search(comp ? album : artist + ' ' + album);
+    if (!items.length) {
+      const a2 = comp ? '' : _artSearchArtist(artist), t2 = _artSearchTitle(album);
+      if (t2 && (t2 !== album || a2 !== artist)) items = await search((a2 ? a2 + ' ' : '') + t2);
+    }
+    const lead = String(artist).toLowerCase().split(/[\s,&]/)[0];
+    const mine = items.filter(x => comp || String(x.artist?.name || '').toLowerCase().includes(lead));
+    const norm = v => String(v || '').toLowerCase().trim();
+    const base = v => norm(_artSearchTitle(v).replace(/\s*[([][^)\]]*[)\]]/g, ''));
+    let picks = mine.filter(x => norm(x.title) === norm(album));
+    if (!picks.length) picks = mine.filter(x => base(x.title) && base(x.title) === base(album));
+    if (!picks.length) return null;
+    let best = null;
+    for (const x of picks.slice(0, 3)) {
+      const r = await deezerFetch(`album/${x.id}`);
+      if (!r.ok) continue;
+      const d = String((await r.json())?.release_date || '');
+      if (_ardDayMs(d) != null && (!best || d < best)) best = d;
+    }
+    return best;
+  } catch (e) { return undefined; }
+}
+
+/* Looks up the release date of every album a single counts toward that has
+   none yet. Queued from rollupMap() whenever it is built at the charts level,
+   so it covers every data source and runs once the library is in. Two at a
+   time; the charts redraw once, at the end, if any date was found. */
+async function _ardQueueLookups() {
+  if (_ardBusy || !rollupAffectsCharts() || _ardTried.size >= ARD_SESSION_MAX) return;
+  const map = _ardMap(), now = Date.now(), want = [];
+  const parents = new Set();
+  for (const e of rollupMap().values()) parents.add(e.parent);
+  for (const pk of parents) {
+    const [album, artist] = _ardSplitKey(pk);
+    const k = releaseTypeKey(album, artist);
+    if (_ardTried.has(k)) continue;
+    const ent = map[k];
+    if (ent && (ent.d || ent.s === 'user' || now - (ent.t || 0) < ARD_RETRY_MS)) continue;
+    want.push({ k, album, artist });
+  }
+  if (!want.length) return;
+  _ardBusy = true;
+  const results = {};
+  let found = false;
+  const queue = want.slice(0, ARD_SESSION_MAX - _ardTried.size);
+  const worker = async () => {
+    while (queue.length) {
+      const w = queue.shift();
+      _ardTried.add(w.k);
+      const d = await _ardLookup(w.album, w.artist);
+      if (d === undefined) continue;   // failed: not saved, asked again next session
+      results[w.k] = { a: w.album, c: w.artist, d: d || '', s: 'auto', t: Date.now() };
+      if (d) found = true;
+    }
+  };
+  try { await Promise.all([worker(), worker()]); } finally { _ardBusy = false; }
+  if (!Object.keys(results).length) return;
+  // Merged onto the map as it is NOW: a date typed while this ran must win.
+  const cur = { ..._ardMap() };
+  for (const k in results) if (!cur[k] || cur[k].s !== 'user') cur[k] = results[k];
+  _ardSave(cur);
+  if (found) {
+    _ardChanged();
+    if (typeof renderAll === 'function') renderAll();
+  }
 }
 
 // Primary artist for album grouping — always the first artist so that feat. tracks
@@ -9458,7 +9707,8 @@ function buildRecords() {
          certification works: a single and the album carrying it are certified
          separately off the same listening. */
       if (_certRoll) {
-        const par = rollupParentOf(p);
+        // Certifications count every play, from before the release too.
+        const par = rollupParentOf(p, true);
         if (par && par !== ak) {
           const pi = par.lastIndexOf('|||');
           const pAlbum = par.slice(0, pi), pArtist = par.slice(pi + 3);
@@ -17552,6 +17802,9 @@ function buildArtistsFull(plays, ms) {
 function buildAlbumsFull(plays, ms) {
   let counts = {};
   const roll = rollupAffectsCharts();
+  // Yearly is a period chart (singles count from the album's release on);
+  // All-Time is a running total and counts all of them.
+  const rollFull = currentPeriod === 'alltime';
   for (const p of plays) {
     if (!p.album || p.album === '—') continue;
     const k = albumKeyOf(p);
@@ -17562,7 +17815,7 @@ function buildAlbumsFull(plays, ms) {
        counted toward. Deliberate: the single keeps its own entry and its own
        figure, and the album's entry reflects the plays its song actually got.
        Nothing sums these rows, so the overlap stays on the entries. */
-    const par = roll ? rollupParentOf(p) : null;
+    const par = roll ? rollupParentOf(p, rollFull) : null;
     if (par && par !== k) {
       if (!counts[par]) {
         const i = par.lastIndexOf('|||');
@@ -20764,7 +21017,8 @@ function buildAllTimePeaks(forView) {
   // Albums — rank within top chartSizeAllTime
   const lp = {};
   const _atRoll = rollupAffectsCharts();
-  for (const p of allPlays) tallyAlbumPlay(lp, p, _atRoll, () => ({ count: 0, firstAchieved: p.date }));
+  // All-Time is a running total, so the early single plays count (full).
+  for (const p of allPlays) tallyAlbumPlay(lp, p, _atRoll, () => ({ count: 0, firstAchieved: p.date }), true);
   /* Separated types are their own all-time chart, so a single's all-time rank
      is its rank among singles — the same split the chart on screen makes. */
   const albumPeakMap = {};
@@ -30445,7 +30699,22 @@ function openAlbumModal(albumKey) {
        to check it. */
     (rolledSingles.length
       ? `<span class="alb-rollup-note" title="${esc(rolledSingles.map(k => k.split('|||')[0]).join(' · '))}">${esc(t(rolledSingles.length === 1 ? 'rollup_note' : 'rollup_note_other', { n: rolledSingles.length }))}</span>`
-      : '');
+      : '') +
+    /* From when the singles count on the weekly / monthly / daily charts:
+       the album's release date (found online or typed here), or the first
+       play. Only at the charts level — elsewhere it changes nothing. */
+    (() => {
+      if (!rolledSingles.length || !rollupAffectsCharts()) return '';
+      const info = albumChartStartInfo(albumKey);
+      if (!info || !isFinite(info.ms)) return '';
+      const jsKey = esc(JSON.stringify(albumKey));
+      return `<label class="alb-reldate" title="${esc(t('ard_hint'))}">
+        <span>${esc(t('ard_label'))}</span>
+        <input type="date" value="${_ardDayStr(info.ms)}" onchange="setAlbumReleaseDate(${jsKey},this.value)">
+        <span class="alb-reldate-src">${esc(t('ard_src_' + info.src))}</span>
+        ${info.src === 'user' ? `<button type="button" class="alb-reldate-reset" onclick="event.preventDefault();setAlbumReleaseDate(${jsKey},'')">${esc(t('ard_reset'))}</button>` : ''}
+      </label>`;
+    })();
   }
 
   // ── IMAGE ─────────────────────────────────────────────────────────────────
@@ -45271,7 +45540,8 @@ function _altRanking(album, artist) {
   const roll = rollupAffectsCharts();
   const byTitle = new Map();
   for (const p of (all ? atPlays() : allPlays)) {
-    if (albumKeyOf(p) !== ak && !(roll && rollupParentOf(p) === ak)) continue;
+    // All-Time counts the single's early plays too; a period only from the release on
+    if (albumKeyOf(p) !== ak && !(roll && rollupParentOf(p, all) === ak)) continue;
     if (!all) { const m = tzMsOf(p); if (m < s || m > e) continue; }
     let row = byTitle.get(p.title);
     if (!row) { row = { title: p.title, artist: p.artist, album: p.album, key: songKey(p), count: 0 }; byTitle.set(p.title, row); }

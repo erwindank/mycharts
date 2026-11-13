@@ -218,8 +218,9 @@ function _atiCompute(type, items, N) {
       uniq.add(k);
       const e = byKey.get(k);
       if (e) e.times.push(m);
-      // A single's play also counts toward its album when roll-up is on (as in buildAlbumsFull)
-      const par = roll ? rollupParentOf(p) : null;
+      // A single's play also counts toward its album when roll-up is on (as in buildAlbumsFull).
+      // All-Time counts every play, from before the album's release too (full).
+      const par = roll ? rollupParentOf(p, true) : null;
       const e2 = par && par !== k ? byKey.get(par) : null;
       if (e2) e2.times.push(m);
       if (e || e2) playsOnce++;
