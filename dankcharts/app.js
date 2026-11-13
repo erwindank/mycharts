@@ -58070,7 +58070,7 @@ function _stAmPeriodEndDs() {
 
 // Plays per day from the first play to the period's end, as small bars.
 // Over ~4 months the bars become weeks so they stay readable.
-function _stAmChartHtml(dayCounts, firstDs, peakDay) {
+function _stAmChartHtml(dayCounts, firstDs, peakDay, isNew) {
   const endDs = _stAmPeriodEndDs();
   const days = [];
   for (let d = new Date(firstDs + 'T12:00:00'); ; d.setDate(d.getDate() + 1)) {
@@ -58104,10 +58104,10 @@ function _stAmChartHtml(dayCounts, firstDs, peakDay) {
   return `
     <div class="st-am-card st-am-chart">
       <div class="st-am-card-head">
-        <span class="st-am-h">${t('st_am_chart_title')}</span>
+        <span class="st-am-h">${t(isNew ? 'st_am_chart_title' : 'st_am_chart_title_period')}</span>
         <span class="st-am-trend st-am-trend--${trend}">${t('st_am_trend_' + trend)}</span>
       </div>
-      <svg class="st-am-bars" viewBox="0 0 ${n} 100" preserveAspectRatio="none" role="img" aria-label="${esc(t('st_am_chart_title'))}">${bars}</svg>
+      <svg class="st-am-bars" viewBox="0 0 ${n} 100" preserveAspectRatio="none" role="img" aria-label="${esc(t(isNew ? 'st_am_chart_title' : 'st_am_chart_title_period'))}">${bars}</svg>
       <div class="st-am-axis"><span>${fmt(days[0])}</span>${peakDay ? `<span class="st-am-peak">${t('st_am_best_day', { date: fmt(peakDay), n: dayCounts[peakDay], unit: tUnit('plays', dayCounts[peakDay]) })}</span>` : ''}<span>${fmt(days[days.length - 1])}</span></div>
     </div>`;
 }
@@ -58286,14 +58286,34 @@ function stOpenArtistModal(artist) {
   const ranked = Object.entries(periodArtistCounts).sort((a, b) => b[1] - a[1]);
   const rank = ranked.findIndex(([a]) => a === artist) + 1;
 
+  // Is this really a new discovery? Only when the artist's first play EVER
+  // falls inside this period (same rule as the New Discoveries chapter).
+  // Milestones, top charts etc. open this pop-up for any artist, so an
+  // old favourite gets "Artist spotlight" + their first-ever play date instead.
+  const firstEver = stGetFirstSeenArtists()[artist];
+  let isNew;
+  if (stPeriodType === 'alltime') {
+    isNew = _stDiscovered.includes(artist); // All-Time: only the by-year discovery picks
+  } else if (firstEver) {
+    const ftz = tzDate(firstEver);
+    isNew = stPeriodType === 'year' ? ftz.getFullYear() === stYear
+      : ftz.getFullYear() === stYear && (ftz.getMonth() + 1) === stMonth;
+  } else {
+    isNew = true; // no history to check against — keep the old wording
+  }
+  const firstEverDs = firstEver ? localDateStr(tzDate(firstEver)) : null;
+
   const fmtDay = ds => new Date(ds + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-  _stAmInfo = { artist, totalPlays, activeDays, rank, discoveredDs, topSong: topSongs[0]?.title || '', period: stGetPeriodLabel() };
+  // not-new artists can go back years, so their first-play date carries the year
+  const fmtDayYear = ds => new Date(ds + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+  _stAmInfo = { artist, totalPlays, activeDays, rank, discoveredDs, isNew, firstEverDs, topSong: topSongs[0]?.title || '', period: stGetPeriodLabel() };
 
   // ── Hero: photo backdrop, name, found date + rank, actions ──
   document.getElementById('stArtistModalName').textContent = artist;
-  document.getElementById('stArtistModalSub').textContent = t('st_am_kicker', { period: stGetPeriodLabel() });
+  document.getElementById('stArtistModalSub').textContent = t(isNew ? 'st_am_kicker' : 'st_am_kicker_known', { period: stGetPeriodLabel() });
   const meta = [];
-  if (discoveredDs) meta.push(t('st_am_found', { date: fmtDay(discoveredDs) }));
+  if (isNew) { if (discoveredDs) meta.push(t('st_am_found', { date: fmtDay(discoveredDs) })); }
+  else if (firstEverDs) meta.push(t('st_am_first_played', { date: fmtDayYear(firstEverDs) }));
   if (rank > 0) meta.push(t('st_am_rank', { n: rank }));
   document.getElementById('stArtistModalMeta').textContent = meta.join(' · ');
 
@@ -58359,7 +58379,7 @@ function stOpenArtistModal(artist) {
     </div>
 
     ${_stAmGoalHtml(rank, totalPlays, ranked)}
-    ${days.length ? _stAmChartHtml(dayCounts, days[0], peakDay) : ''}
+    ${days.length ? _stAmChartHtml(dayCounts, days[0], peakDay, isNew) : ''}
 
     <div class="st-am-cols">
       <div class="st-am-card st-am-list">
@@ -58513,7 +58533,7 @@ async function _stAmRenderCard() {
   // Kicker
   g.font = `600 34px ${sans}`;
   g.fillStyle = MINT;
-  g.fillText(('✦ ' + t('st_am_kicker', { period: info.period })).toUpperCase(), W / 2, 112);
+  g.fillText(('✦ ' + t(info.isNew === false ? 'st_am_kicker_known' : 'st_am_kicker', { period: info.period })).toUpperCase(), W / 2, 112);
 
   // Portrait with a glowing ring
   const cx = W / 2, cy = 400, r = 220;
@@ -58540,12 +58560,13 @@ async function _stAmRenderCard() {
   g.fillStyle = '#ffffff';
   g.fillText(clip(info.artist, 960), W / 2, 790);
 
-  // Found on …
-  if (info.discoveredDs) {
+  // Found on … (new discoveries) / First played … (artists you already knew)
+  const cardDs = info.isNew === false ? info.firstEverDs : info.discoveredDs;
+  if (cardDs) {
     g.font = `500 36px ${sans}`;
     g.fillStyle = 'rgba(255,255,255,0.72)';
-    const d = new Date(info.discoveredDs + 'T12:00:00').toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' });
-    g.fillText(t('st_am_found', { date: d }), W / 2, 852);
+    const d = new Date(cardDs + 'T12:00:00').toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' });
+    g.fillText(t(info.isNew === false ? 'st_am_first_played' : 'st_am_found', { date: d }), W / 2, 852);
   }
 
   // Three numbers
