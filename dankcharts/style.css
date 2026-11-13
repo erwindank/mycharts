@@ -35002,6 +35002,20 @@ body.st-story-open { overflow: hidden; }
 .st-am-card-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px; }
 
 .st-am-muted { font-size: var(--fs-sm); color: var(--text3); }
+
+/* Scope line at the top of the pop-up body: names the Soundtrack year/month
+   every number below is counted from, so it never reads as all-time */
+.st-am-scope {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--bg3);
+  font-size: var(--fs-sm);
+  color: var(--text2);
+}
+.st-am-scope b { color: var(--text); font-weight: 700; }
+.st-am-scope-ic { font-size: 15px; line-height: 1; }
 .st-am-loading { animation: stAmPulse 1.2s ease-in-out infinite; }
 @keyframes stAmPulse { 50% { opacity: 0.45; } }
 

@@ -58101,13 +58101,18 @@ function _stAmChartHtml(dayCounts, firstDs, peakDay, isNew) {
     trend = !recent ? 'quiet' : b > a * 1.25 ? 'up' : b < a * 0.8 ? 'down' : 'steady';
   }
   const fmt = ds => new Date(ds + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  // name the year/month outright ("Plays in 2026") so it's clear this is the
+  // Soundtrack period being viewed, not the artist's whole history
+  const chartTitle = isNew ? t('st_am_chart_title')
+    : stPeriodType === 'alltime' ? t('st_am_chart_title_alltime')
+    : t('st_am_chart_title_period', { period: stGetPeriodLabel() });
   return `
     <div class="st-am-card st-am-chart">
       <div class="st-am-card-head">
-        <span class="st-am-h">${t(isNew ? 'st_am_chart_title' : 'st_am_chart_title_period')}</span>
+        <span class="st-am-h">${esc(chartTitle)}</span>
         <span class="st-am-trend st-am-trend--${trend}">${t('st_am_trend_' + trend)}</span>
       </div>
-      <svg class="st-am-bars" viewBox="0 0 ${n} 100" preserveAspectRatio="none" role="img" aria-label="${esc(t(isNew ? 'st_am_chart_title' : 'st_am_chart_title_period'))}">${bars}</svg>
+      <svg class="st-am-bars" viewBox="0 0 ${n} 100" preserveAspectRatio="none" role="img" aria-label="${esc(chartTitle)}">${bars}</svg>
       <div class="st-am-axis"><span>${fmt(days[0])}</span>${peakDay ? `<span class="st-am-peak">${t('st_am_best_day', { date: fmt(peakDay), n: dayCounts[peakDay], unit: tUnit('plays', dayCounts[peakDay]) })}</span>` : ''}<span>${fmt(days[days.length - 1])}</span></div>
     </div>`;
 }
@@ -58314,7 +58319,8 @@ function stOpenArtistModal(artist) {
   const meta = [];
   if (isNew) { if (discoveredDs) meta.push(t('st_am_found', { date: fmtDay(discoveredDs) })); }
   else if (firstEverDs) meta.push(t('st_am_first_played', { date: fmtDayYear(firstEverDs) }));
-  if (rank > 0) meta.push(t('st_am_rank', { n: rank }));
+  // "#8 in 2026" rather than "#8 this period" — say which period
+  if (rank > 0) meta.push(stPeriodType === 'alltime' ? t('st_am_rank', { n: rank }) : t('st_am_rank_in', { n: rank, period: stGetPeriodLabel() }));
   document.getElementById('stArtistModalMeta').textContent = meta.join(' · ');
 
   const avatarEl = document.getElementById('stArtistModalAvatar');
@@ -58370,7 +58376,12 @@ function stOpenArtistModal(artist) {
     </div>`).join('');
 
   const body = document.getElementById('stArtistModalBody');
+  // Scope line: everything in this pop-up counts only the year/month the
+  // Soundtrack is showing (All-Time already is everything, so no line there)
+  const scope = stPeriodType === 'alltime' ? ''
+    : `<div class="st-am-scope"><span class="st-am-scope-ic" aria-hidden="true">📅</span><span>${t('st_am_scope', { period: `<b>${esc(stGetPeriodLabel())}</b>` })}</span></div>`;
   body.innerHTML = `
+    ${scope}
     <div class="modal-stats-strip st-am-stats">
       <div class="modal-stat"><div class="sv" data-countup="${totalPlays}">${totalPlays.toLocaleString()}</div><div class="sl">${t('stat_total_plays')}</div></div>
       <div class="modal-stat"><div class="sv" data-countup="${activeDays}">${activeDays}</div><div class="sl">${t('modal_calendar_days_played')}</div></div>
