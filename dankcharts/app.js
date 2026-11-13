@@ -63521,15 +63521,17 @@ function rtLoadCardSettings() {
 // The rating bands as fixed hex pairs [on a dark card, on a light card]. The
 // app's --rt-* tokens are color-mix() expressions tuned to the live theme, which
 // neither html2canvas nor a fixed palette like Paper can use, so the card keeps
-// its own copy of the same hues.
+// its own copy of the same hues. 2026-11-12: one clear hue per band (same
+// as the app's --rt-* tokens now): green, sky, violet, slate, yellow,
+// orange, red.
 const RT_CARD_BAND_HEX = {
-  masterpiece: ['#3ddc97', '#0f9d58'],
-  essential:   ['#9be8c4', '#14532d'],
-  great:       ['#38bdf8', '#0369a1'],
-  good:        ['#2dd4bf', '#0f766e'],
-  mixed:       ['#fbbf24', '#b45309'],
+  masterpiece: ['#34d399', '#047857'],
+  essential:   ['#38bdf8', '#0369a1'],
+  great:       ['#a78bfa', '#6d28d9'],
+  good:        ['#94a3b8', '#475569'],
+  mixed:       ['#facc15', '#a16207'],
   weak:        ['#fb923c', '#c2410c'],
-  poor:        ['#ff6b81', '#d93025'],
+  poor:        ['#f87171', '#b91c1c'],
 };
 function _rtBandHex(p, score) {
   const b = ratingBand(score);
@@ -63811,19 +63813,17 @@ function _rtHeadline(ctx) {
   return { main: r.score, label: t('rt_card_mode_album') };
 }
 
-// The Grid's own band colours [on a dark card, on a light card]. The app's
-// bands step through near-identical greens and two golds, which is fine for a
-// chip beside a number but not for a grid that is read by colour alone — so
-// every band here gets its own hue. Masterpiece is green, as everywhere else,
-// and Mixed is amber so yellow always means a middling score.
+// The Grid's own band colours [on a dark card, on a light card]. A grid is
+// read by colour alone, so every band needs its own hue. Since 2026-11-12
+// this is the same set as the app's --rt-* tokens and RT_CARD_BAND_HEX.
 const RT_GRID_BAND_HEX = {
-  masterpiece: ['#22c55e', '#15803d'],
-  essential:   ['#86efac', '#14532d'],
-  great:       ['#60a5fa', '#2563eb'],
-  good:        ['#2dd4bf', '#0f766e'],
-  mixed:       ['#fbbf24', '#b45309'],
-  weak:        ['#fb923c', '#ea580c'],
-  poor:        ['#f43f5e', '#be123c'],
+  masterpiece: ['#34d399', '#047857'],
+  essential:   ['#38bdf8', '#0369a1'],
+  great:       ['#a78bfa', '#6d28d9'],
+  good:        ['#94a3b8', '#475569'],
+  mixed:       ['#facc15', '#a16207'],
+  weak:        ['#fb923c', '#c2410c'],
+  poor:        ['#f87171', '#b91c1c'],
 };
 function _rtGridHex(p, score) {
   const b = ratingBand(score);

@@ -39823,13 +39823,18 @@ body.green-light :is(.sv--bronze, .modal-cb-detail-peak--bronze) {
       --rt-blue-src:    var(--teal);
       --rt-teal-src:    #2dd4bf;
 
-      --rt-masterpiece: var(--green);
-      --rt-essential:   color-mix(in srgb, var(--green) 72%, var(--text));
-      --rt-great:       var(--rt-blue-src);
-      --rt-good:        var(--rt-teal-src);
-      --rt-mixed:       var(--amber);
-      --rt-weak:        color-mix(in srgb, var(--amber) 45%, var(--rose));
-      --rt-poor:        var(--rose);
+      /* 2026-11-12: the old ramp (green / paler green / blue / teal) made
+         6s, 8s and 9s all read as "green". Now each band is its own hue,
+         fixed per dark / light so no theme can pull two together:
+         9+ green · 8 sky blue · 7 violet · 6 slate grey · 5 yellow ·
+         3 orange · below 3 red. */
+      --rt-masterpiece: #34d399;
+      --rt-essential:   #38bdf8;
+      --rt-great:       #a78bfa;
+      --rt-good:        #94a3b8;
+      --rt-mixed:       #facc15;
+      --rt-weak:        #fb923c;
+      --rt-poor:        #f87171;
       --rt-none:        var(--text3);
     }
 
@@ -39852,13 +39857,14 @@ body.green-light :is(.sv--bronze, .modal-cb-detail-peak--bronze) {
     body.red-light,
     body.green-light {
       --rt-teal-src:    #0f766e;
-      --rt-masterpiece: color-mix(in srgb, var(--green) 70%, var(--text));
-      --rt-essential:   color-mix(in srgb, var(--green) 40%, var(--text));
-      --rt-great:       color-mix(in srgb, var(--rt-blue-src) 60%, var(--text));
-      --rt-good:        color-mix(in srgb, var(--rt-teal-src) 75%, var(--text));
-      --rt-mixed:       color-mix(in srgb, var(--amber) 60%, var(--text));
-      --rt-weak:        color-mix(in srgb, color-mix(in srgb, var(--amber) 45%, var(--rose)) 60%, var(--text));
-      --rt-poor:        color-mix(in srgb, var(--rose) 60%, var(--text));
+      /* same hues as dark, deep enough for small bold text on white */
+      --rt-masterpiece: #047857;
+      --rt-essential:   #0369a1;
+      --rt-great:       #6d28d9;
+      --rt-good:        #475569;
+      --rt-mixed:       #a16207;
+      --rt-weak:        #c2410c;
+      --rt-poor:        #b91c1c;
     }
 
     /* One class per band. `color` drives text and `--rt-c` is the handle every
