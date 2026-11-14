@@ -6514,6 +6514,9 @@
     .scrobble-many-fname { font-size: var(--fs-xs); color: var(--text3); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .scrobble-many-times { display: grid; grid-template-columns: 1fr 9rem; gap: var(--sp-3); align-items: end; }
     @media (max-width: 480px) { .scrobble-many-times { grid-template-columns: 1fr; } }
+    /* "List starts at / List ends at" sits where the field's label would be */
+    .scrobble-many-anchor { align-self: flex-start; }
+    .scrobble-many-anchor > button { height: 24px; }
     .scrobble-many-preview:empty { display: none; }
     .scrobble-many-count { margin: 0 0 var(--sp-2); font-size: var(--fs-sm); font-weight: 600; color: var(--text); }
     .scrobble-many-empty { margin: 0; font-size: var(--fs-sm); color: var(--text3); }

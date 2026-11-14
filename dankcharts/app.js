@@ -2855,8 +2855,26 @@ async function scrobbleCopyTpl(btn) {
 function setScrobbleManyNow() {
   const now = new Date();
   now.setMilliseconds(0);
-  document.getElementById('scrobbleManyEnd').value = scrobbleDatetimeLocal(now);
+  document.getElementById('scrobbleManyAt').value = scrobbleDatetimeLocal(now);
   _scrobbleRenderPreview();
+}
+
+// Is the picked time where the list starts (top line) or ends (bottom line)?
+// Remembered in this browser — a viewer convenience only, so a blocked
+// localStorage just means "ends", the original behaviour.
+const SCROB_ANCHOR_KEY = 'dc_scrob_many_anchor';
+function _scrobbleAnchor() {
+  try { return localStorage.getItem(SCROB_ANCHOR_KEY) === 'start' ? 'start' : 'end'; } catch (e) { return 'end'; }
+}
+function _scrobbleSetAnchor(a) {
+  try { localStorage.setItem(SCROB_ANCHOR_KEY, a === 'start' ? 'start' : 'end'); } catch (e) { }
+  _scrobblePaintAnchor();
+  _scrobbleRenderPreview();
+}
+function _scrobblePaintAnchor() {
+  const a = _scrobbleAnchor();
+  document.querySelectorAll('#scrobbleManyAnchor [data-anchor]').forEach(b =>
+    b.setAttribute('aria-pressed', String(b.dataset.anchor === a)));
 }
 
 function _scrobbleSetMode(mode) {
@@ -2882,7 +2900,10 @@ function _scrobbleInitMany() {
     document.getElementById('scrobbleManyFname').textContent = '';   // typed over: no longer "the file"
     later();
   });
-  document.getElementById('scrobbleManyEnd').addEventListener('input', later);
+  document.getElementById('scrobbleManyAt').addEventListener('input', later);
+  document.querySelectorAll('#scrobbleManyAnchor [data-anchor]').forEach(b =>
+    b.addEventListener('click', () => _scrobbleSetAnchor(b.dataset.anchor)));
+  _scrobblePaintAnchor();
   document.getElementById('scrobbleManyGap').addEventListener('input', later);
   // A picked CSV is simply put into the text box, so it can be checked and fixed before sending
   const fileInp = document.getElementById('scrobbleManyFile');
@@ -2906,10 +2927,11 @@ function _scrobbleInitMany() {
 //  • a table (CSV, or tab-separated pasted from a spreadsheet) whose first line
 //    names the columns — Artist and Track/Title are needed, Album and Date optional
 //  • plain lines: "Artist - Track" or "Artist - Track | Album" (– and — work too)
-// Plays without their own date are timed backwards from "Time of the last
-// play": the bottom line gets that time, each line above it `gapMin` minutes earlier.
+// Plays without their own date are timed from the picked time `atTs`:
+//  anchor 'end'   — the bottom line gets it, each line above `gapMin` minutes earlier
+//  anchor 'start' — the top line gets it, each line below `gapMin` minutes later
 // Returns { plays: [{artist, track, album, ts}], bad: [line numbers], error }.
-function parseScrobbleList(text, endTs, gapMin) {
+function parseScrobbleList(text, atTs, gapMin, anchor = 'end') {
   const lines = String(text || '').replace(/^﻿/, '').split(/\r?\n/);
   const rows = [];
   const bad = [];
@@ -2957,21 +2979,27 @@ function parseScrobbleList(text, endTs, gapMin) {
     if (!artist || !track) { bad.push(i + 1); continue; }
     rows.push({ artist, track, album, ts });
   }
-  // Time the undated rows from the bottom up
+  // Time the undated rows: down from the top for 'start', up from the bottom for 'end'
   const gapSec = Math.max(0, Math.round((isFinite(gapMin) ? gapMin : 3.5) * 60));
   let k = 0;
-  for (let j = rows.length - 1; j >= 0; j--) {
-    if (rows[j].ts == null) { rows[j].ts = endTs - k * gapSec; k++; }
+  if (anchor === 'start') {
+    for (let j = 0; j < rows.length; j++) {
+      if (rows[j].ts == null) { rows[j].ts = atTs + k * gapSec; k++; }
+    }
+  } else {
+    for (let j = rows.length - 1; j >= 0; j--) {
+      if (rows[j].ts == null) { rows[j].ts = atTs - k * gapSec; k++; }
+    }
   }
   return { plays: rows, bad };
 }
 
 // Reads the "Several plays" box with its current time settings
 function _scrobbleReadMany() {
-  const endTs = Math.floor(new Date(document.getElementById('scrobbleManyEnd').value).getTime() / 1000);
-  const gap   = parseFloat(document.getElementById('scrobbleManyGap').value);
-  const res   = parseScrobbleList(document.getElementById('scrobbleManyText').value,
-    isNaN(endTs) ? Math.floor(Date.now() / 1000) : endTs, gap);
+  const atTs = Math.floor(new Date(document.getElementById('scrobbleManyAt').value).getTime() / 1000);
+  const gap  = parseFloat(document.getElementById('scrobbleManyGap').value);
+  const res  = parseScrobbleList(document.getElementById('scrobbleManyText').value,
+    isNaN(atTs) ? Math.floor(Date.now() / 1000) : atTs, gap, _scrobbleAnchor());
   const now   = Math.floor(Date.now() / 1000);
   res.future = res.plays.filter(p => p.ts > now + 60);           // left out everywhere
   res.plays  = res.plays.filter(p => p.ts <= now + 60);
