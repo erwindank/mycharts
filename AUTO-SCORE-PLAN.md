@@ -160,6 +160,9 @@ All questions answered 2026-11-14.
 
 All steps done in one go (the user said "do it all, then commit and push").
 
+**Changed 2026-11-14 (user):** Listening Scores are now ON by default.
+Only someone who switches them off has `on: false` stored.
+
 - **Engine** `autoscore.js`: `asSong`, `asRelease`, `asSongView`,
   `asAlbumView` (yours / mixed / listening), `ratingSongScoreCounted` /
   `ratingAlbumScoreCounted` for the places behind the "count" switch.

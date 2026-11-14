@@ -2,7 +2,7 @@
    LISTENING SCORES — dankcharts.fm (AUTO-SCORE-PLAN.md, 2026-11-14)
    ===========================================================================
    An automatic 0–10 score for every song, album, EP and single, worked out
-   from how you listen to it and what it did on your charts. Off by default
+   from how you listen to it and what it did on your charts. ON by default
    (Settings → Releases → Listening Scores).
 
    It is a PLACEHOLDER, not a second rating:
@@ -62,12 +62,13 @@ const AS_DEFAULT_W = { depth: 20, cover: 15, stay: 25, peak: 15, life: 10, honou
 // The stored settings object, created on first use. Lives inside the ratings
 // config so it syncs with the rest of the ratings doc.
 function asCfg() {
-  if (typeof _ratings === 'undefined') return { on: false, count: false, w: {} };
+  // On by default (user, 2026-11-14): only an explicit "off" is stored as false
+  if (typeof _ratings === 'undefined') return { on: true, count: false, w: {} };
   const c = _ratings.cfg.auto;
   if (c && typeof c === 'object') return c;
-  return (_ratings.cfg.auto = { on: false, count: false, w: {} });
+  return (_ratings.cfg.auto = { on: true, count: false, w: {} });
 }
-function asOn()     { return !!asCfg().on; }
+function asOn()     { return asCfg().on !== false; }
 function asCounts() { return asOn() && !!asCfg().count; }
 
 // One signal's weight, falling back to the default when unset or bad
