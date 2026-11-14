@@ -6487,6 +6487,40 @@
 
     /* ── Scrobble Modal ── */
     .scrobble-modal-box { max-width: 380px; }
+    /* "Several plays" needs room for the list and its check list */
+    .scrobble-modal-box.is-many { max-width: 520px; }
+    .scrobble-mode { display: flex; width: 100%; margin-bottom: var(--sp-3); }
+    .scrobble-mode > button { flex: 1; }
+    .scrobble-pane { display: flex; flex-direction: column; gap: var(--sp-3); }
+    .scrobble-pane[hidden] { display: none; }
+    .scrobble-many-hint { margin: 0; font-size: var(--fs-sm); color: var(--text2); line-height: 1.5; }
+    .scrobble-many-hint b { color: var(--text); font-weight: 600; }
+    .scrobble-many-text { font-family: var(--font-mono, monospace); font-size: var(--fs-sm); min-height: 130px; }
+    .scrobble-many-fname { font-size: var(--fs-xs); color: var(--text3); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .scrobble-many-times { display: grid; grid-template-columns: 1fr 9rem; gap: var(--sp-3); align-items: end; }
+    @media (max-width: 480px) { .scrobble-many-times { grid-template-columns: 1fr; } }
+    .scrobble-many-preview:empty { display: none; }
+    .scrobble-many-count { margin: 0 0 var(--sp-2); font-size: var(--fs-sm); font-weight: 600; color: var(--text); }
+    .scrobble-many-empty { margin: 0; font-size: var(--fs-sm); color: var(--text3); }
+    .scrobble-many-note { margin: 0 0 var(--sp-2); font-size: var(--fs-xs); line-height: 1.45; }
+    .scrobble-many-note.err  { color: var(--rose, #e05); }
+    .scrobble-many-note.warn { color: var(--amber, #d97706); }
+    .scrobble-many-list {
+      list-style: none; margin: 0; padding: var(--sp-1) 0;
+      max-height: 210px; overflow-y: auto;
+      background: var(--raised); border-radius: var(--r-sm);
+    }
+    .scrobble-many-list > li {
+      display: flex; gap: var(--sp-3); align-items: baseline;
+      padding: 0.3rem var(--sp-3); font-size: var(--fs-sm); min-width: 0;
+    }
+    .scrobble-many-list .smp-time { flex: 0 0 auto; color: var(--text3); font-variant-numeric: tabular-nums; font-size: var(--fs-xs); }
+    .scrobble-many-list .smp-song { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .scrobble-many-list .smp-song b { font-weight: 600; color: var(--text); }
+    .scrobble-many-list .smp-artist { color: var(--text2); }
+    /* Older than 14 days: Last.fm won't take it */
+    .scrobble-many-list > li.is-old .smp-time { color: var(--amber, #d97706); }
+    .scrobble-many-list > li.smp-more { color: var(--text3); font-size: var(--fs-xs); }
 
     .scrobble-status {
       font-size: var(--fs-sm);

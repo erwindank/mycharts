@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 486;
+const DC_CL_I18N_V = 487;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -410,6 +410,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-14', t: 'feature', a: 'rawdata',
+    title: "Add several plays at once",
+    detail: "The Add Play button has a new Several plays option. Paste a list with one song per line, or choose a CSV file, check every play and the time it will get, then send them all to Last.fm, your Google Sheet or your uploaded plays in one go. Plays without a time are spaced out back from the time you pick. Last.fm only takes plays from the last 14 days, and the list tells you which ones are older." },
   { d: '2026-11-13', t: 'fix', a: 'records',
     title: "Records wait for the day, week, month or year to finish",
     detail: "Records now count only finished days, weeks, months and years. A song that leads this week on Tuesday no longer takes a record that it could lose by Sunday, so you only hear about a new #1 once it's official, and the same records stop coming back in your notifications. When a change to your chart sizes or other chart settings hands records to someone else, one notification says so and lists them." },

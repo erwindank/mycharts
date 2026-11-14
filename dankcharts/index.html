@@ -27,13 +27,13 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=1028">
+  <link rel="stylesheet" href="style.css?v=1029">
   <!-- The Charts Guide's lessons (guide.js, GUIDE-PLAN.md) -->
   <link rel="stylesheet" href="guide.css?v=5">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=414"></script>
+  <script defer src="translations.js?v=415"></script>
   <!-- Only the visitor's own language is downloaded (translations.js holds
        English). This writes a defer tag for the saved language right here, so
        it runs straight after translations.js and before app.js, and the page
@@ -41,7 +41,7 @@
        whenever translations.es / pt-BR / pt-PT .js change (setup-guide.html
        has the same line). -->
   <script>
-    window.DC_I18N_V = 112;
+    window.DC_I18N_V = 113;
     (function () {
       try {
         var l = localStorage.getItem('dankcharts-lang');
@@ -4520,6 +4520,12 @@
         <button class="dc-btn dc-btn-plain dc-btn-icon dc-modal-close" onclick="closeScrobbleModal()" aria-label="Close" data-i18n-aria="set_close">✕</button>
       </div>
       <div class="dc-frame-body">
+        <!-- One play by hand, or a whole list at once (pasted text or a CSV file) -->
+        <div class="dc-seg dc-seg-fill scrobble-mode" id="scrobbleMode" role="group" aria-label="How many plays" data-i18n-aria="scrob_mode_aria">
+          <button type="button" data-smode="one" aria-pressed="true" data-i18n="scrob_mode_one">One play</button>
+          <button type="button" data-smode="many" aria-pressed="false" data-i18n="scrob_mode_many">Several plays</button>
+        </div>
+        <div id="scrobbleOne" class="scrobble-pane">
         <label class="dc-field">
           <span data-i18n="modal_label_artist">Artist *</span>
           <input class="dc-input" type="text" id="scrobbleArtist" placeholder="Artist name" data-i18n-placeholder="modal_placeholder_artist" autocomplete="off">
@@ -4539,6 +4545,31 @@
             <button type="button" class="dc-btn dc-btn-normal" onclick="setScrobbleNow()" data-i18n="modal_now_btn">Now</button>
           </span>
         </label>
+        </div>
+        <!-- Several plays: a list read by parseScrobbleList() in app.js -->
+        <div id="scrobbleMany" class="scrobble-pane" hidden>
+          <p class="scrobble-many-hint" data-i18n-html="scrob_many_hint">One play per line: <b>Artist - Track</b> or <b>Artist - Track | Album</b>. The top line is the first song you played. A CSV with Artist and Track columns works too, and its Date column is used when it has one.</p>
+          <textarea class="dc-input scrobble-many-text" id="scrobbleManyText" rows="6" spellcheck="false" placeholder="Artist - Track" data-i18n-placeholder="scrob_many_placeholder"></textarea>
+          <span class="dc-field-row scrobble-many-file">
+            <button type="button" class="dc-btn dc-btn-normal" onclick="document.getElementById('scrobbleManyFile').click()" data-i18n="scrob_many_csv_btn">Choose a CSV file</button>
+            <input type="file" id="scrobbleManyFile" accept=".csv,.txt,.tsv,text/csv,text/plain" hidden>
+            <span class="scrobble-many-fname" id="scrobbleManyFname"></span>
+          </span>
+          <div class="scrobble-many-times">
+            <label class="dc-field">
+              <span data-i18n="scrob_many_last_time">Time of the last play</span>
+              <span class="dc-field-row">
+                <input class="dc-input" type="datetime-local" id="scrobbleManyEnd" step="1">
+                <button type="button" class="dc-btn dc-btn-normal" onclick="setScrobbleManyNow()" data-i18n="modal_now_btn">Now</button>
+              </span>
+            </label>
+            <label class="dc-field scrobble-many-gap">
+              <span data-i18n="scrob_many_gap">Minutes between plays</span>
+              <input class="dc-input" type="number" id="scrobbleManyGap" min="0" max="120" step="0.5" value="3.5">
+            </label>
+          </div>
+          <div id="scrobbleManyPreview" class="scrobble-many-preview"></div>
+        </div>
         <div id="scrobbleStatus" class="scrobble-status"></div>
         <div id="scrobbleNoTarget" class="dc-frame-callout" style="display:none"><span data-ico="alert"></span><span data-i18n="modal_manual_no_target">Connect Last.fm or configure a Sheet write URL in Settings to add plays.</span></div>
       </div>
@@ -4546,8 +4577,10 @@
         <div class="dc-frame-foot-start">
           <button class="dc-btn dc-btn-plain" onclick="closeScrobbleModal()" data-i18n="btn_cancel">Cancel</button>
         </div>
-        <button class="dc-btn dc-btn-main" id="scrobbleSheetBtn" onclick="submitToSheet()" style="display:none" data-i18n="modal_manual_add_sheet">Add to Sheet</button>
-        <button class="dc-btn dc-btn-main" id="scrobbleSubmitBtn" onclick="submitScrobble()" style="display:none" data-i18n="modal_manual_scrobble">Scrobble to Last.fm</button>
+        <!-- Each button sends the one play, or the whole list in "Several plays" -->
+        <button class="dc-btn dc-btn-main" id="scrobbleFileBtn" onclick="scrobbleSend('file')" style="display:none" data-i18n="modal_manual_add_file">Add to my plays</button>
+        <button class="dc-btn dc-btn-main" id="scrobbleSheetBtn" onclick="scrobbleSend('sheet')" style="display:none" data-i18n="modal_manual_add_sheet">Add to Sheet</button>
+        <button class="dc-btn dc-btn-main" id="scrobbleSubmitBtn" onclick="scrobbleSend('lfm')" style="display:none" data-i18n="modal_manual_scrobble">Scrobble to Last.fm</button>
       </div>
     </div>
   </div>
@@ -4557,7 +4590,7 @@
        the whole start. app.js reads this tag's content and loads the file once
        the page has finished loading, or straight away when What's New opens
        (dcClEnsureData). Bump ?v= here exactly as before. -->
-  <meta id="dcChangelogSrc" name="dc-changelog-src" content="changelog.js?v=573">
+  <meta id="dcChangelogSrc" name="dc-changelog-src" content="changelog.js?v=574">
   <!-- Community board tab (suggestions / bugs / discussion). Loaded before
        app.js so window.dcBoard exists when app.js opens a #t=board/<id> link. -->
   <!-- Glow kit: the drawn, glowing icons for titles, Records headings, Guide cards and stat tiles -->
@@ -4570,7 +4603,7 @@
   <!-- One behaviour and one icon set for every pop-up window (phase 10); before
        app.js so dcIco() is there when app.js draws a window -->
   <script defer src="popups.js?v=13"></script>
-  <script defer src="app.js?v=777"></script>
+  <script defer src="app.js?v=778"></script>
   <!-- The song / album / artist details side panel (phase 10 step 3); wraps app.js's open functions -->
   <script defer src="panel.js?v=17"></script>
   <!-- ▶ Animate Chart: the play-by-play chart replay (phase 7 step 11); app.js calls into it -->

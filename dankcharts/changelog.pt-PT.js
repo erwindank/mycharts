@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Add several plays at once":
+    ["Adiciona várias reproduções de uma vez",
+     "O botão Adicionar tem uma nova opção, Várias reproduções. Cola uma lista com uma música por linha, ou escolhe um ficheiro CSV, confirma cada reprodução e a hora que vai ter, e envia todas de uma vez para o Last.fm, a tua folha do Google ou as tuas reproduções carregadas. As que não têm hora são espaçadas para trás a partir da hora que escolheres. O Last.fm só aceita reproduções dos últimos 14 dias, e a lista mostra quais são mais antigas."],
   "The full name and logo on shared pictures":
     ["O nome completo e o logótipo nas imagens partilhadas",
      "As imagens para partilhar começam ou terminam agora com o logótipo colorido e o nome dankcharts.fm tal como aparece no site. No formato Story, um título longo já não empurra a última linha para baixo do nome no rodapé."],

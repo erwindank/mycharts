@@ -2611,9 +2611,19 @@ async function lfmPost(params) {
 function updateScrobbleBtn() {
   const scrobBtn = document.getElementById('scrobbleBtn');
   if (!scrobBtn) return;
-  const hasLfm   = !!(getScrobbleSession() && getScrobbleUser());
-  const hasSheet = !!(getSheetWriteUrl() && getDataSource() === 'sheets');
-  scrobBtn.style.display = (currentPeriod === 'rawdata' && (hasLfm || hasSheet)) ? '' : 'none';
+  const { hasLfm, hasSheet, hasFile } = _scrobbleTargets();
+  scrobBtn.style.display = (currentPeriod === 'rawdata' && (hasLfm || hasSheet || hasFile)) ? '' : 'none';
+}
+
+// Where a hand-added play can go. Last.fm (scrobbling authorized), the user's
+// own Google Sheet (write URL set), or — for CSV/ZIP uploads — straight into
+// the uploaded plays saved in this browser.
+function _scrobbleTargets() {
+  return {
+    hasLfm:   !!(getScrobbleSession() && getScrobbleUser()),
+    hasSheet: !!(getSheetWriteUrl() && getDataSource() === 'sheets'),
+    hasFile:  getDataSource() === 'file' && allPlays.length > 0,
+  };
 }
 
 /* ── Connection state ──────────────────────────────────────────
@@ -2797,16 +2807,293 @@ function openScrobbleModal() {
   document.getElementById('scrobbleStatus').textContent = '';
   document.getElementById('scrobbleStatus').className   = 'scrobble-status';
   setScrobbleNow();
+  _scrobbleInitMany();
+  setScrobbleManyNow();   // the list is kept between openings; re-time it from "now"
 
-  const hasLfm   = !!(getScrobbleSession() && getScrobbleUser());
-  const hasSheet = !!(getSheetWriteUrl() && getDataSource() === 'sheets');
+  const { hasLfm, hasSheet, hasFile } = _scrobbleTargets();
   document.getElementById('scrobbleSubmitBtn').style.display = hasLfm   ? '' : 'none';
   document.getElementById('scrobbleSheetBtn').style.display  = hasSheet ? '' : 'none';
-  document.getElementById('scrobbleNoTarget').style.display  = (!hasLfm && !hasSheet) ? '' : 'none';
+  document.getElementById('scrobbleFileBtn').style.display   = hasFile  ? '' : 'none';
+  document.getElementById('scrobbleNoTarget').style.display  = (!hasLfm && !hasSheet && !hasFile) ? '' : 'none';
 }
 
 function closeScrobbleModal() {
   document.getElementById('scrobbleModal').classList.remove('open');
+}
+
+// ── Several plays at once ──────────────────────────────────────
+// The Add Play window has a "One play / Several plays" switch. In "Several
+// plays" the user pastes a list (or picks a CSV), sees every play with the
+// time it will get, then sends the lot to Last.fm (50 per request, Last.fm's
+// limit), their Sheet (one row per request — works with every Apps Script
+// already deployed, no new script needed) or their uploaded plays.
+let _scrobbleMode = 'one';
+let _scrobbleManyReady = false;   // listeners are attached once
+let _scrobbleManyTimer = null;
+
+function setScrobbleManyNow() {
+  const now = new Date();
+  now.setMilliseconds(0);
+  document.getElementById('scrobbleManyEnd').value = scrobbleDatetimeLocal(now);
+  _scrobbleRenderPreview();
+}
+
+function _scrobbleSetMode(mode) {
+  _scrobbleMode = mode === 'many' ? 'many' : 'one';
+  document.querySelectorAll('#scrobbleMode [data-smode]').forEach(b =>
+    b.setAttribute('aria-pressed', String(b.dataset.smode === _scrobbleMode)));
+  document.getElementById('scrobbleOne').hidden  = _scrobbleMode !== 'one';
+  document.getElementById('scrobbleMany').hidden = _scrobbleMode !== 'many';
+  // The list needs more room than the four single-play fields
+  document.querySelector('#scrobbleModal .scrobble-modal-box').classList.toggle('is-many', _scrobbleMode === 'many');
+  const st = document.getElementById('scrobbleStatus');
+  st.textContent = ''; st.className = 'scrobble-status';
+  if (_scrobbleMode === 'many') _scrobbleRenderPreview();
+}
+
+function _scrobbleInitMany() {
+  if (_scrobbleManyReady) return;
+  _scrobbleManyReady = true;
+  document.querySelectorAll('#scrobbleMode [data-smode]').forEach(b =>
+    b.addEventListener('click', () => _scrobbleSetMode(b.dataset.smode)));
+  const later = () => { clearTimeout(_scrobbleManyTimer); _scrobbleManyTimer = setTimeout(_scrobbleRenderPreview, 200); };
+  document.getElementById('scrobbleManyText').addEventListener('input', () => {
+    document.getElementById('scrobbleManyFname').textContent = '';   // typed over: no longer "the file"
+    later();
+  });
+  document.getElementById('scrobbleManyEnd').addEventListener('input', later);
+  document.getElementById('scrobbleManyGap').addEventListener('input', later);
+  // A picked CSV is simply put into the text box, so it can be checked and fixed before sending
+  const fileInp = document.getElementById('scrobbleManyFile');
+  fileInp.addEventListener('change', async () => {
+    const f = fileInp.files && fileInp.files[0];
+    fileInp.value = '';   // the same file can be picked again
+    if (!f) return;
+    try {
+      const text = await readFileAsText(f);
+      document.getElementById('scrobbleManyText').value = text.replace(/^﻿/, '');
+      document.getElementById('scrobbleManyFname').textContent = t('scrob_many_csv_loaded', { name: f.name });
+      _scrobbleRenderPreview();
+    } catch (e) {
+      const st = document.getElementById('scrobbleStatus');
+      st.textContent = t('set_error', { msg: e.message }); st.className = 'scrobble-status err';
+    }
+  });
+}
+
+// Reads the list into plays. Two kinds of input:
+//  • a table (CSV, or tab-separated pasted from a spreadsheet) whose first line
+//    names the columns — Artist and Track/Title are needed, Album and Date optional
+//  • plain lines: "Artist - Track" or "Artist - Track | Album" (– and — work too)
+// Plays without their own date are timed backwards from "Time of the last
+// play": the bottom line gets that time, each line above it `gapMin` minutes earlier.
+// Returns { plays: [{artist, track, album, ts}], bad: [line numbers], error }.
+function parseScrobbleList(text, endTs, gapMin) {
+  const lines = String(text || '').replace(/^﻿/, '').split(/\r?\n/);
+  const rows = [];
+  const bad = [];
+  const first = lines.findIndex(l => l.trim());
+  if (first === -1) return { plays: [], bad };
+  const headLine = lines[first];
+  const tab = headLine.includes('\t');
+  const cellsOf = l => (tab ? l.split('\t') : splitCsvRow(l)).map(c => c.replace(/^"|"$/g, '').trim());
+  const head = cellsOf(headLine).map(h => h.toLowerCase());
+  const find = names => { for (const n of names) { const i = head.indexOf(n); if (i !== -1) return i; } return -1; };
+  const col = {
+    artist: find(['artist', 'artist name', 'performer']),
+    track:  find(['track', 'title', 'song', 'song title', 'track name', 'song name', 'name']),
+    album:  find(['album', 'album name', 'release']),
+    date:   find(['date and time', 'date', 'datetime', 'timestamp', 'time', 'played at', 'scrobble time', 'uts', 'utc_time']),
+  };
+  const isTable = (tab || headLine.includes(',')) && (col.artist !== -1 || col.track !== -1);
+  if (isTable && (col.artist === -1 || col.track === -1)) return { plays: [], bad, error: t('scrob_many_csv_cols') };
+  // A date cell: unix seconds / milliseconds, or any format the CSV upload understands
+  const readDate = v => {
+    if (/^\d{9,10}$/.test(v)) return parseInt(v, 10);
+    if (/^\d{12,13}$/.test(v)) return Math.floor(parseInt(v, 10) / 1000);
+    const d = parseDate(v);
+    return d && !isNaN(d) ? Math.floor(d.getTime() / 1000) : undefined;   // undefined = unreadable
+  };
+  for (let i = isTable ? first + 1 : first; i < lines.length; i++) {
+    const raw = lines[i];
+    if (!raw.trim() || raw.trim().startsWith('#')) continue;   // blank lines and # notes are skipped
+    let artist = '', track = '', album = '', ts = null;
+    if (isTable) {
+      const c = cellsOf(raw);
+      artist = c[col.artist] || '';
+      track  = c[col.track]  || '';
+      album  = col.album !== -1 ? (c[col.album] || '') : '';
+      if (col.date !== -1 && c[col.date]) {
+        ts = readDate(c[col.date]);
+        if (ts === undefined) { bad.push(i + 1); continue; }
+      }
+    } else {
+      const parts = raw.split(/\s+\|\s+/);
+      const m = parts[0].trim().match(/^(.+?)\s+[-–—]\s+(.+)$/);
+      if (!m) { bad.push(i + 1); continue; }
+      artist = m[1].trim(); track = m[2].trim(); album = (parts[1] || '').trim();
+    }
+    if (!artist || !track) { bad.push(i + 1); continue; }
+    rows.push({ artist, track, album, ts });
+  }
+  // Time the undated rows from the bottom up
+  const gapSec = Math.max(0, Math.round((isFinite(gapMin) ? gapMin : 3.5) * 60));
+  let k = 0;
+  for (let j = rows.length - 1; j >= 0; j--) {
+    if (rows[j].ts == null) { rows[j].ts = endTs - k * gapSec; k++; }
+  }
+  return { plays: rows, bad };
+}
+
+// Reads the "Several plays" box with its current time settings
+function _scrobbleReadMany() {
+  const endTs = Math.floor(new Date(document.getElementById('scrobbleManyEnd').value).getTime() / 1000);
+  const gap   = parseFloat(document.getElementById('scrobbleManyGap').value);
+  const res   = parseScrobbleList(document.getElementById('scrobbleManyText').value,
+    isNaN(endTs) ? Math.floor(Date.now() / 1000) : endTs, gap);
+  const now   = Math.floor(Date.now() / 1000);
+  res.future = res.plays.filter(p => p.ts > now + 60);           // left out everywhere
+  res.plays  = res.plays.filter(p => p.ts <= now + 60);
+  res.old    = res.plays.filter(p => p.ts < now - 14 * 86400);   // Last.fm turns these down
+  return res;
+}
+
+// The check list under the box: every play with the time it will get
+function _scrobbleRenderPreview() {
+  const box = document.getElementById('scrobbleManyPreview');
+  if (!box || _scrobbleMode !== 'many') return;
+  const r = _scrobbleReadMany();
+  const notes = [];
+  if (r.error) notes.push(`<p class="scrobble-many-note err">${esc(r.error)}</p>`);
+  if (r.bad.length) {
+    const shown = r.bad.slice(0, 6).join(', ') + (r.bad.length > 6 ? '…' : '');
+    notes.push(`<p class="scrobble-many-note err">${esc(t('scrob_many_bad', { n: r.bad.length, lines: shown }))}</p>`);
+  }
+  if (r.future.length) notes.push(`<p class="scrobble-many-note err">${esc(t('scrob_many_future', { n: r.future.length }))}</p>`);
+  if (r.old.length && _scrobbleTargets().hasLfm) notes.push(`<p class="scrobble-many-note warn">${esc(t('scrob_many_old', { n: r.old.length }))}</p>`);
+  if (!r.plays.length) {
+    box.innerHTML = notes.join('') + (r.error ? '' : `<p class="scrobble-many-empty">${esc(t('scrob_many_empty'))}</p>`);
+    return;
+  }
+  const fmt = ts => new Date(ts * 1000).toLocaleString(currentLang || undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  const now = Math.floor(Date.now() / 1000);
+  const LIMIT = 60;   // a long list shows its start; the count says how many there are
+  const items = r.plays.slice(0, LIMIT).map(p => {
+    const old = p.ts < now - 14 * 86400;
+    return `<li class="${old ? 'is-old' : ''}"><span class="smp-time">${esc(fmt(p.ts))}</span>`
+      + `<span class="smp-song"><b>${esc(p.track)}</b> <span class="smp-artist">${esc(p.artist)}${p.album ? ' · ' + esc(p.album) : ''}</span></span></li>`;
+  }).join('');
+  const more = r.plays.length > LIMIT ? `<li class="smp-more">${esc(t('scrob_many_more', { n: r.plays.length - LIMIT }))}</li>` : '';
+  const head = t(r.plays.length === 1 ? 'scrob_many_ready_one' : 'scrob_many_ready', { n: r.plays.length.toLocaleString() });
+  box.innerHTML = `<p class="scrobble-many-count">${esc(head)}</p>` + notes.join('') + `<ol class="scrobble-many-list">${items}${more}</ol>`;
+}
+
+// Footer buttons: send the one play, or the whole list
+function scrobbleSend(target) {
+  if (_scrobbleMode === 'many') return submitScrobbleMany(target);
+  if (target === 'lfm')   return submitScrobble();
+  if (target === 'sheet') return submitToSheet();
+  if (target === 'file')  return submitToFile();
+}
+
+// Adds plays to the uploaded (CSV/ZIP) plays kept in this browser, skipping
+// any that are already there (same song, artist and minute).
+async function _addPlaysToFile(list) {
+  const fresh = applyAutocorrectRules(list.map(s => ({
+    title: s.track, artist: s.artist, artists: splitArtists(s.artist), album: s.album || '—', date: new Date(s.ts * 1000),
+  })));
+  const merged = _mergeFilePlays(allPlays, fresh);
+  merged.plays.sort((a, b) => b.date - a.date);
+  allPlays = merged.plays;
+  const compact = allPlays.map(p => [p.title, p.artist, rawAlbumOf(p), Math.floor(p.date.getTime() / 1000)]);
+  await saveToIDB(IDB_FILE_KEY, { ts: Date.now(), data: compact });
+  finalizeLoad();   // same redraw as after an upload
+  return { added: merged.added, dup: fresh.length - merged.added };
+}
+
+// One play into the uploaded plays
+async function submitToFile() {
+  const statusEl = document.getElementById('scrobbleStatus');
+  const artist = document.getElementById('scrobbleArtist').value.trim();
+  const track  = document.getElementById('scrobbleTrack').value.trim();
+  const album  = document.getElementById('scrobbleAlbum').value.trim();
+  const ts     = Math.floor(new Date(document.getElementById('scrobbleTime').value).getTime() / 1000);
+  if (!artist || !track) { statusEl.textContent = 'Artist and Track are required.'; statusEl.className = 'scrobble-status err'; return; }
+  if (isNaN(ts))         { statusEl.textContent = 'Invalid date/time.';             statusEl.className = 'scrobble-status err'; return; }
+  try {
+    const r = await _addPlaysToFile([{ artist, track, album, ts }]);
+    statusEl.textContent = r.added ? t('scrob_many_done_file', { n: 1 }) : t('scrob_one_dup');
+    statusEl.className   = r.added ? 'scrobble-status ok' : 'scrobble-status err';
+    if (r.added) setTimeout(closeScrobbleModal, 1500);
+  } catch (e) {
+    statusEl.textContent = 'Error: ' + e.message;
+    statusEl.className   = 'scrobble-status err';
+  }
+}
+
+async function submitScrobbleMany(target) {
+  const statusEl = document.getElementById('scrobbleStatus');
+  const r = _scrobbleReadMany();
+  const list = r.plays;
+  if (!list.length) {
+    statusEl.textContent = r.error || t('scrob_many_empty');
+    statusEl.className   = 'scrobble-status err';
+    return;
+  }
+  const btns = ['scrobbleSubmitBtn', 'scrobbleSheetBtn', 'scrobbleFileBtn'].map(id => document.getElementById(id));
+  btns.forEach(b => { b.disabled = true; });
+  const say = (msg, cls) => { statusEl.textContent = msg; statusEl.className = 'scrobble-status ' + cls; };
+  let done = 0;
+  try {
+    if (target === 'lfm') {
+      // Last.fm takes up to 50 scrobbles per request as artist[0], track[0], …
+      let accepted = 0, ignored = 0;
+      for (let i = 0; i < list.length; i += 50) {
+        say(t('scrob_many_sending_lfm', { done: i, n: list.length }), 'loading');
+        const params = { method: 'track.scrobble', sk: getScrobbleSession() };
+        list.slice(i, i + 50).forEach((p, j) => {
+          params[`artist[${j}]`]    = p.artist;
+          params[`track[${j}]`]     = p.track;
+          params[`timestamp[${j}]`] = String(p.ts);
+          if (p.album) params[`album[${j}]`] = p.album;
+          // Same as one play: albumArtist only when it differs (collaborations)
+          const primaryArt = _primaryArtist(p.artist);
+          if (primaryArt !== p.artist) params[`albumArtist[${j}]`] = primaryArt;
+        });
+        const data = await lfmPost(params);
+        const attr = (data && data.scrobbles && data.scrobbles['@attr']) || {};
+        accepted += parseInt(attr.accepted, 10) || 0;
+        ignored  += parseInt(attr.ignored, 10)  || 0;
+        done = Math.min(i + 50, list.length);
+      }
+      if (ignored) say(t('scrob_many_done_lfm_ignored', { n: accepted, m: ignored }), accepted ? 'ok' : 'err');
+      else { say(t('scrob_many_done_lfm', { n: accepted }), 'ok'); setTimeout(closeScrobbleModal, 2200); }
+    } else if (target === 'sheet') {
+      // One row per request, in order, so the sheet reads top to bottom like the list
+      const writeUrl = getSheetWriteUrl();
+      if (!writeUrl) throw new Error('No Apps Script URL configured.');
+      for (const p of list) {
+        say(t('scrob_many_sending_sheet', { done: done + 1, n: list.length }), 'loading');
+        const res  = await fetch(writeUrl, { method: 'POST', body: JSON.stringify({ artist: p.artist, track: p.track, album: p.album, timestamp: p.ts }) });
+        const data = await res.json();
+        if (data.status === 'error') throw new Error(data.message || 'Script error');
+        done++;
+      }
+      say(t('scrob_many_done_sheet', { n: done }), 'ok');
+      setTimeout(closeScrobbleModal, 2200);
+    } else if (target === 'file') {
+      const res = await _addPlaysToFile(list);
+      if (res.dup) say(t('scrob_many_done_file_dup', { n: res.added, m: res.dup }), res.added ? 'ok' : 'err');
+      else { say(t('scrob_many_done_file', { n: res.added }), 'ok'); setTimeout(closeScrobbleModal, 2200); }
+    }
+  } catch (e) {
+    const msg = e.message === 'Failed to fetch' && target === 'sheet'
+      ? 'Could not reach the Apps Script. Check that it is deployed as a Web App with access set to "Anyone".'
+      : e.message;
+    // Say how far it got, so the user knows which lines still need sending
+    say(done ? t('scrob_many_partial', { n: done, total: list.length, msg }) : 'Error: ' + msg, 'err');
+  }
+  btns.forEach(b => { b.disabled = false; });
 }
 
 function setScrobbleNow() {
