@@ -7996,6 +7996,7 @@ function openSourceModal() {
   document.getElementById('certEpDiamond').value = CERT.ep.diamond;
   syncReleaseSeparationUI();
   syncRtAutodetectUI();
+  if (typeof asSyncSettingsUI === 'function') asSyncSettingsUI();   // Listening Scores (autoscore.js)
   document.getElementById('eventsArtistLimitSelect').value = eventsArtistLimit;
   document.getElementById('srcNoArtistSplit').checked = noArtistSplit;
   const awFeatEl = document.getElementById('srcAwardsCreditFeatures');
@@ -52782,8 +52783,9 @@ function _awardsPickerVisible() {
 // treats as an artist's headline number.
 function _awardsPickerItemScore(item) {
   if (typeof ratingSongScore !== 'function') return null;
-  if (item.title)  return ratingSongScore((item.title + '|||' + item.artist).toLowerCase());
-  if (item.album)  { const r = ratingAlbumScore(item.album + '|||' + item.artist); return r ? r.score : null; }
+  // ...Counted: your own scores, plus Listening Scores only when that switch is on
+  if (item.title)  return ratingSongScoreCounted((item.title + '|||' + item.artist).toLowerCase());
+  if (item.album)  return ratingAlbumScoreCounted(item.album + '|||' + item.artist);
   if (item.artist) return ratingArtistSummary(item.artist).albumAvg;
   return null;
 }
@@ -63768,9 +63770,14 @@ function _ratingArtistSummaryCalc(artistName) {
   const { albumKeys, songKeys } = _ratingArtistKeys(artistName);
 
   // Rated releases, split into albums and singles / EPs (ratingReleaseKind)
+  // Counted scores: your own, plus Listening Scores only when "Count Listening
+  // Scores where I haven't rated" is on (autoscore.js). ls marks those rows.
   const releases = [...albumKeys].map(k => {
     const r = ratingAlbumScore(k);
-    return r ? { key: k, name: k.split('|||')[0], ...r, ...ratingReleaseKind(k) } : null;
+    const score = ratingAlbumScoreCounted(k);
+    if (score == null) return null;
+    const base = r || { ratedTracks: 0, totalTracks: ratingAlbumTrackKeys(k).length };
+    return { key: k, name: k.split('|||')[0], ...base, score, ls: asIsCountedLs('album', k), ...ratingReleaseKind(k) };
   }).filter(Boolean).sort((a, b) => b.score - a.score);
   const albums  = releases.filter(a => a.kind === 'album');
   const singles = releases.filter(a => a.kind !== 'album');
@@ -63778,8 +63785,8 @@ function _ratingArtistSummaryCalc(artistName) {
   for (const k of albumKeys) if (ratingReleaseKind(k).kind === 'album') totalAlbums++;
 
   const songs = [...songKeys].map(k => {
-    const s = ratingSongScore(k);
-    return s == null ? null : { key: k, title: ratingSongNames(k).title, score: s };
+    const s = ratingSongScoreCounted(k);
+    return s == null ? null : { key: k, title: ratingSongNames(k).title, score: s, ls: asIsCountedLs('song', k) };
   }).filter(Boolean).sort((a, b) => b.score - a.score);
 
   const avg = arr => arr.length ? Math.round((arr.reduce((a, b) => a + b.score, 0) / arr.length) * 10) / 10 : null;
@@ -63815,8 +63822,17 @@ function ratingChip(score, extraCls) {
 // Chart-row badges. Rendered unconditionally and hidden with a body class, the
 // same way certBadge() is handled, so toggling "Scores" in the kebab menu costs
 // a class flip instead of a full chart rebuild.
-function ratingSongBadge(key)   { return ratingChip(ratingSongScore(key), 'rt-chip--row'); }
-function ratingAlbumBadge(key)  { const r = ratingAlbumScore(key); return r ? ratingChip(r.score, 'rt-chip--row') : ''; }
+// With Listening Scores on (autoscore.js), an unrated song shows its
+// Listening Score (outlined chip) and a partly rated album its mixed score
+// (half-filled chip); your own scores keep the filled chip.
+function ratingSongBadge(key) {
+  if (typeof asOn === 'function' && asOn()) return asChip(asSongView(key), 'rt-chip--row');
+  return ratingChip(ratingSongScore(key), 'rt-chip--row');
+}
+function ratingAlbumBadge(key) {
+  if (typeof asOn === 'function' && asOn()) return asChip(asAlbumView(key), 'rt-chip--row');
+  const r = ratingAlbumScore(key); return r ? ratingChip(r.score, 'rt-chip--row') : '';
+}
 
 // The big circular score readout at the top of a modal's rating section. Drawn
 // as an SVG arc so it scales cleanly and can animate its sweep on open.
@@ -63838,7 +63854,9 @@ function ratingRing(score, opts = {}) {
   const circ = 2 * Math.PI * r;
   const pct = score == null ? 0 : score / RATING_MAX;
   const label = opts.label || (band ? band.label : t('rtp_not_rated'));
-  return `<div class="rt-ring ${band ? band.cls : 'rt--none'}" style="--rt-size:${size}px">
+  // opts.ls: 'listening' or 'mixed' (autoscore.js) — dashed / half-dashed arc
+  const lsCls = opts.ls === 'listening' ? ' rt-ring--ls' : opts.ls === 'mixed' ? ' rt-ring--mix' : '';
+  return `<div class="rt-ring ${band ? band.cls : 'rt--none'}${lsCls}" style="--rt-size:${size}px">
     <svg viewBox="0 0 ${size} ${size}" width="${size}" height="${size}" aria-hidden="true">
       <circle class="rt-ring-track" cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke-width="6"/>
       <circle class="rt-ring-arc" cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke-width="6"
@@ -64314,10 +64332,32 @@ function renderSongRatingSection(key) {
           <span class="rt-albumlink-lead">${t('rtp_full_album')}</span>
           <span class="rt-albumlink-name">${esc(aName)}</span>
         </span>
-        ${ar ? ratingChip(ar.score) : `<span class="rt-albumlink-unrated">${t('rtp_not_rated')}</span>`}
+        ${(() => { const av = typeof asAlbumView === 'function' && asOn() ? asAlbumView(bestKey) : null;
+          return av ? asChip(av) : ar ? ratingChip(ar.score) : `<span class="rt-albumlink-unrated">${t('rtp_not_rated')}</span>`; })()}
         <span class="rt-albumlink-arrow">→</span>
       </button>`;
     }
+  }
+
+  // Listening Score (autoscore.js): stands in until you rate the song, then
+  // stays as one line under your own score
+  const ls = typeof asSong === 'function' ? asSong(key) : null;
+
+  if (score == null && ls) {
+    const b = ratingBand(ls.score);
+    el.innerHTML = `<div class="rt-block as-block">
+      <div class="rt-block-head">
+        ${ratingRing(ls.score, { ls: 'listening' })}
+        <div class="rt-block-meta">
+          <span class="ao-kicker">${esc(t('as_name'))}${ls.early ? ` <span class="as-early">${esc(t('as_early'))}</span>` : ''}</span>
+          <div class="rt-block-verdict ${b.cls}">${esc(b.label)}</div>
+          <div class="rt-empty-sub">${esc(t('as_song_sub'))}</div>
+          <button class="dc-btn dc-btn-main" onclick="openRatingModal('song', ${esc(JSON.stringify(key))})">${btnLabel}</button>
+        </div>
+      </div>
+      ${asWhyHTML(ls, 'song')}
+    </div>${albumLink}`;
+    return;
   }
 
   if (score == null) {
@@ -64343,6 +64383,7 @@ function renderSongRatingSection(key) {
       <div class="rt-block-meta">
         <div class="rt-block-verdict ${ratingBand(score).cls}">${esc(ratingBand(score).label)}</div>
         ${e.note ? `<blockquote class="rt-block-note">${esc(e.note)}</blockquote>` : ''}
+        ${ls ? `<div class="as-said">${esc(t('as_said'))} ${asChip({ score: ls.score, state: 'listening' })}</div>` : ''}
         <button class="dc-btn dc-btn-normal" onclick="openRatingModal('song', ${esc(JSON.stringify(key))})">${btnLabel}</button>
       </div>
     </div>
@@ -64358,6 +64399,20 @@ function _renderAlbumRatingMini(albumKey) {
   const res = ratingAlbumScore(albumKey);
   const go = `onclick="window.dcPanelShowTab && dcPanelShowTab('album','rating')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}"`;
   const chev = typeof dcIco === 'function' ? dcIco('next') : '›';
+  // Listening Score (autoscore.js) when nothing of yours is rated yet
+  const lv = !res && typeof asAlbumView === 'function' ? asAlbumView(albumKey) : null;
+  if (lv) {
+    const b = ratingBand(lv.score);
+    el.innerHTML = `<div class="ao-rate" role="button" tabindex="0" ${go}>
+      ${ratingRing(lv.score, { size: 72, ls: 'listening' })}
+      <div class="ao-rate-txt">
+        <div class="ao-rate-verdict ${b.cls}">${esc(b.label)}</div>
+        <div class="ao-rate-sub">${esc(t('as_name'))} · ${esc(t('as_album_mini'))}</div>
+      </div>
+      <span class="ao-rate-go"><span>${esc(t('al_rate_open'))}</span>${chev}</span>
+    </div>`;
+    return;
+  }
   if (!res) {
     const n = ratingAlbumTrackKeys(albumKey).length;
     el.innerHTML = `<div class="ao-rate ao-rate--empty" role="button" tabindex="0" ${go}>
@@ -64370,10 +64425,13 @@ function _renderAlbumRatingMini(albumKey) {
     </div>`;
     return;
   }
-  const band = ratingBand(res.score);
+  // Part yours (Listening Scores): lead with the combined score
+  const mv = typeof asAlbumView === 'function' && asOn() ? asAlbumView(albumKey) : null;
+  const mix = mv && mv.state === 'mixed' ? mv : null;
+  const band = ratingBand(mix ? mix.score : res.score);
   const num = (v, label, cls) => `<span class="ao-rate-num"><b class="${cls || ''}">${v}</b>${esc(label)}</span>`;
   el.innerHTML = `<div class="ao-rate" role="button" tabindex="0" ${go}>
-    ${ratingRing(res.score, { size: 72 })}
+    ${ratingRing(mix ? mix.score : res.score, { size: 72, ls: mix ? 'mixed' : '' })}
     <div class="ao-rate-txt">
       <div class="ao-rate-verdict ${band.cls}">${esc(band.label)}</div>
       <div class="ao-rate-nums">
@@ -64386,6 +64444,25 @@ function _renderAlbumRatingMini(albumKey) {
   </div>`;
 }
 
+/* The album's tracks with the score each one counts with (Listening Scores,
+   autoscore.js): your score as a filled chip, or the song's Listening Score
+   outlined. Same rows as the normal track list. */
+function _asTrackTableHTML(tracks) {
+  if (!tracks.length) return '';
+  const rows = tracks.map(tr => ({ ...tr, view: asSongView(tr.key) }))
+    .sort((a, b) => (b.view ? b.view.score : -1) - (a.view ? a.view.score : -1));
+  return `<div class="rt-al-tracks">${rows.map((tr, i) => {
+    const sc = tr.view ? tr.view.score : null;
+    const b = sc == null ? null : ratingBand(sc);
+    return `<button type="button" class="rt-al-tr ${b ? b.cls : 'rt-al-tr--unrated'}${tr.view && tr.view.state !== 'yours' ? ' as-tr--ls' : ''}" onclick="openSongModal(${esc(JSON.stringify(tr.key))})">
+        <span class="rt-al-tr-n">${sc == null ? '–' : i + 1}</span>
+        <span class="rt-al-tr-txt"><span class="rt-al-tr-title">${esc(tr.title)}</span><span class="rt-al-tr-plays">${tCount('plays', tr.count)}</span></span>
+        <span class="rt-al-tr-bar"><i style="width:${sc == null ? 0 : (sc / RATING_MAX * 100).toFixed(1)}%"></i></span>
+        ${sc == null ? `<span class="rt-tt-unrated">${t('rtp_unrated')}</span>` : asChip(tr.view)}
+      </button>`;
+  }).join('')}</div>`;
+}
+
 function renderAlbumRatingSection(albumKey) {
   _renderAlbumRatingMini(albumKey);
   const el = document.getElementById('albumModalRating');
@@ -64393,6 +64470,30 @@ function renderAlbumRatingSection(albumKey) {
   const res = ratingAlbumScore(albumKey);
   const e = ratingAlbumEntry(albumKey);
   const tracks = ratingAlbumTrackKeys(albumKey);
+  // Listening Scores (autoscore.js): the album's view (yours / mixed /
+  // listening) and its own release score for "Why this score"
+  const asView = typeof asAlbumView === 'function' && asOn() ? asAlbumView(albumKey) : null;
+  const asRel = typeof asRelease === 'function' ? asRelease(albumKey) : null;
+  // Coverage needs the official tracklist: ask Deezer once, in the background
+  if (asView && typeof rtPrefetchTracklist === 'function') rtPrefetchTracklist(albumKey);
+
+  if (!res && asView) {
+    const b = ratingBand(asView.score);
+    el.innerHTML = `<div class="ar rt-al">
+      <div class="ar-hero ${b.cls}">
+        ${ratingRing(asView.score, { size: 120, ls: 'listening' })}
+        <div class="ar-hero-txt">
+          <span class="ao-kicker">${esc(t('as_name'))}${asView.early ? ` <span class="as-early">${esc(t('as_early'))}</span>` : ''}</span>
+          <div class="ar-verdict">${esc(b.label)}</div>
+          <div class="ar-hero-sub">${esc(t('as_album_sub'))}</div>
+          <button class="dc-btn dc-btn-main" onclick="openRatingModal('album', ${esc(JSON.stringify(albumKey))})">${t('rtp_rate_album')}</button>
+        </div>
+      </div>
+      ${asRel ? `<div class="rt-al-card">${asWhyHTML(asRel, 'album')}</div>` : ''}
+      ${_asTrackTableHTML(tracks)}
+    </div>`;
+    return;
+  }
 
   if (!res) {
     el.innerHTML = `<div class="rt-block rt-block--empty">
@@ -64440,7 +64541,9 @@ function renderAlbumRatingSection(albumKey) {
   // a bar for the score and the score chip; unrated tracks last, no number.
   const scored = tracks.map(tr => ({ ...tr, score: ratingSongScore(tr.key) }))
     .sort((a, b) => (b.score ?? -1) - (a.score ?? -1));
-  const trackTable = tracks.length ? `<div class="rt-al-tracks">
+  // Listening Scores on: unrated tracks show theirs (outlined), the same
+  // numbers the mixed album score is made from
+  const trackTable = asView && asView.state === 'mixed' ? _asTrackTableHTML(tracks) : tracks.length ? `<div class="rt-al-tracks">
     ${scored.map((tr, i) => {
       const b = tr.score == null ? null : ratingBand(tr.score);
       return `<button type="button" class="rt-al-tr ${b ? b.cls : 'rt-al-tr--unrated'}" onclick="openSongModal(${esc(JSON.stringify(tr.key))})">
@@ -64484,7 +64587,11 @@ function renderAlbumRatingSection(albumKey) {
   // the Edit / Picture cards, the stat tiles, and each part in its own card
   // with a small uppercase heading. rt-al-* classes are album-only; the song
   // window still uses .rt-block.
-  const bnd = ratingBand(res.score);
+  // Part yours (Listening Scores on, some tracks unrated): the hero shows the
+  // combined score, the same number as the album's chips everywhere else
+  const mixView = asView && asView.state === 'mixed' ? asView : null;
+  const heroScore = mixView ? mixView.score : res.score;
+  const bnd = ratingBand(heroScore);
   const card = (title, body, extra = '') => `<div class="rt-al-card${extra}"><div class="rt-al-card-h"><span class="ao-kicker">${esc(title)}</span></div>${body}</div>`;
   // Standouts, redone 2026-11-12 (the pill row looked messy and cut long
   // titles): Highlights and Skips as two side-by-side lists. Each row is a
@@ -64502,11 +64609,13 @@ function renderAlbumRatingSection(albumKey) {
   const skHTML = ins && ins.skips.length ? stCol('⏭️', t('rtp_skips'), t('rt_al_sk_hint'), ins.skips) : '';
   el.innerHTML = `<div class="ar rt-al">
     <div class="ar-hero ${bnd.cls}">
-      ${ratingRing(res.score, { size: 120 })}
+      ${ratingRing(heroScore, { size: 120, ls: mixView ? 'mixed' : '' })}
       <div class="ar-hero-txt">
-        <span class="ao-kicker">${esc(t('ar_kicker'))}</span>
+        <span class="ao-kicker">${esc(mixView ? t('as_mixed') : t('ar_kicker'))}</span>
         <div class="ar-verdict">${esc(bnd.label)}</div>
-        <div class="rt-formula rt-al-formula">${_ratingFormulaHTML(res)}</div>
+        ${mixView ? '' : `<div class="rt-formula rt-al-formula">${_ratingFormulaHTML(res)}</div>`}
+        ${mixView ? `<div class="as-said as-said--mix">${esc(t('as_mixed_line', { n: mixView.yourTracks, of: mixView.yourTracks + mixView.lsTracks }))} ${ratingChip(res.score)}</div>`
+          : asRel ? `<div class="as-said">${esc(t('as_said'))} ${asChip({ score: asRel.score, state: 'listening' })}</div>` : ''}
         <div class="ar-meters"><div class="ar-meter">
           <div class="ar-meter-top"><span>${esc(t('rt_al_tracks_rated'))}</span><b>${res.ratedTracks}<span> / ${res.totalTracks}</span></b></div>
           <div class="ar-meter-track"><span style="width:${(res.totalTracks ? res.ratedTracks / res.totalTracks * 100 : 0).toFixed(1)}%"></span></div>
@@ -64823,6 +64932,8 @@ async function rtPrefetchTracklist(albumKey) {
     // A clean "not found" is cached too, so the card doesn't search every open.
     store[albumKey] = list;
     _rtTracklistSave();
+    // Listening Scores use the tracklist for coverage (autoscore.js)
+    if (typeof asOnTracklist === 'function') asOnTracklist();
   } catch (e) {
     // Network trouble — left uncached so the next open tries again.
   }
@@ -66551,11 +66662,11 @@ function arRenderList(sc) {
   const { sum, todo, plays, view } = _ar;
   // One shape for all three lists
   // rel: what the release counts as (album / single / ep) and whether that is a guess
-  const relRow = a => ({ kind: 'album', key: a.key, name: a.name, artist: a.key.split('|||')[1] || '', score: a.score, ratedTracks: a.ratedTracks, totalTracks: a.totalTracks, plays: plays[a.key] || 0, rel: { kind: a.kind, guess: a.guess } });
+  const relRow = a => ({ kind: 'album', key: a.key, name: a.name, artist: a.key.split('|||')[1] || '', score: a.score, ls: !!a.ls, ratedTracks: a.ratedTracks, totalTracks: a.totalTracks, plays: plays[a.key] || 0, rel: { kind: a.kind, guess: a.guess } });
   let rows = view === 'albums' ? sum.albums.map(relRow)
     : view === 'singles' ? sum.singles.map(relRow)
     : view === 'songs'
-      ? sum.songs.map(s => ({ kind: 'song', key: s.key, name: s.title, artist: s.artist || '', score: s.score, quick: ratingSongEntry(s.key)?.m === 'quick' }))
+      ? sum.songs.map(s => ({ kind: 'song', key: s.key, name: s.title, artist: s.artist || '', score: s.score, ls: !!s.ls, quick: ratingSongEntry(s.key)?.m === 'quick' }))
       : todo.map(k => ({ kind: 'album', key: k, name: k.split('|||')[0], artist: k.split('|||')[1] || '', score: null, plays: plays[k] || 0, rel: ratingReleaseKind(k) }));
   if (_ar.band && view !== 'todo') rows = rows.filter(r => ratingBand(r.score).key === _ar.band);
   const q = _ar.q.trim().toLowerCase();
@@ -66583,13 +66694,20 @@ function arRenderList(sc) {
             <button type="button" class="ar-tag-btn" onclick="event.stopPropagation();arSetRelease('${sc}',${i},'album')" title="${esc(t('ar_reject_tip'))}">${ic('x')}${esc(t('ar_reject'))}</button></span>`
         : `<span class="ar-tag">${word}</span>`;
     }
+    // Listening Scores (autoscore.js)
+    const lsOn = typeof asOn === 'function' && asOn();
+    const lsView = lsOn && r.kind === 'album' && (view === 'todo' || !r.ls) ? asAlbumView(r.key) : null;
+    const lsTodo = view === 'todo' && lsView ? lsView : null;
+    const mixTag = lsView && lsView.state === 'mixed' && view !== 'todo'
+      ? `<span class="ar-tag as-tag">${esc(t('as_mixed'))} ${asChip(lsView)}</span>` : '';
     let sub = '';
-    if (view === 'albums' || view === 'singles') sub = `<span class="ar-sub">${tag}${esc(t('ar_tracks_rated', { n: r.ratedTracks, of: r.totalTracks }))}</span>
+    if (view === 'albums' || view === 'singles') sub = `<span class="ar-sub">${tag}${mixTag}${esc(t('ar_tracks_rated', { n: r.ratedTracks, of: r.totalTracks }))}</span>
         <span class="ar-prog"><span style="width:${(r.totalTracks ? r.ratedTracks / r.totalTracks * 100 : 0).toFixed(1)}%"></span></span>`;
     else if (view === 'songs') sub = `<span class="ar-sub">${esc(t(r.quick ? 'ar_quick' : 'ar_rubric'))}</span>`;
-    else sub = `<span class="ar-sub">${tag}${r.plays.toLocaleString()} ${esc(tUnit('plays', r.plays))}</span>`;
-    return `<div class="ar-row ${b ? b.cls : 'rt--none'}" role="button" tabindex="0" onclick="arEdit('${sc}',${i})" onkeydown="if(event.target===this&&(event.key==='Enter'||event.key===' ')){event.preventDefault();arEdit('${sc}',${i});}">
-      <span class="ar-score">${b ? ratingFmt(r.score) : ic('star')}</span>
+    else sub = `<span class="ar-sub">${tag}${r.plays.toLocaleString()} ${esc(tUnit('plays', r.plays))}${lsTodo ? ` · ${esc(t('as_name'))}` : ''}</span>`;
+    const lsB = lsTodo ? ratingBand(lsTodo.score) : null;
+    return `<div class="ar-row ${b ? b.cls : lsB ? lsB.cls : 'rt--none'}${r.ls || lsTodo ? ' as-row--ls' : ''}" role="button" tabindex="0" onclick="arEdit('${sc}',${i})" onkeydown="if(event.target===this&&(event.key==='Enter'||event.key===' ')){event.preventDefault();arEdit('${sc}',${i});}">
+      <span class="ar-score"${r.ls || lsTodo ? ` title="${esc(t('as_name'))}"` : ''}>${b ? ratingFmt(r.score) : lsTodo ? ratingFmt(lsTodo.score) : ic('star')}</span>
       <span class="am-art" id="arImg-${sc}-${i}"><span class="thumb-initials">${esc(initials(r.name))}</span></span>
       <span class="ar-txt"><span class="ar-name">${esc(r.name)}</span>${sc === 'p' && r.artist ? `<span class="ar-artist">${esc(r.artist)}</span>` : ''}${sub}</span>
       <span class="ar-right">${b ? `<span class="ar-band">${esc(b.label)}</span>` : `<span class="ar-cta">${esc(t('rtp_rate_arrow'))}</span>`}
@@ -67432,24 +67550,31 @@ function ratingLibrarySummary() {
   }
   // An album is rated through its own scores or through its tracks', so the
   // candidates are the albums with an entry and the albums of rated songs
+  const counting = typeof asCounts === 'function' && asCounts();
   const cand = new Set(Object.keys(_ratings.albums));
   for (const sk of Object.keys(_ratings.songs)) for (const ak of songAlbums[sk] || []) cand.add(ak);
+  // Counting Listening Scores (autoscore.js, switch off by default): every
+  // played release is a candidate, scored with what its chip shows
+  if (counting) for (const ak of Object.keys(albumPlays)) cand.add(ak);
   const releases = [...cand].map(k => {
     const r = ratingAlbumScore(k);
-    if (!r) return null;
+    const score = ratingAlbumScoreCounted(k);
+    if (score == null) return null;
     const [name, artist = ''] = k.split('|||');
-    return { key: k, name, artist, ...r, ...ratingReleaseKind(k), plays: albumPlays[k] || 0 };
+    const base = r || { ratedTracks: 0, totalTracks: ratingAlbumTrackKeys(k).length };
+    return { key: k, name, artist, ...base, score, own: !!r, ls: counting && asIsCountedLs('album', k), ...ratingReleaseKind(k), plays: albumPlays[k] || 0 };
   }).filter(Boolean).sort((a, b) => _rpScore10(b.score) - _rpScore10(a.score) || _rpTieOrder(a, b));
   const albums = releases.filter(a => a.kind === 'album');
   const singles = releases.filter(a => a.kind !== 'album');
-  const songs = Object.keys(_ratings.songs).map(k => {
-    const s = ratingSongScore(k);
+  const songs = (counting ? Object.keys(songPlays) : Object.keys(_ratings.songs)).map(k => {
+    const s = ratingSongScoreCounted(k);
     if (s == null) return null;
     const nm = ratingSongNames(k);
-    return { key: k, title: nm.title, artist: nm.artist, score: s, plays: songPlays[k] || 0, ts: _ratings.songs[k]?.ts || 0, quick: _ratings.songs[k]?.m === 'quick' };
+    return { key: k, title: nm.title, artist: nm.artist, score: s, ls: counting && asIsCountedLs('song', k), plays: songPlays[k] || 0, ts: _ratings.songs[k]?.ts || 0, quick: _ratings.songs[k]?.m === 'quick' };
   }).filter(Boolean).sort((a, b) => _rpScore10(b.score) - _rpScore10(a.score) || _rpTieOrder(a, b));
 
-  const rated = new Set(releases.map(r => r.key));
+  // "Rated" and the To-rate list are always about your own scores
+  const rated = new Set(releases.filter(r => r.own).map(r => r.key));
   const allAlbums = Object.keys(albumPlays);
   let totalAlbums = 0;
   for (const k of allAlbums) if (ratingReleaseKind(k).kind === 'album') totalAlbums++;

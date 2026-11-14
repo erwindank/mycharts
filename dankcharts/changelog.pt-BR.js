@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Listening Scores for what you haven't rated":
+    ["Notas de escuta para o que você não avaliou",
+     "Um novo botão em Configurações → Lançamentos dá a cada música, álbum, EP e single que você não avaliou uma nota de escuta, pelo quanto você ouve, por quanto tempo continua voltando, pela trajetória nas paradas e pelas certificações. Começa desligado. Suas próprias notas sempre vêm primeiro: um álbum que você avaliou em parte mistura suas notas das faixas com notas de escuta para o resto até todas as faixas serem suas. As notas de escuta têm uma borda tracejada para você diferenciá-las, e cada uma explica por que tem essa nota. Elas não contam nos recordes de avaliação, nos Prêmios, nas playlists inteligentes nem no veredito de um artista, a não ser que você ative isso."],
   "A friendlier window for fixing a play":
     ["Uma janela mais amigável para corrigir uma reprodução",
      "A janela que abre pelo lápis em Dados brutos ganhou um visual novo. A capa da música fica no topo, e uma faixa mostra cada alteração riscada e em verde enquanto você digita. Escolha Só esta ou todas as reproduções da música com um só botão. Um único botão Salvar faz tudo: marque a planilha do Google ou o Last.fm em Salvar em, e sua escolha fica lembrada para a próxima vez. Salvar no Last.fm mostra antes um aviso claro: o Last.fm mantém o scrobble antigo, então você marca que vai apagá-lo lá."],

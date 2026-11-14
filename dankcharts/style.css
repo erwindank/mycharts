@@ -50107,3 +50107,89 @@ a.tb-more-item:hover { text-decoration: none; }
 .ed-actions { display: flex; justify-content: flex-end; align-items: center; gap: var(--sp-2); }
 #editSaveBtn { gap: 8px; }
 #editSaveBtn svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ═══ LISTENING SCORES (autoscore.js, AUTO-SCORE-PLAN.md, 2026-11-14) ═══════
+   An automatic score that stands in until you rate something yourself, so it
+   must never look like one of your scores:
+     outlined chip  .rt-chip--ls   a Listening Score
+     half chip      .rt-chip--mix  an album mixing your scores with them
+     dashed ring    .rt-ring--ls   (half-dashed: .rt-ring--mix)
+   Colours still come from the verdict band (--rt-c). */
+.rt-chip.rt-chip--ls {
+  background: transparent;
+  border-style: dashed;
+  border-color: color-mix(in srgb, var(--rt-c) 70%, transparent);
+}
+.rt-chip.rt-chip--mix {
+  /* left half filled, right half empty: part yours, part Listening Score */
+  background: linear-gradient(90deg, color-mix(in srgb, var(--rt-c) 22%, transparent) 50%, transparent 50%);
+  border-style: dashed;
+}
+.rt-ring--ls .rt-ring-arc { stroke-dasharray: 4 5 !important; stroke-dashoffset: 0 !important; opacity: 0.9; }
+.rt-ring--ls .rt-ring-track { stroke-dasharray: 2 4; }
+/* the arc becomes a full dashed circle in the verdict colour (dashes can't
+   also show how far round the score goes); the number says the score */
+.rt-ring--ls .rt-ring-score { opacity: 0.92; }
+.rt-ring--mix .rt-ring-track { stroke-dasharray: 2 4; }
+
+/* "Early" tag: first played under 90 days ago */
+.as-early {
+  display: inline-block; margin-left: 6px; padding: 0 6px; border-radius: 99px;
+  font-size: 0.85em; letter-spacing: 0.04em;
+  border: 1px dashed var(--border); color: var(--text3);
+}
+
+/* "Your listening said 8.4" under your own score */
+.as-said { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; margin: 6px 0 8px; font-size: var(--fs-sm, 0.85rem); color: var(--text3); }
+.as-said .rt-chip { margin-left: 2px; }
+
+/* Why this score */
+.as-why { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+.as-why-h { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.as-why-hint { font-size: var(--fs-xs, 0.75rem); color: var(--text3); }
+.as-why-row {
+  display: grid; grid-template-columns: minmax(0, 9em) minmax(0, 1fr) 72px; align-items: center; gap: 10px;
+  font-size: var(--fs-sm, 0.85rem);
+}
+.as-why-l { font-weight: 700; color: var(--text2); }
+.as-why-v { color: var(--text); min-width: 0; overflow-wrap: anywhere; }
+.as-why-bar { display: block; height: 6px; border-radius: 99px; background: color-mix(in srgb, var(--border) 70%, transparent); overflow: hidden; }
+.as-why-bar i { display: block; height: 100%; border-radius: inherit; background: var(--rt-c, var(--accent)); min-width: 3px; }
+.as-why-early, .as-why-note { margin: 2px 0 0; font-size: var(--fs-xs, 0.75rem); color: var(--text3); line-height: 1.45; }
+@media (max-width: 480px) {
+  .as-why-row { grid-template-columns: minmax(0, 1fr) 56px; }
+  .as-why-v { grid-column: 1 / -1; grid-row: 2; color: var(--text3); }
+}
+
+/* Album track rows that count with a Listening Score */
+.rt-al-tr.as-tr--ls .rt-al-tr-bar i { opacity: 0.55; }
+
+/* Artist Rating tab: a Listening Score row has an outlined score box */
+.dp-body .ar-row.as-row--ls .ar-score {
+  background: transparent;
+  border: 1.5px dashed color-mix(in srgb, var(--rt-c) 70%, transparent);
+}
+.dp-body .ar-tag.as-tag { display: inline-flex; align-items: center; gap: 2px; }
+.dp-body .ar-tag.as-tag .rt-chip { margin-left: 2px; font-size: 0.9em; }
+
+/* Settings → Releases → Listening Scores */
+.as-w-head { margin: 12px 0 6px; }
+/* small uppercase sub-headings inside Settings (.ao-kicker is only styled in the side panels) */
+#asGroup .ao-kicker { display: block; font-size: var(--fs-xs, 0.75rem); font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text3); }
+.as-weights { display: flex; flex-direction: column; gap: 8px; }
+.as-w-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(90px, 160px) 2.2em; align-items: center; gap: 10px; cursor: pointer; }
+.as-w-l { display: flex; flex-direction: column; font-weight: 700; font-size: var(--fs-sm, 0.85rem); color: var(--text); min-width: 0; }
+.as-w-d { font-weight: 400; font-size: var(--fs-xs, 0.75rem); color: var(--text3); line-height: 1.35; }
+.as-w-row input[type="range"] { width: 100%; accent-color: var(--accent); }
+.as-w-v { text-align: right; font-variant-numeric: tabular-nums; color: var(--text2); }
+.as-preview { display: flex; flex-direction: column; gap: 4px; margin-top: 12px; }
+.as-preview:empty { display: none; }
+.as-prev-h { margin-bottom: 2px; }
+.as-prev-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 6px 10px; border-radius: var(--r-sm, 6px); background: var(--bg3); }
+.as-prev-t { display: flex; flex-direction: column; min-width: 0; font-size: var(--fs-sm, 0.85rem); }
+.as-prev-t b, .as-prev-t span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.as-prev-t span { color: var(--text3); font-size: var(--fs-xs, 0.75rem); }
+@media (max-width: 480px) {
+  .as-w-row { grid-template-columns: minmax(0, 1fr) 2.2em; }
+  .as-w-row input[type="range"] { grid-column: 1 / -1; grid-row: 2; }
+}

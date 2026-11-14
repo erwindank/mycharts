@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Listening Scores for what you haven't rated":
+    ["Puntuaciones de escucha para lo que no has valorado",
+     "Un nuevo interruptor en Ajustes → Lanzamientos da a cada canción, álbum, EP y sencillo que no has valorado una puntuación de escucha, según cuánto lo escuchas, cuánto tiempo sigues volviendo a él, su recorrido en las listas y sus certificaciones. Empieza apagado. Tus propias notas siempre van primero: un álbum que has valorado en parte mezcla tus notas de canciones con puntuaciones de escucha para el resto hasta que todas las canciones son tuyas. Las puntuaciones de escucha tienen un borde discontinuo para distinguirlas, y cada una explica por qué tiene esa nota. No cuentan en los récords de valoración, los Premios, las playlists inteligentes ni el veredicto de un artista a menos que lo actives."],
   "A friendlier window for fixing a play":
     ["Una ventana más amable para corregir una reproducción",
      "La ventana que se abre con el lápiz en Datos sin procesar tiene un nuevo aspecto. La portada de la canción aparece arriba, y una franja muestra cada cambio tachado y en verde mientras escribes. Elige Solo esta o todas las reproducciones de la canción con un solo interruptor. Un único botón Guardar lo hace todo: marca la hoja de Google o Last.fm en Guardar en, y tu elección se recuerda para la próxima vez. Guardar en Last.fm muestra antes un aviso claro: Last.fm conserva el scrobble antiguo, así que marcas que lo borrarás tú allí."],

@@ -195,6 +195,8 @@ function spDataHas(need) {
       Object.values(_awardsGenreCache).some(v => Array.isArray(v) && v.length);
   }
   if (need === 'ratings') {
+    // Counted Listening Scores (autoscore.js) give every played song a score
+    if (typeof asCounts === 'function' && asCounts()) return true;
     return typeof _ratings !== 'undefined' && _ratings.songs && Object.keys(_ratings.songs).length > 0;
   }
   // Real play times, for the habit rules (step 2)
@@ -212,10 +214,14 @@ function spGenresOf(s) {
   return (Array.isArray(v) && v.length) ? v : null;
 }
 
-// A song's rating (0–10), or null when it isn't rated
+// A song's rating (0–10), or null when it isn't rated. Your own score; a
+// Listening Score only when "Count Listening Scores where I haven't rated"
+// is on (autoscore.js, off by default)
 function spRatingOf(s) {
+  const key = (s.title + '|||' + s.artist).toLowerCase();
+  if (typeof ratingSongScoreCounted === 'function') return ratingSongScoreCounted(key);
   if (typeof ratingSongScore !== 'function') return null;
-  return ratingSongScore((s.title + '|||' + s.artist).toLowerCase());
+  return ratingSongScore(key);
 }
 
 // ─── FIELDS ───────────────────────────────────────────────────────────────
@@ -755,7 +761,12 @@ function _spRatingAvg() {
   if (_spAvgRating != null) return _spAvgRating;
   if (typeof _ratings === 'undefined' || typeof ratingSongScore !== 'function') return (_spAvgRating = NaN);
   let sum = 0, n = 0;
-  for (const k in _ratings.songs) { const v = ratingSongScore(k); if (v != null) { sum += v; n++; } }
+  if (typeof asCounts === 'function' && asCounts()) {
+    // Counting Listening Scores: the average of every song's counted score
+    for (const s of spSongFacts().list) { const v = spRatingOf(s); if (v != null) { sum += v; n++; } }
+  } else {
+    for (const k in _ratings.songs) { const v = ratingSongScore(k); if (v != null) { sum += v; n++; } }
+  }
   return (_spAvgRating = n ? sum / n : NaN);
 }
 spAddField('aboveAvg', { kind: 'bool', needs: 'ratings', get: s => {

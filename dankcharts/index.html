@@ -27,13 +27,13 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=1035">
+  <link rel="stylesheet" href="style.css?v=1036">
   <!-- The Charts Guide's lessons (guide.js, GUIDE-PLAN.md) -->
   <link rel="stylesheet" href="guide.css?v=5">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=419"></script>
+  <script defer src="translations.js?v=420"></script>
   <!-- Only the visitor's own language is downloaded (translations.js holds
        English). This writes a defer tag for the saved language right here, so
        it runs straight after translations.js and before app.js, and the page
@@ -41,7 +41,7 @@
        whenever translations.es / pt-BR / pt-PT .js change (setup-guide.html
        has the same line). -->
   <script>
-    window.DC_I18N_V = 117;
+    window.DC_I18N_V = 118;
     (function () {
       try {
         var l = localStorage.getItem('dankcharts-lang');
@@ -4664,7 +4664,7 @@
        the whole start. app.js reads this tag's content and loads the file once
        the page has finished loading, or straight away when What's New opens
        (dcClEnsureData). Bump ?v= here exactly as before. -->
-  <meta id="dcChangelogSrc" name="dc-changelog-src" content="changelog.js?v=576">
+  <meta id="dcChangelogSrc" name="dc-changelog-src" content="changelog.js?v=577">
   <!-- Community board tab (suggestions / bugs / discussion). Loaded before
        app.js so window.dcBoard exists when app.js opens a #t=board/<id> link. -->
   <!-- Glow kit: the drawn, glowing icons for titles, Records headings, Guide cards and stat tiles -->
@@ -4677,7 +4677,7 @@
   <!-- One behaviour and one icon set for every pop-up window (phase 10); before
        app.js so dcIco() is there when app.js draws a window -->
   <script defer src="popups.js?v=13"></script>
-  <script defer src="app.js?v=783"></script>
+  <script defer src="app.js?v=784"></script>
   <!-- The song / album / artist details side panel (phase 10 step 3); wraps app.js's open functions -->
   <script defer src="panel.js?v=17"></script>
   <!-- ▶ Animate Chart: the play-by-play chart replay (phase 7 step 11); app.js calls into it -->
@@ -4688,7 +4688,9 @@
   <!-- Automatic chart playlists: a finished period's chart → a playlist (SCHEDULED-PLAYLISTS-PLAN.md); reads app.js + daily.js -->
   <script defer src="autoplaylists.js?v=5"></script>
   <!-- Smart playlists: playlists built from saved rules (SMART-PLAYLISTS-PLAN.md); reads app.js -->
-  <script defer src="smartplaylists.js?v=17"></script>
+  <script defer src="smartplaylists.js?v=18"></script>
+  <!-- Listening Scores: automatic scores from how you listen (AUTO-SCORE-PLAN.md) -->
+  <script defer src="autoscore.js?v=1"></script>
   <!-- Notifications under the profile picture (any feature calls dcNotify); reads app.js + firebase.js -->
   <script defer src="notifications.js?v=23"></script>
   <!-- The Stats page's tabs, Overview, Story, Games and Compare (phase 15); reads app.js globals -->
@@ -5721,6 +5723,44 @@ function deleteGenreTriggers() {
           </div>
         </div>
         <p class="src-modal-hint rt-sep-hint" id="rollupHint" data-i18n="rollup_hint">When a song is on both a single and an album, its plays on the single can also count for the album. “Album page only” shows the bigger total on the album's own page. “Album page + charts” also uses it to rank the album on the charts and in Records. The single always keeps its own plays and its own chart spot. Songs that are only on the single never count for the album.</p>
+      </div>
+
+      <!-- Listening Scores (autoscore.js, AUTO-SCORE-PLAN.md, 2026-11-14): an
+           automatic 0–10 score from how you listen, standing in until you
+           rate a song or album yourself. Off by default. Filled by
+           asSyncSettingsUI() when Settings opens. -->
+      <div class="cert-config-group" id="asGroup">
+        <div class="cert-config-title"><span class="set-group-ico" data-ico="star"></span><span data-i18n="as_set_title">Listening Scores</span></div>
+        <div class="set-row">
+          <!-- a <label>, so the hidden checkbox inside .src-switch is clickable -->
+          <label class="src-switch-row">
+            <span class="src-switch-label"><span data-i18n="as_set_on">Score what I haven't rated from how I listen</span>
+              <span class="set-switch-note" data-i18n="as_set_on_note">Songs, albums, EPs and singles get a Listening Score from your plays, how long you keep coming back, their chart runs and certifications. Your own scores always win, and an album mixes the two until every track is yours.</span></span>
+            <span class="src-switch">
+              <input type="checkbox" id="asOn" onchange="asSetOn(this.checked)">
+              <span class="src-switch-slider"></span>
+            </span>
+          </label>
+        </div>
+        <div id="asOpts" hidden>
+          <div class="set-row">
+            <label class="src-switch-row">
+              <span class="src-switch-label"><span data-i18n="as_set_count">Count Listening Scores where I haven't rated</span>
+                <span class="set-switch-note" data-i18n="as_set_count_note">Off: Rating Records, Awards, smart playlists and an artist's verdict use only your own scores. On: they use Listening Scores too.</span></span>
+              <span class="src-switch">
+                <input type="checkbox" id="asCount" onchange="asSetCount(this.checked)">
+                <span class="src-switch-slider"></span>
+              </span>
+            </label>
+          </div>
+          <div class="as-w-head"><span class="ao-kicker" data-i18n="as_set_weights">What counts, and how much</span></div>
+          <div class="as-weights" id="asWeights"></div>
+          <div class="as-preview" id="asPreview"></div>
+          <div class="cert-config-footer">
+            <p class="src-modal-hint" data-i18n="as_set_hint">Each part ranks the song or release against the rest of your library. Set a part to 0 to leave it out.</p>
+            <button type="button" class="cert-reset-btn" onclick="asResetWeights()" data-i18n="set_cert_reset">Reset to defaults</button>
+          </div>
+        </div>
       </div>
 
       <div class="cert-config-group">

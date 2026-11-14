@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 489;
+const DC_CL_I18N_V = 490;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -410,6 +410,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-14', t: 'feature', a: 'ratings',
+    title: "Listening Scores for what you haven't rated",
+    detail: "A new switch in Settings → Releases gives every song, album, EP and single you haven't rated a Listening Score, worked out from how much you play it, how long you keep coming back to it, its chart run and its certifications. It's off to start with. Your own scores always come first: an album you've partly rated mixes your track scores with Listening Scores for the rest until every track is yours. Listening Scores have a dashed outline so you can tell them apart, and each one has a Why this score breakdown. They don't count in Rating Records, Awards, smart playlists or an artist's verdict unless you turn that on." },
   { d: '2026-11-14', t: 'design', a: 'rawdata',
     title: "A friendlier window for fixing a play",
     detail: "The window that opens from the pencil in Raw Data has a new look. The song's cover sits at the top, and a strip shows each change crossed out and in green as you type. Pick Just this play or All plays of this song with one switch. One Save button now does it all: tick Google Sheet or Last.fm under Save to, and your choice is remembered for next time. Saving to Last.fm shows a clear warning first: Last.fm keeps the old scrobble, so you tick that you'll delete it there yourself." },
