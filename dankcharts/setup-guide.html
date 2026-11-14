@@ -10,12 +10,12 @@
   <!-- Step pictures (drawn screens + dots); Roboto above is for those, since
        the drawn Google screens use Google's own typeface -->
   <link rel="stylesheet" href="setup-scenes.css?v=1">
-  <script src="translations.js?v=418"></script>
+  <script src="translations.js?v=419"></script>
   <!-- The saved language's own file (translations.js is English only). Must
        come before setup-guide-i18n.js so the guide's strings are merged on top
        of it, as before. Same DC_I18N_V as index.html. -->
   <script>
-    window.DC_I18N_V = 116;
+    window.DC_I18N_V = 117;
     (function () {
       try {
         var l = localStorage.getItem('dankcharts-lang');
@@ -26,7 +26,7 @@
   </script>
   <!-- The guide's own ES / PT strings, merged into TRANSLATIONS. Must load
        after translations.js and before its DOMContentLoaded pass runs. -->
-  <script src="setup-guide-i18n.js?v=3"></script>
+  <script src="setup-guide-i18n.js?v=4"></script>
   <style>
     /* ═══════════════════════════════════════════════════════════════════
        SETUP GUIDE — visual system
@@ -3158,7 +3158,7 @@ body.yellow-light .dc-gico, body.pink-light .dc-gico, body.green-light .dc-gico 
                   <li data-dot="2" data-frame="1" data-i18n-html="sg_lf4_do1">…and pick <strong>Raw Data</strong>.</li>
                   <li data-dot="3" data-frame="2" data-i18n-html="sg_lf4_do2">Click <strong>✎</strong> on the play you want to fix.</li>
                   <li data-dot="4" data-frame="3" data-i18n-html="sg_lf4_do3">Fix the artist, title, album or time.</li>
-                  <li data-dot="5" data-frame="3" data-i18n-html="sg_lf4_do4">Under <strong>Save to</strong>, tick <strong>Last.fm</strong> and press <strong>Save change</strong>.</li>
+                  <li data-dot="5" data-frame="3" data-i18n-html="sg_lf4_do4">Under <strong>Save to</strong>, tick <strong>Last.fm</strong>, then tick <strong>I'll delete the old scrobble on Last.fm</strong> and press <strong>Save change</strong>.</li>
                 </ol>
               </div>
             </div>
@@ -4968,7 +4968,7 @@ body.yellow-light .dc-gico, body.pink-light .dc-gico, body.green-light .dc-gico 
 <!-- Contact Support form (replaces the Zoho Desk widget) - see support.js -->
 <script defer src="support.js?v=4"></script>
 <!-- Step pictures engine + drawn screens (before DOMContentLoaded mounts them) -->
-<script defer src="setup-scenes.js?v=2"></script>
+<script defer src="setup-scenes.js?v=3"></script>
 <!-- Glow Kit icons (the glowing drawn icons used across the site) -->
 <script defer src="glowkit.js?v=10"></script>
 </body>

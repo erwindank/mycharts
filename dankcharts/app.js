@@ -4986,6 +4986,13 @@ function openEditScrobbleModal(rawIdx) {
   document.getElementById('editDest').hidden          = !hasSheet && !hasLfm;
   document.getElementById('editDestSheet').checked = hasSheet && pick.sheet !== false;   // on unless turned off
   document.getElementById('editDestLfm').checked   = hasLfm && pick.lfm === true;        // off unless turned on
+  // The Last.fm warning has to be ticked off afresh every time, and its link
+  // goes straight to this user's library, where scrobbles are deleted
+  document.getElementById('editLfmAck').checked = false;
+  document.getElementById('editScrobbleHint').hidden = true;   // so it flashes when shown
+  const lfmUser = hasLfm ? getScrobbleUser() : '';
+  document.getElementById('editLfmLibLink').href = lfmUser
+    ? 'https://www.last.fm/user/' + encodeURIComponent(lfmUser) + '/library' : 'https://www.last.fm';
   _editRefresh();
   document.getElementById('editScrobbleModal').classList.add('open');
 }
@@ -5033,14 +5040,26 @@ function _editRefresh() {
         `<span class="ed-diff-new">${r.to ? esc(r.to) : empty}</span></div>`).join('');
   }
 
-  // Last.fm's "remove the original yourself" note, only when it's ticked
+  // Last.fm's "the old scrobble stays — delete it yourself" warning, only
+  // when Last.fm is ticked. It flashes once each time it appears, and Save
+  // waits until "I'll delete the old scrobble" is ticked.
   const lfmOn = !document.getElementById('editDestLfmChip').hidden && document.getElementById('editDestLfm').checked;
-  document.getElementById('editScrobbleHint').hidden = !lfmOn;
+  const warn = document.getElementById('editScrobbleHint');
+  if (lfmOn && warn.hidden) {
+    warn.classList.remove('is-new');
+    void warn.offsetWidth;            // restart the flash
+    warn.classList.add('is-new');
+  }
+  warn.hidden = !lfmOn;
+  const ackOk = !lfmOn || document.getElementById('editLfmAck').checked;
+  warn.classList.toggle('is-done', lfmOn && ackOk);
 
-  // Save: off until something changed; says how many plays it touches
+  // Save: off until something changed (and the Last.fm warning is ticked
+  // off, when Last.fm is on); says how many plays it touches
   const all = !document.getElementById('editScope').hidden && document.getElementById('editApplyAll').checked;
   const n = all ? parseInt(document.getElementById('editApplyAllText').textContent.replace(/\D/g, ''), 10) || 1 : 1;
-  document.getElementById('editSaveBtn').disabled = !changed.length;
+  document.getElementById('editSaveBtn').disabled = !changed.length || !ackOk;
+  document.getElementById('editSaveBtn').title = ackOk ? '' : t('ed_lfm_ack_first');
   document.getElementById('editSaveText').textContent = n > 1
     ? t('ed_save_n', { n: n.toLocaleString() }) : t('ed_save');
 }

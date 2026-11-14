@@ -50009,37 +50009,101 @@ a.tb-more-item:hover { text-decoration: none; }
 .ed-dest[hidden] { display: none; }
 .ed-dest > .ed-label { margin-right: 2px; }
 .ed-dest-note { font-size: var(--fs-xs); color: var(--text3); }
+/* Save to chips — solid brand colours (2026-11-14, user asked for "more
+   solid"): ticked = filled with the brand colour, white words and icon;
+   not ticked = a clear brand tint with a brand-coloured border, so each one
+   still reads as Google Sheets / Last.fm when it's off. The brand shades are
+   the deeper ones, dark enough for white words (both about 5:1). */
 .ed-chip {
   --brand: var(--accent);
   display: inline-flex;
   align-items: center;
   gap: 7px;
   height: 36px;
-  padding: 0 12px 0 10px;
+  padding: 0 14px 0 10px;
   border-radius: var(--r-full);
-  border: 1px solid color-mix(in srgb, var(--brand) 40%, var(--border));
-  background: transparent;
-  color: var(--text2);
+  border: 1.5px solid var(--brand);
+  background: color-mix(in srgb, var(--brand) 16%, var(--bg2));
+  color: color-mix(in srgb, var(--brand) 70%, var(--text));
   font-size: var(--fs-sm);
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   user-select: none;
-  transition: background var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+  transition: background var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease), color var(--t-fast) var(--ease), filter var(--t-fast) var(--ease);
 }
 .ed-chip[hidden] { display: none; }
 .ed-chip input { width: 15px; height: 15px; margin: 0; accent-color: var(--brand); cursor: pointer; }
-.ed-chip svg { width: 16px; height: 16px; fill: none; stroke: var(--brand); stroke-width: 2.1; stroke-linecap: round; stroke-linejoin: round; }
-.ed-chip:hover { border-color: var(--brand); }
+.ed-chip svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2.1; stroke-linecap: round; stroke-linejoin: round; }
+.ed-chip:hover { background: color-mix(in srgb, var(--brand) 26%, var(--bg2)); }
 .ed-chip:has(input:checked) {
-  background: color-mix(in srgb, var(--brand) 15%, transparent);
+  background: var(--brand);
   border-color: var(--brand);
-  color: color-mix(in srgb, var(--brand) 55%, var(--text));
+  color: #fff;
 }
+.ed-chip:has(input:checked):hover { filter: brightness(1.08); }
+/* the tick box on a filled chip: white, so it shows on the brand colour */
+.ed-chip input:checked { accent-color: #fff; }
 .ed-chip:has(input:focus-visible) { outline: 2px solid var(--brand); outline-offset: 2px; }
-.ed-chip-sheet { --brand: #34a853; }   /* Google Sheets green */
-.ed-chip-lfm   { --brand: #e0261b; }   /* Last.fm red */
-.ed-hint { margin: 0; font-size: var(--fs-xs); line-height: 1.5; color: var(--text3); }
-.ed-hint[hidden] { display: none; }
+.ed-chip-sheet { --brand: #188038; }   /* Google Sheets green */
+.ed-chip-lfm   { --brand: #d51007; }   /* Last.fm red */
+/* Last.fm warning — must not be missed (2026-11-14). A red box with a
+   triangle, a link to the user's library and a tick the user has to give
+   before Save works. It flashes once when it appears (.is-new); once ticked
+   (.is-done) it calms down to a softer box. */
+.ed-warn {
+  display: flex;
+  gap: 12px;
+  padding: 14px;
+  border-radius: var(--r-md);
+  border: 2px solid var(--rose);
+  background: color-mix(in srgb, var(--rose) 14%, var(--bg2));
+  color: var(--text);
+  transition: border-color var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
+}
+.ed-warn[hidden] { display: none; }
+.ed-warn.is-done {
+  border-color: color-mix(in srgb, var(--rose) 45%, var(--border));
+  background: color-mix(in srgb, var(--rose) 7%, var(--bg2));
+}
+.ed-warn.is-new { animation: edWarnIn 0.9s var(--ease) 1; }
+@keyframes edWarnIn {
+  0%   { transform: translateY(4px); box-shadow: 0 0 0 0 color-mix(in srgb, var(--rose) 55%, transparent); }
+  30%  { transform: translateY(0); }
+  45%  { box-shadow: 0 0 0 6px color-mix(in srgb, var(--rose) 30%, transparent); }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+@media (prefers-reduced-motion: reduce) { .ed-warn.is-new { animation: none; } }
+.ed-warn-ico {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  fill: none;
+  stroke: var(--rose);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.ed-warn-body { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.ed-warn-title { font-size: 0.95rem; font-weight: 700; color: var(--text); }
+.ed-warn-text { font-size: var(--fs-sm); line-height: 1.5; color: var(--text2); }
+.ed-warn-link { align-self: flex-start; font-size: var(--fs-sm); font-weight: 600; color: var(--rose); text-decoration: underline; text-underline-offset: 2px; }
+.ed-warn-link:hover { color: var(--text); }
+.ed-warn-ack {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+  padding: 8px 12px;
+  border-radius: var(--r-sm);
+  background: var(--bg2);
+  border: 1px solid color-mix(in srgb, var(--rose) 50%, var(--border));
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  color: var(--text);
+  cursor: pointer;
+}
+.ed-warn-ack input { width: 18px; height: 18px; margin: 0; flex-shrink: 0; accent-color: var(--rose); cursor: pointer; }
+.ed-warn.is-done .ed-warn-ack { border-color: var(--border); }
 .ed-actions { display: flex; justify-content: flex-end; align-items: center; gap: var(--sp-2); }
 #editSaveBtn { gap: 8px; }
 #editSaveBtn svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }

@@ -15,7 +15,7 @@ window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
   "A friendlier window for fixing a play":
     ["Uma janela mais amigável para corrigir uma reprodução",
-     "A janela que abre pelo lápis em Dados brutos ganhou um visual novo. A capa da música fica no topo, e uma faixa mostra cada alteração riscada e em verde enquanto você digita. Escolha Só esta ou todas as reproduções da música com um só botão. Um único botão Salvar faz tudo: marque a planilha do Google ou o Last.fm em Salvar em, e sua escolha fica lembrada para a próxima vez."],
+     "A janela que abre pelo lápis em Dados brutos ganhou um visual novo. A capa da música fica no topo, e uma faixa mostra cada alteração riscada e em verde enquanto você digita. Escolha Só esta ou todas as reproduções da música com um só botão. Um único botão Salvar faz tudo: marque a planilha do Google ou o Last.fm em Salvar em, e sua escolha fica lembrada para a próxima vez. Salvar no Last.fm mostra antes um aviso claro: o Last.fm mantém o scrobble antigo, então você marca que vai apagá-lo lá."],
   "Fixes to your Google Sheet save in the background":
     ["Correções na sua planilha do Google são salvas em segundo plano",
      "Corrigir uma reprodução e salvar na sua planilha do Google não te faz mais esperar pelo Google. A alteração aparece na hora e a janela fecha, enquanto a planilha se atualiza por trás. Faça quantas correções seguidas quiser: elas são salvas em ordem, e as feitas bem juntas vão num só envio. Se a planilha recusar uma, só essa é desfeita e você fica sabendo qual."],

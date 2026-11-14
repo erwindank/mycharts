@@ -1104,7 +1104,7 @@
 
   // Bump when the pictures in setup/<lang>/ are retaken, or browsers keep
   // showing the old ones (2: edit window redone, 2026-11-14)
-  var SHOT_V = '2';
+  var SHOT_V = '3';   // 3: Last.fm warning box added, 2026-11-14
 
   /* ── Engine ──────────────────────────────────────────────────────────── */
   var mounted = [];   // every live figure controller
