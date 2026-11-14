@@ -307,9 +307,13 @@ function _asBuild() {
   for (const pool of ['song', 'album', 'single']) {
     const list = items[pool];
     if (!list.length) continue;
-    // Per signal: the share of items in the pool with a lower value (ties share it)
+    // Per signal: where each item ranks in the pool (ties share the middle)
     const pct = {};
     for (const sig of AS_SIGNALS) pct[sig] = _asPercentiles(list, it => it.v[sig]);
+    // Tracks played is already a share (0–1) and only albums whose tracklist
+    // has been fetched have it, often just a handful: ranking it among so few
+    // made "11 of 11 tracks" read as average. Use the share itself.
+    pct.cover = list.map(it => it.v.cover);
     const combined = list.map((it, i) => {
       let sum = 0, wsum = 0;
       const parts = {};
@@ -338,7 +342,9 @@ function _asBuild() {
   return _asCache;
 }
 
-/* For each item, the share of the others that rank strictly lower, 0–1.
+/* For each item, its rank in the list as a share, 0–1 (0 = lowest).
+   Tied items share the middle of their tie ("mid-rank"), so eleven albums
+   all played in full don't all read as the lowest of the eleven.
    Items without the value get null. One item alone sits in the middle. */
 function _asPercentiles(list, get) {
   const idx = [];
@@ -352,7 +358,7 @@ function _asPercentiles(list, get) {
   while (j < n) {
     let e = j;
     while (e + 1 < n && idx[e + 1][0] === idx[j][0]) e++;
-    const p = j / (n - 1);              // how many are strictly below, as a share
+    const p = ((j + e) / 2) / (n - 1);  // the middle of the tie, as a share
     for (let k = j; k <= e; k++) out[idx[k][1]] = p;
     j = e + 1;
   }

@@ -4764,6 +4764,15 @@ window.DC_CHANGELOG_I18N['es'] = {
 /* Highlight cards (DC_CL_HIGHLIGHTS in changelog.js), keyed by id. */
 window.DC_CL_HIGHLIGHTS_I18N = window.DC_CL_HIGHLIGHTS_I18N || {};
 window.DC_CL_HIGHLIGHTS_I18N["es"] = {
+  "listening-scores": {
+    title: "Puntuaciones de escucha",
+    intro: "Todo lo que aún no has valorado tiene ahora una nota, según cómo escuchas.",
+    points: [
+      "Canciones, álbumes, EPs y sencillos reciben de 0 a 10 según tus reproducciones, cuánto tiempo sigues volviendo a ellos, su recorrido en las listas y sus certificaciones.",
+      "Tus propias notas siempre ganan. Un álbum valorado en parte mezcla las dos hasta que todas las canciones son tuyas.",
+      "Las notas con borde discontinuo son puntuaciones de escucha. Abre una para ver por qué tiene esa nota, o cambia lo que cuenta en Ajustes → Lanzamientos.",
+    ],
+  },
   "around-the-chart": {
     title: "Más de las listas bajo tu lista",
     intro: "Aspirantes, Fuera del Ranking y las listas de Nuevas Entradas ahora se pueden reproducir, guardar y ajustar.",

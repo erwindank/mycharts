@@ -4760,6 +4760,15 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 /* Highlight cards (DC_CL_HIGHLIGHTS in changelog.js), keyed by id. */
 window.DC_CL_HIGHLIGHTS_I18N = window.DC_CL_HIGHLIGHTS_I18N || {};
 window.DC_CL_HIGHLIGHTS_I18N["pt-BR"] = {
+  "listening-scores": {
+    title: "Notas de escuta",
+    intro: "Tudo o que você ainda não avaliou agora tem uma nota, pelo jeito que você escuta.",
+    points: [
+      "Músicas, álbuns, EPs e singles ganham de 0 a 10 pelos seus plays, por quanto tempo você continua voltando, pela trajetória nas paradas e pelas certificações.",
+      "Suas próprias notas sempre vencem. Um álbum avaliado em parte mistura as duas até todas as faixas serem suas.",
+      "Notas com borda tracejada são notas de escuta. Abra uma para ver por que ela tem essa nota, ou mude o que conta em Configurações → Lançamentos.",
+    ],
+  },
   "around-the-chart": {
     title: "Mais das listas abaixo da sua parada",
     intro: "Aspirantes, Fora da Parada e as listas de Novas Entradas agora podem ser tocadas, salvas e ajustadas.",

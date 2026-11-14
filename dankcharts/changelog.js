@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 491;
+const DC_CL_I18N_V = 492;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -98,6 +98,15 @@ const DC_CL_AREAS = {
    by id, as { title, intro, points }. A missing one shows in English.
    ------------------------------------------------------------------------- */
 const DC_CL_HIGHLIGHTS = [
+  { id: "listening-scores", d: "2026-11-14", a: "ratings", img: "whatsnew/listening-scores.webp", go: "week",
+    title: "Listening Scores",
+    intro: "Everything you haven't rated yet now has a score, worked out from how you listen.",
+    points: [
+      "Songs, albums, EPs and singles score 0–10 from your plays, how long you keep coming back, their chart runs and certifications.",
+      "Your own scores always win. A partly rated album mixes the two until every track is yours.",
+      "Dashed scores are Listening Scores. Open one to see why it got that score, or change what counts in Settings → Releases.",
+    ],
+    also: ["Listening Scores for what you haven't rated"] },
   { id: "around-the-chart", d: "2026-11-10", a: "charts", img: "whatsnew/around-the-chart.webp", go: "week",
     title: "More from the lists under your chart",
     intro: "Bubbling Under, Off the Chart and the New lists can now be played, saved and sized.",
