@@ -27,13 +27,13 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=1029">
+  <link rel="stylesheet" href="style.css?v=1030">
   <!-- The Charts Guide's lessons (guide.js, GUIDE-PLAN.md) -->
   <link rel="stylesheet" href="guide.css?v=5">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=415"></script>
+  <script defer src="translations.js?v=416"></script>
   <!-- Only the visitor's own language is downloaded (translations.js holds
        English). This writes a defer tag for the saved language right here, so
        it runs straight after translations.js and before app.js, and the page
@@ -41,7 +41,7 @@
        whenever translations.es / pt-BR / pt-PT .js change (setup-guide.html
        has the same line). -->
   <script>
-    window.DC_I18N_V = 113;
+    window.DC_I18N_V = 114;
     (function () {
       try {
         var l = localStorage.getItem('dankcharts-lang');
@@ -4549,6 +4549,18 @@
         <!-- Several plays: a list read by parseScrobbleList() in app.js -->
         <div id="scrobbleMany" class="scrobble-pane" hidden>
           <p class="scrobble-many-hint" data-i18n-html="scrob_many_hint">One play per line: <b>Artist - Track</b> or <b>Artist - Track | Album</b>. The top line is the first song you played. A CSV with Artist and Track columns works too, and its Date column is used when it has one.</p>
+          <!-- Ready-made lines to copy: fill in the names and paste them back (or into a CSV) -->
+          <div class="scrobble-tpl">
+            <span class="scrobble-tpl-label" data-i18n="scrob_tpl_label">Templates</span>
+            <div class="scrobble-tpl-row">
+              <code class="scrobble-tpl-code">Artist - Track | Album</code>
+              <button type="button" class="dc-btn dc-btn-normal dc-btn-sm" data-tpl="Artist - Track | Album" onclick="scrobbleCopyTpl(this)" data-i18n="scrob_tpl_copy">Copy</button>
+            </div>
+            <div class="scrobble-tpl-row">
+              <code class="scrobble-tpl-code">Artist,Track,Album,Date</code>
+              <button type="button" class="dc-btn dc-btn-normal dc-btn-sm" data-tpl="Artist,Track,Album,Date" onclick="scrobbleCopyTpl(this)" data-i18n="scrob_tpl_copy">Copy</button>
+            </div>
+          </div>
           <textarea class="dc-input scrobble-many-text" id="scrobbleManyText" rows="6" spellcheck="false" placeholder="Artist - Track" data-i18n-placeholder="scrob_many_placeholder"></textarea>
           <span class="dc-field-row scrobble-many-file">
             <button type="button" class="dc-btn dc-btn-normal" onclick="document.getElementById('scrobbleManyFile').click()" data-i18n="scrob_many_csv_btn">Choose a CSV file</button>
@@ -4603,7 +4615,7 @@
   <!-- One behaviour and one icon set for every pop-up window (phase 10); before
        app.js so dcIco() is there when app.js draws a window -->
   <script defer src="popups.js?v=13"></script>
-  <script defer src="app.js?v=778"></script>
+  <script defer src="app.js?v=779"></script>
   <!-- The song / album / artist details side panel (phase 10 step 3); wraps app.js's open functions -->
   <script defer src="panel.js?v=17"></script>
   <!-- ▶ Animate Chart: the play-by-play chart replay (phase 7 step 11); app.js calls into it -->

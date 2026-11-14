@@ -2831,6 +2831,27 @@ let _scrobbleMode = 'one';
 let _scrobbleManyReady = false;   // listeners are attached once
 let _scrobbleManyTimer = null;
 
+// "Templates" row: copies a ready-made line (data-tpl) and says so on the
+// button for a moment. Falls back to a hidden textarea + execCommand where
+// the Clipboard API is blocked (http, older browsers).
+async function scrobbleCopyTpl(btn) {
+  const text = btn.dataset.tpl || '';
+  let ok = false;
+  try { await navigator.clipboard.writeText(text); ok = true; } catch (e) {
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      ok = document.execCommand('copy');
+      ta.remove();
+    } catch (e2) { ok = false; }
+  }
+  btn.textContent = t(ok ? 'scrob_tpl_copied' : 'scrob_tpl_copy_fail');
+  btn.classList.toggle('is-copied', ok);
+  clearTimeout(btn._tplTimer);
+  btn._tplTimer = setTimeout(() => { btn.textContent = t('scrob_tpl_copy'); btn.classList.remove('is-copied'); }, 1600);
+}
+
 function setScrobbleManyNow() {
   const now = new Date();
   now.setMilliseconds(0);

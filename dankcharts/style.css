@@ -6495,6 +6495,21 @@
     .scrobble-pane[hidden] { display: none; }
     .scrobble-many-hint { margin: 0; font-size: var(--fs-sm); color: var(--text2); line-height: 1.5; }
     .scrobble-many-hint b { color: var(--text); font-weight: 600; }
+    /* Templates to copy: one line each, code + Copy button */
+    .scrobble-tpl { display: flex; flex-direction: column; gap: var(--sp-1); }
+    .scrobble-tpl-label { font-size: var(--fs-xs); font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.04em; }
+    .scrobble-tpl-row {
+      display: flex; align-items: center; gap: var(--sp-2);
+      padding: 0.3rem 0.3rem 0.3rem var(--sp-3);
+      background: var(--raised); border-radius: var(--r-sm);
+    }
+    .scrobble-tpl-code {
+      flex: 1; min-width: 0; overflow-x: auto; white-space: nowrap;
+      font-family: var(--font-mono, monospace); font-size: var(--fs-sm); color: var(--text);
+      user-select: all;   /* one click selects the whole line, for copying by hand */
+    }
+    .scrobble-tpl-row .dc-btn { flex: 0 0 auto; min-width: 4.5rem; }
+    .scrobble-tpl-row .dc-btn.is-copied { color: var(--accent); }
     .scrobble-many-text { font-family: var(--font-mono, monospace); font-size: var(--fs-sm); min-height: 130px; }
     .scrobble-many-fname { font-size: var(--fs-xs); color: var(--text3); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .scrobble-many-times { display: grid; grid-template-columns: 1fr 9rem; gap: var(--sp-3); align-items: end; }
