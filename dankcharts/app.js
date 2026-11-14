@@ -5071,11 +5071,196 @@ function _serializePlaysCsv() {
   return rows.join('\n');
 }
 
+// ─── SHEET SAVE LINE (2026-11-14) ─────────────────────────────
+// "Push to Sheet" used to wait for the Apps Script (Google takes a few
+// seconds to wake it up) before changing anything on screen. Now a
+// correction shows at once and the Sheet is written in the background:
+//   • jobs wait in a line and go one after another, in the order made,
+//     so a slow one never overtakes or overwrites a later one (Apps Script
+//     runs write requests one at a time anyway);
+//   • plain name/artist/album fixes that pile up while one is saving are
+//     sent together as one 'bulkUpdate' trip (one Google wait, not many);
+//     a fix that changes the play's time goes alone ('update'), because
+//     bulkUpdate can't change times;
+//   • a job the Sheet refuses is undone on screen, and only that one;
+//   • leaving the page while jobs are waiting asks first.
+// No Apps Script redeploy needed: 'update', 'bulkUpdate', 'batchUpdate'
+// and 'saveRules' were all in the script already.
+const _sheetQueue = [];          // waiting jobs, oldest first
+let _sheetQueueBusy  = false;    // a trip to the Sheet is under way
+let _sheetQueueSaved = 0;        // changes saved since the line was last empty
+let _sheetQueueFails = [];       // messages for jobs that failed in this run
+let _sheetCacheTimer = null;
+
+// The cached copy of the sheet (IndexedDB) is rewritten after edits — but a
+// big library takes a moment to serialise, so rapid edits share one write.
+function _sheetCacheSoon() {
+  clearTimeout(_sheetCacheTimer);
+  _sheetCacheTimer = setTimeout(() => {
+    saveToIDB(IDB_SHEETS_KEY, { ts: Date.now(), csv: _serializePlaysCsv() }).catch(() => {});
+  }, 1500);
+}
+
+// Plays were rewritten in place: refresh everything that hangs off them
+function _afterPlaysEdited() {
+  firstSeenMaps = null;
+  _certTimeline = null;   // plays changed — the certification dates move with them
+  stampPlays(allPlays);   // rewritten in place — refresh their derived keys
+  if (allPlays.length) window.firstScrobbleDate = _earliestPlayDate();
+  renderAll();
+  _sheetCacheSoon();
+}
+
+// Snapshot of the fields an edit touches, so a refused job can be undone
+function _playFields(p) {
+  return { title: p.title, artist: p.artist, artists: p.artists, album: p.album, date: p.date };
+}
+
+// Build an undo for a set of plays: each one goes back to its old fields,
+// but only if it still holds this edit's values (a later edit wins)
+function _makePlaysUndo(plays, f, newAlbum) {
+  const before = plays.map(p => [p, _playFields(p)]);
+  return () => {
+    let n = 0;
+    for (const [p, old] of before) {
+      if (p.title !== f.title || p.artist !== f.artist || p.album !== newAlbum) continue;
+      Object.assign(p, old);
+      n++;
+    }
+    return n;
+  };
+}
+
+function _enqueueSheetJob(job) {
+  _sheetQueue.push(job);
+  _sheetQueueStatus();
+  _runSheetQueue();
+}
+
+// How many corrections are still to be written (a rules sync doesn't count)
+function _sheetQueuePending() {
+  return _sheetQueue.filter(j => j.kind !== 'rules').length + (_sheetQueueBusy ? (_sheetQueueBusy.count || 0) : 0);
+}
+
+function _sheetQueueStatus() {
+  const n = _sheetQueuePending();
+  if (!n) return;
+  setSyncStatus(`Saving ${n} change${n === 1 ? '' : 's'} to sheet…`, 'loading', { toast: true });
+}
+
+// One POST to the Apps Script. A dropped connection gets one more try after
+// 2s; a refusal from the script itself throws straight away.
+async function _postSheet(body) {
+  const writeUrl = getSheetWriteUrl();
+  if (!writeUrl) throw new Error('No Apps Script URL configured.');
+  for (let attempt = 0; ; attempt++) {
+    try {
+      const res  = await fetch(writeUrl, { method: 'POST', body: JSON.stringify(body) });
+      const data = await res.json();
+      if (data.status === 'error') { const e = new Error(data.message || 'Script error'); e.fromScript = true; throw e; }
+      return data;
+    } catch (e) {
+      const network = !e.fromScript && (e.message === 'Failed to fetch' || e.name === 'TypeError');
+      if (network && attempt === 0) { await new Promise(r => setTimeout(r, 2000)); continue; }
+      if (network) throw new Error('Could not reach the Apps Script. Check that it is deployed as a Web App with access set to "Anyone".');
+      throw e;
+    }
+  }
+}
+
+// A refused job: undo it on screen and remember the message for the summary
+function _sheetJobFailed(job, e) {
+  if (job.undo && job.undo()) _afterPlaysEdited();
+  _sheetQueueFails.push(`“${job.label}”: ${e.message}`);
+}
+
+// Send one plain row fix ('update' jumps straight to the row via rowNumber)
+async function _sendSheetRow(job) {
+  const data = await _postSheet(Object.assign({ action: 'update' }, job.payload));
+  if (!data.updated) throw new Error('Apps Script is outdated — please redeploy the latest version from the setup guide to enable editing.');
+}
+
+async function _runSheetQueue() {
+  if (_sheetQueueBusy) return;
+  while (_sheetQueue.length) {
+    // Take the next job — plus every plain row fix right behind it, if it
+    // is one too, so they can go as one trip
+    const first = _sheetQueue[0];
+    let jobs = [first];
+    if (first.kind === 'row' && !first.timeChanged) {
+      let i = 1;
+      while (i < _sheetQueue.length && _sheetQueue[i].kind === 'row' && !_sheetQueue[i].timeChanged) i++;
+      jobs = _sheetQueue.slice(0, i);
+    }
+    _sheetQueue.splice(0, jobs.length);
+    _sheetQueueBusy = { count: jobs.filter(j => j.kind !== 'rules').length };
+    _sheetQueueStatus();
+
+    if (first.kind === 'rules') {
+      // Rules copy kept in the sheet — quiet, like before
+      try { await _postSheet({ action: 'saveRules', rules: JSON.stringify(getAutocorrectRules()) }); } catch { /* skip */ }
+    } else if (first.kind === 'all') {
+      // Every row with this artist + title + album, in one go
+      try {
+        const data = await _postSheet(Object.assign({ action: 'batchUpdate' }, first.payload));
+        _sheetQueueSaved += 1;
+        if (first.onDone) first.onDone(data.updated || 0);
+      } catch (e) { _sheetJobFailed(first, e); }
+    } else if (jobs.length === 1) {
+      try { await _sendSheetRow(first); _sheetQueueSaved += 1; }
+      catch (e) { _sheetJobFailed(first, e); }
+    } else {
+      // Several fixes, one trip. bulkUpdate finds rows by their time.
+      let bulkOk = false;
+      try {
+        const data = await _postSheet({
+          action: 'bulkUpdate',
+          updates: jobs.map(j => ({
+            originalTimestamp: j.payload.originalTimestamp,
+            artist: j.payload.artist, track: j.payload.track, album: j.payload.album,
+          })),
+        });
+        // The same play fixed twice counts once in the sheet's reply
+        const distinct = new Set(jobs.map(j => j.payload.originalTimestamp)).size;
+        if ((data.updated || 0) >= distinct) { bulkOk = true; _sheetQueueSaved += jobs.length; }
+      } catch { /* fall back below */ }
+      // Older script without bulkUpdate, or a row it couldn't find: send the
+      // fixes one by one, so each gets its own answer (and its own undo).
+      // Rewriting a row that already got its fix is harmless.
+      if (!bulkOk) {
+        for (const j of jobs) {
+          _sheetQueueBusy.count = Math.max(0, _sheetQueueBusy.count - 1);
+          try { await _sendSheetRow(j); _sheetQueueSaved += 1; }
+          catch (e) { _sheetJobFailed(j, e); }
+        }
+      }
+    }
+    _sheetQueueBusy = false;
+    if (_sheetQueue.length) _sheetQueueStatus();
+  }
+
+  // The line is empty: one summary
+  const saved = _sheetQueueSaved, fails = _sheetQueueFails;
+  _sheetQueueSaved = 0;
+  _sheetQueueFails = [];
+  if (fails.length) {
+    setSyncStatus(`Couldn't save ${fails.length} change${fails.length === 1 ? '' : 's'} to the sheet, so ${fails.length === 1 ? 'it was' : 'they were'} undone — ${fails.join(' · ')}`, 'err');
+  } else if (saved) {
+    setSyncStatus(`✓ ${saved} change${saved === 1 ? '' : 's'} saved to sheet`, 'ok', { toast: true });
+  }
+}
+
+// Leaving with changes still waiting would lose them — ask first
+window.addEventListener('beforeunload', e => {
+  if (!_sheetQueuePending()) return;
+  e.preventDefault();
+  e.returnValue = '';
+});
+
 async function pushEditToSheet() {
   const f = _readEditFields();
-  if (!f) return;
-  const writeUrl = getSheetWriteUrl();
-  if (!writeUrl) {
+  if (!f || !_editPlay) return;
+  if (!getSheetWriteUrl()) {
     f.statusEl.textContent = 'No Apps Script URL configured.';
     f.statusEl.className   = 'scrobble-status err';
     return;
@@ -5083,155 +5268,80 @@ async function pushEditToSheet() {
   const applyAll = document.getElementById('editApplyAll').checked;
   const saveRule = document.getElementById('editSaveRule').checked;
   const orig     = _editOrigMatch;
+  const play     = _editPlay;
+  const origTs   = _editOrigTs;
   const newAlbum = f.album || '—';
-  let _runRuleOnSheet = false;
+  let runRule = false;
   if (saveRule && orig) {
     const { choice, idsToRemove } = await checkSimilarRules(orig.artist, orig.title, orig.album, f.artist, f.title, newAlbum);
     if (choice === 'cancel') return;
     if ((choice === 'override' || choice === 'run') && idsToRemove.length) overrideSimilarRules(idsToRemove);
-    // skipSheetSync=true so we don't fire a concurrent saveRules request alongside batchUpdate.
-    // Apps Script serializes write requests; firing both at once just makes batchUpdate wait in queue.
-    // We sync rules after the batchUpdate completes instead.
+    // skipSheetSync: the rules copy goes through the save line instead (below)
     saveAutocorrectRule(orig.artist, orig.title, orig.album, f.artist, f.title, newAlbum, { skipSheetSync: true });
-    if (choice === 'run') _runRuleOnSheet = true;
+    if (choice === 'run') runRule = true;
   }
-  const btn      = document.getElementById('editPushSheetBtn');
-  const statusEl = f.statusEl;
-  btn.disabled = true;
-  let isBatchUpdate = false;
-  let _batchDone = 0;
-  let _batchTotal = 0;
-  try {
-    if (applyAll && orig) {
-      isBatchUpdate = true;
-      const matching = allPlays.filter(p =>
-        p.artist === orig.artist && p.title === orig.title && rawAlbumOf(p) === orig.album
-      );
-      _batchTotal = matching.length;
-      const t0 = Date.now();
-      statusEl.textContent = `Updating ${_batchTotal} entr${_batchTotal === 1 ? 'y' : 'ies'} in sheet…`;
-      statusEl.className   = 'scrobble-status loading';
-      // allPlays has autocorrected values; the sheet has the originals.
-      // Reverse-look up the autocorrect rule to find the original artist/title/album
-      // that is actually stored in the sheet, so batchUpdate can match on it.
-      const acRules = getAutocorrectRules();
-      const revRule = acRules.find(r =>
-        r.replace.artist === orig.artist &&
-        r.replace.title  === orig.title  &&
-        r.replace.album  === orig.album
-      );
-      const matchArtist = revRule ? revRule.match.artist : orig.artist;
-      const matchTitle  = revRule ? revRule.match.title  : orig.title;
-      const matchAlbum  = (revRule ? revRule.match.album : orig.album).replace(/^—$/, '');
-      const batchRes  = await fetch(writeUrl, {
-        method: 'POST',
-        body: JSON.stringify({
-          action: 'batchUpdate',
-          matchArtist, matchTitle, matchAlbum,
-          artist: f.artist,
-          track:  f.title,
-          album:  f.album,
-        }),
+  const label = `${f.artist} — ${f.title}`;
+
+  if (applyAll && orig) {
+    // Every play of this song — on screen now, in the sheet in the background
+    const matching = allPlays.filter(p =>
+      p.artist === orig.artist && p.title === orig.title && rawAlbumOf(p) === orig.album
+    );
+    const undo = _makePlaysUndo(matching, f, newAlbum);
+    // allPlays has autocorrected values; the sheet has the originals.
+    // Reverse-look up the autocorrect rule to find the original artist/title/album
+    // that is actually stored in the sheet, so batchUpdate can match on it.
+    const revRule = getAutocorrectRules().find(r =>
+      r.replace.artist === orig.artist &&
+      r.replace.title  === orig.title  &&
+      r.replace.album  === orig.album
+    );
+    const payload = {
+      matchArtist: revRule ? revRule.match.artist : orig.artist,
+      matchTitle:  revRule ? revRule.match.title  : orig.title,
+      matchAlbum:  (revRule ? revRule.match.album : orig.album).replace(/^—$/, ''),
+      artist: f.artist, track: f.title, album: f.album,
+    };
+    matching.forEach(p => {
+      p.title   = f.title;
+      p.artist  = f.artist;
+      p.artists = splitArtists(f.artist);
+      p.album   = newAlbum;
+    });
+    _enqueueSheetJob({ kind: 'all', payload, undo, label: `${label} (${matching.length} plays)`, count: 1 });
+  } else {
+    const undo = _makePlaysUndo([play], f, newAlbum);
+    const payload = {
+      originalTimestamp: Math.floor(origTs / 1000),
+      rowNumber: play._sheetRow,
+      artist: f.artist, track: f.title, album: f.album,
+      timestamp: f.ts,
+    };
+    play.title   = f.title;
+    play.artist  = f.artist;
+    play.artists = splitArtists(f.artist);
+    play.album   = newAlbum;
+    play.date    = f.date;
+    _enqueueSheetJob({
+      kind: 'row', payload, undo, label,
+      timeChanged: f.ts !== Math.floor(origTs / 1000),
+    });
+    // "Save rule and run it": fix every other matching row in the sheet too
+    if (runRule) {
+      _enqueueSheetJob({
+        kind: 'all', label: `rule for ${label}`,
+        payload: {
+          matchArtist: orig.artist, matchTitle: orig.title,
+          matchAlbum: orig.album === '—' ? '' : orig.album,
+          artist: f.artist, track: f.title, album: f.album,
+        },
+        onDone: n => { if (n) setSyncStatus(`✓ Rule applied to ${n} entr${n === 1 ? 'y' : 'ies'} in sheet.`, 'ok', { toast: true }); },
       });
-      const batchData = await batchRes.json();
-      if (batchData.status === 'error') throw new Error(batchData.message || 'Script error');
-      _batchDone = batchData.updated || 0;
-      allPlays.forEach(p => {
-        if (p.artist === orig.artist && p.title === orig.title && rawAlbumOf(p) === orig.album) {
-          p.title   = f.title;
-          p.artist  = f.artist;
-          p.artists = splitArtists(f.artist);
-          p.album   = newAlbum;
-        }
-      });
-      firstSeenMaps = null;
-      _certTimeline = null;   // plays changed — the certification dates move with them
-      stampPlays(allPlays);   // rewritten in place — refresh their derived keys
-      if (allPlays.length) {
-        window.firstScrobbleDate = _earliestPlayDate();
-      }
-      renderAll();
-      saveToIDB(IDB_SHEETS_KEY, { ts: Date.now(), csv: _serializePlaysCsv() }).catch(() => {});
-      if (saveRule) syncRulesToSheet();
-      const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
-      statusEl.textContent = `✓ Updated ${_batchDone} entr${_batchDone === 1 ? 'y' : 'ies'} in sheet! (${elapsed}s)`;
-      statusEl.className   = 'scrobble-status ok';
-    } else {
-      statusEl.textContent = 'Updating sheet…';
-      statusEl.className   = 'scrobble-status loading';
-      const res  = await fetch(writeUrl, {
-        method: 'POST',
-        body: JSON.stringify({
-          action: 'update',
-          originalTimestamp: Math.floor(_editOrigTs / 1000),
-          rowNumber: _editPlay._sheetRow,
-          artist: f.artist,
-          track:  f.title,
-          album:  f.album,
-          timestamp: f.ts,
-        }),
-      });
-      const data = await res.json();
-      if (data.status === 'error') throw new Error(data.message || 'Script error');
-      if (!data.updated) throw new Error('Apps Script is outdated — please redeploy the latest version from the setup guide to enable editing.');
-      _editPlay.title   = f.title;
-      _editPlay.artist  = f.artist;
-      _editPlay.artists = splitArtists(f.artist);
-      _editPlay.album   = newAlbum;
-      _editPlay.date    = f.date;
-      firstSeenMaps = null;
-      _certTimeline = null;   // plays changed — the certification dates move with them
-      stampPlays(allPlays);   // rewritten in place — refresh their derived keys
-      if (allPlays.length) {
-        window.firstScrobbleDate = _earliestPlayDate();
-      }
-      renderAll();
-      saveToIDB(IDB_SHEETS_KEY, { ts: Date.now(), csv: _serializePlaysCsv() }).catch(() => {});
-      if (saveRule) syncRulesToSheet(); // fire-and-forget after update, not before
-      if (_runRuleOnSheet) {
-        statusEl.textContent = 'Applying rule to all matching entries…';
-        statusEl.className   = 'scrobble-status loading';
-        const r = await applyRuleToSheet(orig.artist, orig.title, orig.album, f.artist, f.title, newAlbum);
-        statusEl.textContent = r.error
-          ? `✓ Sheet updated! (Rule apply failed: ${r.error})`
-          : `✓ Sheet updated! Rule applied to ${r.updated} entr${r.updated === 1 ? 'y' : 'ies'}.`;
-        statusEl.className = 'scrobble-status ok';
-      } else {
-        statusEl.textContent = '✓ Sheet updated!';
-        statusEl.className   = 'scrobble-status ok';
-      }
-    }
-  } catch (e) {
-    const isFetchError = e.message === 'Failed to fetch' || e.name === 'TypeError';
-    if (isBatchUpdate && isFetchError) {
-      allPlays.forEach(p => {
-        if (p.artist === orig.artist && p.title === orig.title && rawAlbumOf(p) === orig.album) {
-          p.title   = f.title;
-          p.artist  = f.artist;
-          p.artists = splitArtists(f.artist);
-          p.album   = newAlbum;
-        }
-      });
-      firstSeenMaps = null;
-      _certTimeline = null;   // plays changed — the certification dates move with them
-      stampPlays(allPlays);   // rewritten in place — refresh their derived keys
-      if (allPlays.length) {
-        window.firstScrobbleDate = _earliestPlayDate();
-      }
-      renderAll();
-      saveToIDB(IDB_SHEETS_KEY, { ts: Date.now(), csv: _serializePlaysCsv() }).catch(() => {});
-      const partial = _batchDone > 0 ? ` (${_batchDone}/${_batchTotal} written)` : '';
-      statusEl.textContent = `⚠ Sheet update interrupted${partial}. Local view updated. Reload from sheet to confirm.`;
-      statusEl.className   = 'scrobble-status ok';
-    } else {
-      const msg = isFetchError
-        ? 'Could not reach the Apps Script. Check that it is deployed as a Web App with access set to "Anyone".'
-        : e.message;
-      statusEl.textContent = 'Error: ' + msg;
-      statusEl.className   = 'scrobble-status err';
     }
   }
-  btn.disabled = false;
+  if (saveRule) _enqueueSheetJob({ kind: 'rules' });
+  _afterPlaysEdited();
+  closeEditScrobbleModal();
 }
 
 // Last.fm's image list, biggest first. Its grey-star placeholder
