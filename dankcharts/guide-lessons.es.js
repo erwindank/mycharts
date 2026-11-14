@@ -3295,15 +3295,15 @@ window.GL_TEXT.es = {
           row: ['Una reproducción', 'Cuándo, qué, quién y de qué álbum.'],
           edit: ['Editar', 'Corrige esta reproducción.']
         } },
-        edit: { title: '{{t:modal_edit_title}}', spots: {
-          artist: ['{{t:modal_label_artist}}', 'Con sugerencias de tu biblioteca mientras escribes.'],
-          track: ['{{t:modal_label_track}}', 'El título de la canción.'],
+        edit: { title: '{{t:ed_title}}', spots: {
+          artist: ['{{t:ed_label_artist}}', 'Con sugerencias de tu biblioteca mientras escribes.'],
+          track: ['{{t:ed_label_song}}', 'El título de la canción.'],
           album: ['{{t:modal_label_album}}', 'Puede quedar vacío.'],
-          time: ['{{t:modal_label_datetime}}', 'Cuándo se escuchó.'],
+          time: ['{{t:ed_label_played}}', 'Cuándo se escuchó.'],
           now: ['{{t:modal_now_btn}}', 'La pone en este minuto.'],
-          all: ['Todas las iguales', '{{t:modal_edit_apply_all}}.'],
-          rule: ['Recordarlo', '{{t:modal_edit_save_rule}}.'],
-          save: ['{{t:modal_save_locally}}', 'Lo cambia aquí. Con Last.fm o una hoja de Google, otro botón lo envía allí también.'],
+          all: ['Todas las iguales', 'Todas las reproducciones de esta canción, no solo esta.'],
+          rule: ['Recordarlo', '{{t:ed_rule_note}}'],
+          save: ['{{t:ed_save}}', 'Lo cambia aquí y en los lugares marcados en {{t:ed_save_to}}.'],
           cancel: ['Cancelar', 'No cambia nada.']
         } },
         corr: { title: '{{t:raw_corrected_only}}', spots: {
@@ -3333,7 +3333,7 @@ window.GL_TEXT.es = {
           'Corrige el nombre.',
           'Corrige todas las iguales a la vez…',
           '…y guárdalo como regla, para que las próximas importaciones lleguen bien.',
-          '{{t:modal_save_locally}}.',
+          '{{t:ed_save}}.',
           'Ahora la reproducción tiene un ~.'
         ] },
         rules: { title: 'Cuida tus reglas', slides: [
@@ -3352,10 +3352,10 @@ window.GL_TEXT.es = {
           size: ['{{t:raw_rows_per_page}}', '50, 100, 200, 500.'],
           sort: ['Ordenar', 'Cualquier columna, en los dos sentidos.']
         } },
-        edit: { title: '{{t:modal_edit_title}}', items: {
+        edit: { title: '{{t:ed_title}}', items: {
           all: ['Todas las iguales', 'Misma canción, artista y álbum.'],
           rule: ['Guardar como regla', 'Para futuras importaciones.'],
-          save: ['{{t:modal_save_locally}}', 'O {{t:modal_push_lfm}} / {{t:modal_push_sheet}} si están conectados.']
+          save: ['{{t:ed_save}}', 'Y la hoja de Google o Last.fm en {{t:ed_save_to}} si están conectados.']
         } },
         rules: { title: '{{t:modal_rules_title}}', items: {
           export: ['{{t:modal_rules_export}}', 'Una copia de tus reglas.'],

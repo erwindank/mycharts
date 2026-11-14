@@ -27,13 +27,13 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=1031">
+  <link rel="stylesheet" href="style.css?v=1033">
   <!-- The Charts Guide's lessons (guide.js, GUIDE-PLAN.md) -->
   <link rel="stylesheet" href="guide.css?v=5">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=417"></script>
+  <script defer src="translations.js?v=418"></script>
   <!-- Only the visitor's own language is downloaded (translations.js holds
        English). This writes a defer tag for the saved language right here, so
        it runs straight after translations.js and before app.js, and the page
@@ -41,7 +41,7 @@
        whenever translations.es / pt-BR / pt-PT .js change (setup-guide.html
        has the same line). -->
   <script>
-    window.DC_I18N_V = 115;
+    window.DC_I18N_V = 116;
     (function () {
       try {
         var l = localStorage.getItem('dankcharts-lang');
@@ -4204,58 +4204,99 @@
        .dc-frame-foot (secondary left, main action right). Element ids are
        unchanged — app.js fills and toggles them as before. -->
 
-  <!-- ── Edit a play (Raw Data → ✎) ── -->
+  <!-- ── Edit a play (Raw Data → ✎) ──
+       Redone 2026-11-14 ("Before → After" design): a cover tile + the play's
+       artist and time up top, a strip that shows each change old → new as you
+       type, "Fix which plays?" as a two-way switch, the auto-correct rule as a
+       switch, and ONE Save button with "Save to" chips (Google Sheet, Last.fm)
+       in place of the old Push to Last.fm / Push to Sheet / Save Locally trio.
+       The ids editApplyAll / editSaveRule are kept (app.js + the guide's
+       screenshot tools read them). Wired in app.js → openEditScrobbleModal,
+       _editRefresh, saveEditPlay. -->
   <div id="editScrobbleModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="editScrobbleTitle">
-    <div class="dc-modal dc-frame src-modal-box scrobble-modal-box">
-      <div class="dc-frame-head">
-        <span class="dc-frame-icon" data-ico="edit"></span>
+    <div class="dc-modal dc-frame src-modal-box ed-box">
+      <div class="dc-frame-head ed-head">
+        <span class="ed-cover" id="editCover" aria-hidden="true"></span>
         <div class="dc-frame-titles">
-          <h3 class="dc-frame-title" id="editScrobbleTitle" data-i18n="modal_edit_title">Edit Scrobble</h3>
-          <p class="dc-frame-sub" data-i18n="pop_edit_sub">Fix a misspelled name or the time it was played.</p>
+          <h3 class="ed-title" id="editScrobbleTitle" data-i18n="ed_title">Fix this play</h3>
+          <p class="dc-frame-sub" id="editScrobbleSub"></p>
         </div>
         <button class="dc-btn dc-btn-plain dc-btn-icon dc-modal-close" onclick="closeEditScrobbleModal()" aria-label="Close" data-i18n-aria="set_close">✕</button>
       </div>
       <div class="dc-frame-body">
-        <label class="dc-field">
-          <span data-i18n="modal_label_artist">Artist *</span>
-          <input class="dc-input" type="text" id="editScrobbleArtist" placeholder="Artist name" data-i18n-placeholder="modal_placeholder_artist" list="editArtistList" autocomplete="off">
+        <!-- What will change, old → new; filled by _editRefresh() -->
+        <div class="ed-diff" id="editDiff" aria-live="polite"></div>
+
+        <label class="ed-field" data-ed="artist">
+          <span class="ed-label"><span data-i18n="ed_label_artist">Artist</span><span class="ed-edited" data-i18n="ed_edited">edited</span></span>
+          <input class="dc-input" type="text" id="editScrobbleArtist" placeholder="Artist name" data-i18n-placeholder="modal_placeholder_artist" list="editArtistList" autocomplete="off" oninput="_editRefresh()">
           <datalist id="editArtistList"></datalist>
         </label>
-        <label class="dc-field">
-          <span data-i18n="modal_label_track">Track *</span>
-          <input class="dc-input" type="text" id="editScrobbleTrack" placeholder="Track title" data-i18n-placeholder="modal_placeholder_track" list="editTrackList" autocomplete="off">
+        <label class="ed-field" data-ed="title">
+          <span class="ed-label"><span data-i18n="ed_label_song">Song</span><span class="ed-edited" data-i18n="ed_edited">edited</span></span>
+          <input class="dc-input" type="text" id="editScrobbleTrack" placeholder="Track title" data-i18n-placeholder="modal_placeholder_track" list="editTrackList" autocomplete="off" oninput="_editRefresh()">
           <datalist id="editTrackList"></datalist>
         </label>
-        <label class="dc-field">
-          <span data-i18n="modal_label_album">Album</span>
-          <input class="dc-input" type="text" id="editScrobbleAlbum" placeholder="Album (optional)" data-i18n-placeholder="modal_placeholder_album" list="editAlbumList" autocomplete="off">
-          <datalist id="editAlbumList"></datalist>
-        </label>
-        <label class="dc-field">
-          <span data-i18n="modal_label_datetime">Date &amp; Time</span>
-          <span class="dc-field-row">
-            <input class="dc-input" type="datetime-local" id="editScrobbleTime" step="1">
-            <button type="button" class="dc-btn dc-btn-normal" onclick="setEditScrobbleNow()" data-i18n="modal_now_btn">Now</button>
+        <div class="ed-row">
+          <label class="ed-field" data-ed="album">
+            <span class="ed-label"><span data-i18n="modal_label_album">Album</span><span class="ed-edited" data-i18n="ed_edited">edited</span></span>
+            <input class="dc-input" type="text" id="editScrobbleAlbum" placeholder="Album (optional)" data-i18n-placeholder="modal_placeholder_album" list="editAlbumList" autocomplete="off" oninput="_editRefresh()">
+            <datalist id="editAlbumList"></datalist>
+          </label>
+          <label class="ed-field" data-ed="time">
+            <span class="ed-label"><span data-i18n="ed_label_played">Played at</span><span class="ed-edited" data-i18n="ed_edited">edited</span></span>
+            <span class="dc-field-row">
+              <input class="dc-input ed-time" type="datetime-local" id="editScrobbleTime" step="1" oninput="_editRefresh()">
+              <button type="button" class="dc-btn dc-btn-normal" onclick="setEditScrobbleNow()" data-i18n="modal_now_btn">Now</button>
+            </span>
+          </label>
+        </div>
+
+        <!-- Only this play, or every play of the song (hidden when there is just one) -->
+        <div class="ed-scope" id="editScope">
+          <span class="ed-label" id="editScopeLabel" data-i18n="ed_scope">Fix which plays?</span>
+          <div class="ed-seg" role="radiogroup" aria-labelledby="editScopeLabel">
+            <label><input type="radio" name="editScope" id="editApplyOne" checked onchange="_editRefresh()"><span data-i18n="ed_scope_one">Just this play</span></label>
+            <label><input type="radio" name="editScope" id="editApplyAll" onchange="_editRefresh()"><span id="editApplyAllText">All plays of this song</span></label>
+          </div>
+        </div>
+
+        <label class="src-switch-row ed-rule">
+          <span class="src-switch-label"><strong data-i18n="ed_rule">Fix it automatically next time</strong>
+            <span class="set-switch-note" data-i18n="ed_rule_note">New plays spelled the old way get corrected when they come in.</span>
+          </span>
+          <span class="src-switch">
+            <input type="checkbox" id="editSaveRule">
+            <span class="src-switch-slider"></span>
           </span>
         </label>
-        <label class="dc-check">
-          <input type="checkbox" id="editApplyAll">
-          <span data-i18n="modal_edit_apply_all">Apply to all matching entries (same song, artist &amp; album)</span>
-        </label>
-        <label class="dc-check">
-          <input type="checkbox" id="editSaveRule">
-          <span data-i18n="modal_edit_save_rule">Save as auto-correct rule for future imports</span>
-        </label>
-        <p id="editScrobbleHint" class="dc-frame-note" style="display:none" data-i18n="modal_edit_hint">Pushing to Last.fm adds a corrected scrobble — remove the original manually on the Last.fm website.</p>
         <div id="editScrobbleStatus" class="scrobble-status"></div>
       </div>
-      <div class="dc-frame-foot">
-        <div class="dc-frame-foot-start">
-          <button class="dc-btn dc-btn-plain" onclick="closeEditScrobbleModal()" data-i18n="btn_cancel">Cancel</button>
+      <div class="dc-frame-foot ed-foot">
+        <!-- Where the fix goes besides this device (chips show only when that
+             place is connected; the last choice is remembered) -->
+        <div class="ed-dest" id="editDest">
+          <span class="ed-label" data-i18n="ed_save_to">Save to</span>
+          <label class="ed-chip ed-chip-sheet" id="editDestSheetChip">
+            <input type="checkbox" id="editDestSheet" onchange="_editRefresh()">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M4 9h16M4 15h16M11 9v12"/></svg>
+            Google Sheet
+          </label>
+          <label class="ed-chip ed-chip-lfm" id="editDestLfmChip">
+            <input type="checkbox" id="editDestLfm" onchange="_editRefresh()">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4M8 7v10M12 4v16M16 8v8M20 11v2"/></svg>
+            Last.fm
+          </label>
+          <span class="ed-dest-note" data-i18n="ed_device_always">This device always</span>
         </div>
-        <button class="dc-btn dc-btn-normal" id="editPushLfmBtn" onclick="pushEditToLastfm()" style="display:none" data-i18n="modal_push_lfm">Push to Last.fm</button>
-        <button class="dc-btn dc-btn-normal" id="editPushSheetBtn" onclick="pushEditToSheet()" style="display:none" data-i18n="modal_push_sheet">Push to Sheet</button>
-        <button class="dc-btn dc-btn-main" id="editSaveLocalBtn" onclick="saveEditLocally()" data-i18n="modal_save_locally">Save Locally</button>
+        <p id="editScrobbleHint" class="ed-hint" hidden data-i18n="modal_edit_hint">Pushing to Last.fm adds a corrected scrobble — remove the original manually on the Last.fm website.</p>
+        <div class="ed-actions">
+          <button class="dc-btn dc-btn-plain" onclick="closeEditScrobbleModal()" data-i18n="btn_cancel">Cancel</button>
+          <button class="dc-btn dc-btn-main" id="editSaveBtn" onclick="saveEditPlay()">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+            <span id="editSaveText">Save change</span>
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -4607,7 +4648,7 @@
        the whole start. app.js reads this tag's content and loads the file once
        the page has finished loading, or straight away when What's New opens
        (dcClEnsureData). Bump ?v= here exactly as before. -->
-  <meta id="dcChangelogSrc" name="dc-changelog-src" content="changelog.js?v=574">
+  <meta id="dcChangelogSrc" name="dc-changelog-src" content="changelog.js?v=575">
   <!-- Community board tab (suggestions / bugs / discussion). Loaded before
        app.js so window.dcBoard exists when app.js opens a #t=board/<id> link. -->
   <!-- Glow kit: the drawn, glowing icons for titles, Records headings, Guide cards and stat tiles -->
@@ -4620,7 +4661,7 @@
   <!-- One behaviour and one icon set for every pop-up window (phase 10); before
        app.js so dcIco() is there when app.js draws a window -->
   <script defer src="popups.js?v=13"></script>
-  <script defer src="app.js?v=781"></script>
+  <script defer src="app.js?v=782"></script>
   <!-- The song / album / artist details side panel (phase 10 step 3); wraps app.js's open functions -->
   <script defer src="panel.js?v=17"></script>
   <!-- ▶ Animate Chart: the play-by-play chart replay (phase 7 step 11); app.js calls into it -->
@@ -4649,7 +4690,7 @@
        anywhere in the app; the lessons themselves (guide-lessons*.js) and the
        picture measurements load only when the guide opens. After app.js: it
        wraps app functions and takes over dcRenderChartsGuideView. -->
-  <script defer src="guide.js?v=34"></script>
+  <script defer src="guide.js?v=35"></script>
 
   <!-- ── Settings Modal ──
        Split into three tabs so the whole form is never dumped on screen at

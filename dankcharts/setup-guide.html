@@ -10,12 +10,12 @@
   <!-- Step pictures (drawn screens + dots); Roboto above is for those, since
        the drawn Google screens use Google's own typeface -->
   <link rel="stylesheet" href="setup-scenes.css?v=1">
-  <script src="translations.js?v=417"></script>
+  <script src="translations.js?v=418"></script>
   <!-- The saved language's own file (translations.js is English only). Must
        come before setup-guide-i18n.js so the guide's strings are merged on top
        of it, as before. Same DC_I18N_V as index.html. -->
   <script>
-    window.DC_I18N_V = 115;
+    window.DC_I18N_V = 116;
     (function () {
       try {
         var l = localStorage.getItem('dankcharts-lang');
@@ -26,7 +26,7 @@
   </script>
   <!-- The guide's own ES / PT strings, merged into TRANSLATIONS. Must load
        after translations.js and before its DOMContentLoaded pass runs. -->
-  <script src="setup-guide-i18n.js?v=2"></script>
+  <script src="setup-guide-i18n.js?v=3"></script>
   <style>
     /* ═══════════════════════════════════════════════════════════════════
        SETUP GUIDE — visual system
@@ -3158,7 +3158,7 @@ body.yellow-light .dc-gico, body.pink-light .dc-gico, body.green-light .dc-gico 
                   <li data-dot="2" data-frame="1" data-i18n-html="sg_lf4_do1">…and pick <strong>Raw Data</strong>.</li>
                   <li data-dot="3" data-frame="2" data-i18n-html="sg_lf4_do2">Click <strong>✎</strong> on the play you want to fix.</li>
                   <li data-dot="4" data-frame="3" data-i18n-html="sg_lf4_do3">Fix the artist, title, album or time.</li>
-                  <li data-dot="5" data-frame="3" data-i18n-html="sg_lf4_do4">Press <strong>Push to Last.fm</strong>.</li>
+                  <li data-dot="5" data-frame="3" data-i18n-html="sg_lf4_do4">Under <strong>Save to</strong>, tick <strong>Last.fm</strong> and press <strong>Save change</strong>.</li>
                 </ol>
               </div>
             </div>
@@ -3171,7 +3171,7 @@ body.yellow-light .dc-gico, body.pink-light .dc-gico, body.green-light .dc-gico 
             <details class="why">
               <summary data-i18n="sg_lf4_why">Fixing the same track everywhere?</summary>
               <div class="why-body">
-                <p data-i18n-html="sg_lf4_why_body">Tick <strong>Apply to all matching entries</strong> in the edit panel to correct that artist/track across your whole local history, then push once.</p>
+                <p data-i18n-html="sg_lf4_why_body">Pick <strong>All plays of this song</strong> under <strong>Fix which plays?</strong> to correct that song across your whole local history, then save once.</p>
               </div>
             </details>
           </div>
@@ -3183,7 +3183,7 @@ body.yellow-light .dc-gico, body.pink-light .dc-gico, body.green-light .dc-gico 
       <h2 class="section-label dc-gk-host"><svg data-gico="wrench" aria-hidden="true"></svg><span data-i18n="sg_troubleshooting">Troubleshooting</span></h2>
       <div class="faq">
         <details class="faq-item" id="fix-lfm-push">
-          <summary data-i18n="sg_lf_q1">The "Push to Last.fm" button doesn't appear in the edit panel.</summary>
+          <summary data-i18n="sg_lf_q1">There's no Last.fm choice under "Save to" in the edit window.</summary>
           <div class="faq-body">
             <p data-i18n="sg_lf_a1">You need to complete Step 3 first. Open Settings → Data Source → Last.fm Account and check that the status shows "Connected". This section sits below the source cards and stays available whichever source you use, so you can connect from Google Sheets or a CSV upload too.</p>
           </div>
@@ -3195,7 +3195,7 @@ body.yellow-light .dc-gico, body.pink-light .dc-gico, body.green-light .dc-gico 
           </div>
         </details>
         <details class="faq-item" id="fix-lfm-pusherr">
-          <summary data-i18n="sg_lf_q3">"Push to Last.fm" shows an error after connecting.</summary>
+          <summary data-i18n="sg_lf_q3">Saving to Last.fm shows an error after connecting.</summary>
           <div class="faq-body">
             <p data-i18n="sg_lf_a3">Your session may have expired. Go to Settings → Disconnect, then reconnect following Step 3 again.</p>
           </div>
@@ -4968,7 +4968,7 @@ body.yellow-light .dc-gico, body.pink-light .dc-gico, body.green-light .dc-gico 
 <!-- Contact Support form (replaces the Zoho Desk widget) - see support.js -->
 <script defer src="support.js?v=4"></script>
 <!-- Step pictures engine + drawn screens (before DOMContentLoaded mounts them) -->
-<script defer src="setup-scenes.js?v=1"></script>
+<script defer src="setup-scenes.js?v=2"></script>
 <!-- Glow Kit icons (the glowing drawn icons used across the site) -->
 <script defer src="glowkit.js?v=10"></script>
 </body>

@@ -1838,7 +1838,7 @@ const SHOTS = [
     clip: { from: '#editScrobbleModal .dc-modal', to: '#editScrobbleModal .dc-modal', pad: 10, narrow: true },
     spots: { artist: '#editScrobbleArtist', track: '#editScrobbleTrack', album: '#editScrobbleAlbum', time: '#editScrobbleTime',
       now: '#editScrobbleModal [onclick*="setEditScrobbleNow"]', all: { js: "document.getElementById('editApplyAll').closest('label')" },
-      rule: { js: "document.getElementById('editSaveRule').closest('label')" }, save: '#editSaveLocalBtn',
+      rule: { js: "document.getElementById('editSaveRule').closest('label')" }, save: '#editSaveBtn',
       cancel: '#editScrobbleModal .dc-btn[onclick*="closeEditScrobbleModal"]:not(.dc-modal-close)' } },
   { id: 'rd-rules', lesson: 'rawdata',
     setup: async pg => { await rdView(pg); await pg.evaluate(() => openRulesModal()); await wait(pg, 1200); },

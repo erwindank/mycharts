@@ -164,10 +164,11 @@ const SHOTS = [
       await rawData(pg);
       await pg.evaluate(() => { openEditScrobbleModal(2); });
       await wait(pg, 900);
-      await pg.evaluate(() => { document.getElementById('editPushLfmBtn').style.display = ''; });
+      // show the Last.fm chip ticked under Save to (the window shows it only when connected)
+      await pg.evaluate(() => { document.getElementById('editDestLfmChip').hidden = false; document.getElementById('editDestLfm').checked = true; document.getElementById('editDest').hidden = false; _editRefresh(); });
     },
     clip: { from: '#editScrobbleModal .dc-modal', to: '#editScrobbleModal .dc-modal', pad: 10, narrow: true },
-    spots: { 1: { js: "document.getElementById('editScrobbleArtist').closest('.dc-modal').querySelector('#editScrobbleArtist').parentElement.parentElement" }, 2: '#editPushLfmBtn' } }
+    spots: { 1: { js: "document.getElementById('editScrobbleArtist').closest('.dc-modal').querySelector('#editScrobbleArtist').parentElement.parentElement" }, 2: '#editDestLfmChip' } }
 ];
 
 /* ── Measuring + capture (same method as guide-shots.mjs) ───────── */

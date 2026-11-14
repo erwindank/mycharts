@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 487;
+const DC_CL_I18N_V = 488;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -410,6 +410,12 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-14', t: 'design', a: 'rawdata',
+    title: "A friendlier window for fixing a play",
+    detail: "The window that opens from the pencil in Raw Data has a new look. The song's cover sits at the top, and a strip shows each change crossed out and in green as you type. Pick Just this play or All plays of this song with one switch. One Save button now does it all: tick Google Sheet or Last.fm under Save to, and your choice is remembered for next time." },
+  { d: '2026-11-14', t: 'perf', a: 'rawdata',
+    title: "Fixes to your Google Sheet save in the background",
+    detail: "Fixing a play and saving it to your Google Sheet no longer makes you wait for Google. The change shows straight away and the window closes, while the Sheet catches up behind it. Make as many fixes in a row as you like: they're saved in order, and fixes made close together go in one trip. If the Sheet turns one down, only that fix is undone and you're told which." },
   { d: '2026-11-14', t: 'feature', a: 'rawdata',
     title: "Add several plays at once",
     detail: "The Add Play button has a new Several plays option. Paste a list with one song per line, or choose a CSV file, check every play and the time it will get, then send them all to Last.fm, your Google Sheet or your uploaded plays in one go. Plays without a time are spaced out back from the time you pick. Last.fm only takes plays from the last 14 days, and the list tells you which ones are older." },

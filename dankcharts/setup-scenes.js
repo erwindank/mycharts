@@ -1102,6 +1102,10 @@
     SCENES[s[0]] = { img: s[0], url: 'dankcharts.fm', w: 800, cap: s[1] };
   });
 
+  // Bump when the pictures in setup/<lang>/ are retaken, or browsers keep
+  // showing the old ones (2: edit window redone, 2026-11-14)
+  var SHOT_V = '2';
+
   /* ── Engine ──────────────────────────────────────────────────────────── */
   var mounted = [];   // every live figure controller
   var ro = 'ResizeObserver' in window ? new ResizeObserver(function (entries) {
@@ -1328,7 +1332,7 @@
   function imgScene(sc) {
     var l = lang();
     var meta = (SHOTS_JSON[l] || {})[sc.img] || (SHOTS_JSON.en || {})[sc.img] || {};
-    var src = 'setup/' + (SHOTS_JSON[l] && SHOTS_JSON[l][sc.img] ? l : 'en') + '/' + sc.img + '.webp';
+    var src = 'setup/' + (SHOTS_JSON[l] && SHOTS_JSON[l][sc.img] ? l : 'en') + '/' + sc.img + '.webp?v=' + SHOT_V;
     var spots = (meta.spots || {});
     return '<div class="r-img"><img src="' + src + '" alt="" width="' + (meta.w || sc.w) + '" height="' + (meta.h || '') + '">' +
       Object.keys(spots).map(function (n) {
@@ -1459,7 +1463,7 @@
   // Real screenshots' measurements, one file per language, loaded once
   function loadShots(l, cb) {
     if (SHOTS_JSON[l]) return cb();
-    fetch('setup/' + l + '/shots.json').then(function (r) { return r.ok ? r.json() : {}; })
+    fetch('setup/' + l + '/shots.json?v=' + SHOT_V).then(function (r) { return r.ok ? r.json() : {}; })
       .then(function (j) { SHOTS_JSON[l] = j || {}; cb(); })
       .catch(function () { SHOTS_JSON[l] = {}; cb(); });
   }

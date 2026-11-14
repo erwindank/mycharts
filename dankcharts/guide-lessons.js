@@ -4402,15 +4402,15 @@ window.GL_TEXT.en = {
           row: ['A play', 'When, what, who and from which album.'],
           edit: ['Edit', 'Fix this play.']
         } },
-        edit: { title: '{{t:modal_edit_title}}', spots: {
-          artist: ['{{t:modal_label_artist}}', 'With suggestions from your library as you type.'],
-          track: ['{{t:modal_label_track}}', 'The song’s title.'],
+        edit: { title: '{{t:ed_title}}', spots: {
+          artist: ['{{t:ed_label_artist}}', 'With suggestions from your library as you type.'],
+          track: ['{{t:ed_label_song}}', 'The song’s title.'],
           album: ['{{t:modal_label_album}}', 'Can be left empty.'],
-          time: ['{{t:modal_label_datetime}}', 'When it was played.'],
+          time: ['{{t:ed_label_played}}', 'When it was played.'],
           now: ['{{t:modal_now_btn}}', 'Sets it to this minute.'],
-          all: ['Every match', '{{t:modal_edit_apply_all}}.'],
-          rule: ['Remember it', '{{t:modal_edit_save_rule}}.'],
-          save: ['{{t:modal_save_locally}}', 'Changes it here. With Last.fm or a Google Sheet, another button sends it there too.'],
+          all: ['Every match', 'Every play of this song, not just this one.'],
+          rule: ['Remember it', '{{t:ed_rule_note}}'],
+          save: ['{{t:ed_save}}', 'Changes it here, and in the places ticked under {{t:ed_save_to}}.'],
           cancel: ['Cancel', 'Nothing changes.']
         } },
         corr: { title: '{{t:raw_corrected_only}}', spots: {
@@ -4440,7 +4440,7 @@ window.GL_TEXT.en = {
           'Correct the name.',
           'Fix every play like it at once…',
           '…and save it as a rule, so future imports get it right too.',
-          '{{t:modal_save_locally}}.',
+          '{{t:ed_save}}.',
           'The play now has a ~.'
         ] },
         rules: { title: 'Look after your rules', slides: [
@@ -4459,10 +4459,10 @@ window.GL_TEXT.en = {
           size: ['{{t:raw_rows_per_page}}', '50, 100, 200, 500.'],
           sort: ['Sort', 'Any column, either way.']
         } },
-        edit: { title: '{{t:modal_edit_title}}', items: {
+        edit: { title: '{{t:ed_title}}', items: {
           all: ['Every match', 'Same song, artist and album.'],
           rule: ['Save as a rule', 'For future imports.'],
-          save: ['{{t:modal_save_locally}}', 'Or {{t:modal_push_lfm}} / {{t:modal_push_sheet}} when connected.']
+          save: ['{{t:ed_save}}', 'Plus Google Sheet or Last.fm under {{t:ed_save_to}} when connected.']
         } },
         rules: { title: '{{t:modal_rules_title}}', items: {
           export: ['{{t:modal_rules_export}}', 'A backup of your rules.'],

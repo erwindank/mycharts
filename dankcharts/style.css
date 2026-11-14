@@ -49865,3 +49865,181 @@ a.tb-more-item:hover { text-decoration: none; }
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   EDIT A PLAY — "Before → After" window (2026-11-14)
+   Raw Data → ✎. Markup in index.html (#editScrobbleModal), wiring in
+   app.js (openEditScrobbleModal / _editRefresh / saveEditPlay).
+   Brand tints on the Save to chips mix the brand colour with --text,
+   so the words stay readable on light and dark themes alike.
+   ═══════════════════════════════════════════════════════════════ */
+.ed-box { max-width: 540px; width: calc(100vw - 2 * var(--sp-4)); }
+.ed-head { align-items: center; }
+/* Cover tile: the song's art when there is some, initials until then */
+.ed-cover {
+  flex-shrink: 0;
+  width: 60px;
+  height: 60px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--accent) 18%, var(--raised)) center / cover no-repeat;
+  border: 1px solid var(--border2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--accent);
+  overflow: hidden;
+}
+.ed-cover.has-art { color: transparent; }
+.ed-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+.ed-head .dc-frame-sub { font-size: var(--fs-sm); color: var(--text2); }
+.ed-sub-time { font-family: var(--font-mono); font-size: var(--fs-xs); }
+
+/* The change strip: one line per changed field, old → new */
+.ed-diff {
+  margin-bottom: var(--sp-4);
+  padding: 12px 14px;
+  border-radius: var(--r-md);
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: border-color var(--t-fast) var(--ease);
+}
+.ed-diff.has-changes { border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); }
+.ed-diff-head {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text3);
+}
+.ed-diff-empty { font-size: var(--fs-sm); color: var(--text3); }
+.ed-diff-row {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  font-size: 0.9rem;
+  line-height: 1.35;
+  min-width: 0;
+}
+.ed-diff-what { font-size: var(--fs-xs); color: var(--text3); min-width: 3.6em; }
+.ed-diff-old { color: var(--text3); text-decoration: line-through; overflow-wrap: anywhere; }
+.ed-diff-new { color: var(--green); font-weight: 600; overflow-wrap: anywhere; }
+.ed-diff-arrow { width: 14px; height: 14px; flex-shrink: 0; align-self: center; fill: none; stroke: var(--accent); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+
+/* Fields: label + "edited" mark, the box lit while it differs */
+.ed-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: var(--sp-3); min-width: 0; }
+.ed-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--text2);
+}
+.ed-edited { display: none; align-items: center; gap: 5px; font-weight: 500; color: var(--accent); }
+.ed-edited::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+.ed-field.is-edited .ed-edited { display: inline-flex; }
+.ed-field .dc-input { height: 42px; font-size: 0.9rem; }
+.ed-field.is-edited .dc-input { border-color: var(--accent); }
+.ed-time { font-family: var(--font-mono); font-size: var(--fs-xs) !important; }
+/* Album and time each get a full row: a date-and-time box with seconds
+   (and AM/PM in some languages) gets cut off at half width */
+.ed-row { display: block; }
+
+/* "Fix which plays?" — two big halves, radios underneath */
+.ed-scope { display: flex; flex-direction: column; gap: 8px; margin: var(--sp-2) 0 var(--sp-3); }
+.ed-scope[hidden] { display: none; }
+.ed-seg {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+  padding: 4px;
+  border-radius: var(--r-md);
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+.ed-seg label { position: relative; display: flex; cursor: pointer; }
+.ed-seg input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.ed-seg span {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-height: 38px;
+  padding: 4px 10px;
+  border-radius: calc(var(--r-md) - 3px);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--text2);
+  line-height: 1.25;
+  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+}
+.ed-seg label:hover span { background: var(--hover); color: var(--text); }
+.ed-seg input:checked + span { background: var(--accent); color: var(--on-accent); }
+.ed-seg input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* The rule switch, as a bordered row */
+.ed-rule {
+  padding: 12px 14px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border);
+  transition: border-color var(--t-fast) var(--ease);
+}
+.ed-rule:hover { border-color: var(--border2); }
+.ed-rule strong { font-weight: 600; color: var(--text); }
+
+/* Foot: Save to chips on top, the buttons under them */
+.ed-foot { flex-direction: column; align-items: stretch; gap: var(--sp-3); padding: var(--sp-4) var(--sp-5); }
+.ed-dest { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.ed-dest[hidden] { display: none; }
+.ed-dest > .ed-label { margin-right: 2px; }
+.ed-dest-note { font-size: var(--fs-xs); color: var(--text3); }
+.ed-chip {
+  --brand: var(--accent);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 36px;
+  padding: 0 12px 0 10px;
+  border-radius: var(--r-full);
+  border: 1px solid color-mix(in srgb, var(--brand) 40%, var(--border));
+  background: transparent;
+  color: var(--text2);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+  transition: background var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+}
+.ed-chip[hidden] { display: none; }
+.ed-chip input { width: 15px; height: 15px; margin: 0; accent-color: var(--brand); cursor: pointer; }
+.ed-chip svg { width: 16px; height: 16px; fill: none; stroke: var(--brand); stroke-width: 2.1; stroke-linecap: round; stroke-linejoin: round; }
+.ed-chip:hover { border-color: var(--brand); }
+.ed-chip:has(input:checked) {
+  background: color-mix(in srgb, var(--brand) 15%, transparent);
+  border-color: var(--brand);
+  color: color-mix(in srgb, var(--brand) 55%, var(--text));
+}
+.ed-chip:has(input:focus-visible) { outline: 2px solid var(--brand); outline-offset: 2px; }
+.ed-chip-sheet { --brand: #34a853; }   /* Google Sheets green */
+.ed-chip-lfm   { --brand: #e0261b; }   /* Last.fm red */
+.ed-hint { margin: 0; font-size: var(--fs-xs); line-height: 1.5; color: var(--text3); }
+.ed-hint[hidden] { display: none; }
+.ed-actions { display: flex; justify-content: flex-end; align-items: center; gap: var(--sp-2); }
+#editSaveBtn { gap: 8px; }
+#editSaveBtn svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }

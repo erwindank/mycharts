@@ -13,6 +13,12 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "A friendlier window for fixing a play":
+    ["Una ventana más amable para corregir una reproducción",
+     "La ventana que se abre con el lápiz en Datos sin procesar tiene un nuevo aspecto. La portada de la canción aparece arriba, y una franja muestra cada cambio tachado y en verde mientras escribes. Elige Solo esta o todas las reproducciones de la canción con un solo interruptor. Un único botón Guardar lo hace todo: marca la hoja de Google o Last.fm en Guardar en, y tu elección se recuerda para la próxima vez."],
+  "Fixes to your Google Sheet save in the background":
+    ["Las correcciones en tu hoja de Google se guardan en segundo plano",
+     "Corregir una reproducción y guardarla en tu hoja de Google ya no te hace esperar a Google. El cambio aparece al instante y la ventana se cierra, mientras la hoja se pone al día detrás. Haz tantas correcciones seguidas como quieras: se guardan en orden, y las que haces muy juntas van en un solo envío. Si la hoja rechaza una, solo esa se deshace y se te dice cuál."],
   "Add several plays at once":
     ["Añade varias reproducciones a la vez",
      "El botón Agregar tiene una nueva opción, Varias reproducciones. Pega una lista con una canción por línea, o elige un archivo CSV, revisa cada reproducción y la hora que tendrá, y envíalas todas de una vez a Last.fm, a tu hoja de Google o a tus reproducciones subidas. Las que no tienen hora se reparten hacia atrás desde la hora que elijas. Last.fm solo acepta reproducciones de los últimos 14 días, y la lista te avisa de cuáles son más antiguas."],

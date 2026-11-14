@@ -13,6 +13,12 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "A friendlier window for fixing a play":
+    ["Uma janela mais simpática para corrigir uma reprodução",
+     "A janela que abre pelo lápis em Dados brutos tem um aspeto novo. A capa da música fica no topo, e uma faixa mostra cada alteração riscada e a verde enquanto escreves. Escolhe Só esta ou todas as reproduções da música com um só botão. Um único botão Guardar faz tudo: marca a folha do Google ou o Last.fm em Guardar em, e a tua escolha fica lembrada para a próxima vez."],
+  "Fixes to your Google Sheet save in the background":
+    ["Correções na tua folha do Google são guardadas em segundo plano",
+     "Corrigir uma reprodução e guardá-la na tua folha do Google já não te faz esperar pelo Google. A alteração aparece logo e a janela fecha, enquanto a folha se atualiza por trás. Faz quantas correções seguidas quiseres: são guardadas por ordem, e as feitas muito juntas vão numa só viagem. Se a folha recusar uma, só essa é desfeita e ficas a saber qual."],
   "Add several plays at once":
     ["Adiciona várias reproduções de uma vez",
      "O botão Adicionar tem uma nova opção, Várias reproduções. Cola uma lista com uma música por linha, ou escolhe um ficheiro CSV, confirma cada reprodução e a hora que vai ter, e envia todas de uma vez para o Last.fm, a tua folha do Google ou as tuas reproduções carregadas. As que não têm hora são espaçadas para trás a partir da hora que escolheres. O Last.fm só aceita reproduções dos últimos 14 dias, e a lista mostra quais são mais antigas."],

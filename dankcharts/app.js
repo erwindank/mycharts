@@ -3155,6 +3155,7 @@ function setEditScrobbleNow() {
   const now = new Date();
   now.setMilliseconds(0);
   document.getElementById('editScrobbleTime').value = scrobbleDatetimeLocal(now);
+  _editRefresh();   // a set value fires no input event — redraw the change strip
 }
 
 async function submitScrobble() {
@@ -4943,14 +4944,129 @@ function openEditScrobbleModal(rawIdx) {
   document.getElementById('editScrobbleTime').value   = scrobbleDatetimeLocal(p.date);
   document.getElementById('editScrobbleStatus').textContent = '';
   document.getElementById('editScrobbleStatus').className   = 'scrobble-status';
+  document.getElementById('editApplyOne').checked  = true;
   document.getElementById('editApplyAll').checked  = false;
   document.getElementById('editSaveRule').checked  = false;
+  _editOrigTimeStr = document.getElementById('editScrobbleTime').value;
+
+  // Header: cover tile (initials now, the song's art if it turns up) and
+  // "Artist · played <time>"
+  const cover = document.getElementById('editCover');
+  cover.textContent = initials(p.title || p.artist || '');
+  cover.style.backgroundImage = '';
+  cover.classList.remove('has-art');
+  const sub = document.getElementById('editScrobbleSub');
+  sub.textContent = '';
+  sub.append(p.artist + ' · ' + t('ed_played') + ' ');
+  const when = document.createElement('span');
+  when.className = 'ed-sub-time';
+  when.textContent = rawFmtDate(p.date);
+  sub.appendChild(when);
+  if (typeof getArtAuto === 'function') {
+    getArtAuto('song', p.title, p.artist).then(url => {
+      if (!url || _editPlay !== p) return;   // the window moved on meanwhile
+      cover.style.backgroundImage = `url("${String(url).replace(/"/g, '%22')}")`;
+      cover.classList.add('has-art');
+    }).catch(() => {});
+  }
+
+  // "All N plays of this song" — the switch only shows when there are others
+  const n = allPlays.reduce((c, q) =>
+    c + (q.artist === p.artist && q.title === p.title && rawAlbumOf(q) === rawAlbum ? 1 : 0), 0);
+  document.getElementById('editApplyAllText').textContent = t('ed_scope_all', { n: n.toLocaleString() });
+  document.getElementById('editScope').hidden = n < 2;
+
+  // Save to: a chip per connected place; the last choice is remembered
   const hasLfm   = !!(getScrobbleSession() && getScrobbleUser());
   const hasSheet = !!(getSheetWriteUrl() && getDataSource() === 'sheets');
-  document.getElementById('editPushLfmBtn').style.display   = hasLfm   ? '' : 'none';
-  document.getElementById('editPushSheetBtn').style.display = hasSheet ? '' : 'none';
-  document.getElementById('editScrobbleHint').style.display = hasLfm   ? '' : 'none';
+  let pick = {};
+  try { pick = JSON.parse(localStorage.getItem('dc_edit_dest') || '{}') || {}; } catch (e) {}
+  document.getElementById('editDestSheetChip').hidden = !hasSheet;
+  document.getElementById('editDestLfmChip').hidden   = !hasLfm;
+  document.getElementById('editDest').hidden          = !hasSheet && !hasLfm;
+  document.getElementById('editDestSheet').checked = hasSheet && pick.sheet !== false;   // on unless turned off
+  document.getElementById('editDestLfm').checked   = hasLfm && pick.lfm === true;        // off unless turned on
+  _editRefresh();
   document.getElementById('editScrobbleModal').classList.add('open');
+}
+
+// The time box's value when the window opened (to tell if it was changed)
+let _editOrigTimeStr = '';
+
+// Redraw what depends on the fields: the old → new strip, the "edited"
+// marks, the Last.fm note and the Save button. Runs on every keystroke.
+function _editRefresh() {
+  const o = _editOrigMatch;
+  if (!o) return;
+  const val = id => document.getElementById(id).value.trim();
+  const origAlbum = o.album === '—' ? '' : o.album;
+  const rows = [
+    { key: 'artist', label: t('ed_label_artist'), from: o.artist,  to: val('editScrobbleArtist') },
+    { key: 'title',  label: t('ed_label_song'),   from: o.title,   to: val('editScrobbleTrack') },
+    { key: 'album',  label: t('modal_label_album'), from: origAlbum, to: val('editScrobbleAlbum') },
+  ];
+  const timeNow = document.getElementById('editScrobbleTime').value;
+  const timeChanged = timeNow !== _editOrigTimeStr;
+  if (timeChanged) {
+    const d = new Date(timeNow);
+    rows.push({ key: 'time', label: t('ed_label_played'), from: _editPlay ? rawFmtDate(_editPlay.date) : '',
+      to: isNaN(d) ? timeNow : rawFmtDate(d), changed: true });
+  }
+  const changed = rows.filter(r => r.changed || r.from !== r.to);
+  document.querySelectorAll('#editScrobbleModal .ed-field').forEach(el => {
+    el.classList.toggle('is-edited', changed.some(r => r.key === el.dataset.ed));
+  });
+
+  // The strip
+  const box = document.getElementById('editDiff');
+  box.classList.toggle('has-changes', changed.length > 0);
+  if (!changed.length) {
+    box.innerHTML = `<div class="ed-diff-empty">${esc(t('ed_no_changes'))}</div>`;
+  } else {
+    const arrow = '<svg class="ed-diff-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+    const empty = `<em>${esc(t('ed_empty'))}</em>`;
+    box.innerHTML =
+      `<div class="ed-diff-head">${esc(changed.length === 1 ? t('ed_changes_one') : t('ed_changes', { n: changed.length }))}</div>` +
+      changed.map(r =>
+        `<div class="ed-diff-row"><span class="ed-diff-what">${esc(r.label)}</span>` +
+        `<span class="ed-diff-old">${r.from ? esc(r.from) : empty}</span>${arrow}` +
+        `<span class="ed-diff-new">${r.to ? esc(r.to) : empty}</span></div>`).join('');
+  }
+
+  // Last.fm's "remove the original yourself" note, only when it's ticked
+  const lfmOn = !document.getElementById('editDestLfmChip').hidden && document.getElementById('editDestLfm').checked;
+  document.getElementById('editScrobbleHint').hidden = !lfmOn;
+
+  // Save: off until something changed; says how many plays it touches
+  const all = !document.getElementById('editScope').hidden && document.getElementById('editApplyAll').checked;
+  const n = all ? parseInt(document.getElementById('editApplyAllText').textContent.replace(/\D/g, ''), 10) || 1 : 1;
+  document.getElementById('editSaveBtn').disabled = !changed.length;
+  document.getElementById('editSaveText').textContent = n > 1
+    ? t('ed_save_n', { n: n.toLocaleString() }) : t('ed_save');
+}
+
+// The one Save button: this device always, plus the ticked places.
+// The Sheet path saves locally too (pushEditToSheet); Last.fm goes after,
+// in the background, so a rules question or a cancel there sends nothing.
+async function saveEditPlay() {
+  const f = _readEditFields();
+  if (!f || !_editPlay) return;
+  const toSheet = !document.getElementById('editDestSheetChip').hidden && document.getElementById('editDestSheet').checked;
+  const toLfm   = !document.getElementById('editDestLfmChip').hidden   && document.getElementById('editDestLfm').checked;
+  // Remember the choice for next time (only for chips that were on show)
+  try {
+    const pick = JSON.parse(localStorage.getItem('dc_edit_dest') || '{}') || {};
+    if (!document.getElementById('editDestSheetChip').hidden) pick.sheet = toSheet;
+    if (!document.getElementById('editDestLfmChip').hidden)   pick.lfm   = toLfm;
+    localStorage.setItem('dc_edit_dest', JSON.stringify(pick));
+  } catch (e) {}
+  const saved = toSheet ? await pushEditToSheet() : await saveEditLocally();
+  if (!saved || !toLfm) return;
+  const err = await _pushEditToLastfm(f);
+  const msg = err ? t('ed_lfm_fail', { msg: err }) : t('ed_lfm_done');
+  // Sheet still saving? Its summary carries this, so neither covers the other
+  if (_sheetQueuePending() || _sheetQueueBusy) _sheetQueueExtra = { msg, err: !!err };
+  else setSyncStatus(msg, err ? 'err' : 'ok', { toast: true });
 }
 
 function closeEditScrobbleModal() {
@@ -4979,16 +5095,18 @@ function _readEditFields() {
   return { artist, title, album, ts, date: new Date(ts * 1000), statusEl };
 }
 
+// Returns true once the change is made (false: nothing done, e.g. the rules
+// question was cancelled) — saveEditPlay() needs to know.
 async function saveEditLocally() {
   const f = _readEditFields();
-  if (!f || !_editPlay) return;
+  if (!f || !_editPlay) return false;
   const applyAll = document.getElementById('editApplyAll').checked;
   const saveRule = document.getElementById('editSaveRule').checked;
   const orig     = _editOrigMatch;
   const newAlbum = f.album || '—';
   if (saveRule && orig) {
     const { choice, idsToRemove } = await checkSimilarRules(orig.artist, orig.title, orig.album, f.artist, f.title, newAlbum);
-    if (choice === 'cancel') return;
+    if (choice === 'cancel') return false;
     if ((choice === 'override' || choice === 'run') && idsToRemove.length) overrideSimilarRules(idsToRemove);
     saveAutocorrectRule(orig.artist, orig.title, orig.album, f.artist, f.title, newAlbum);
     if (choice === 'run') {
@@ -5028,29 +5146,23 @@ async function saveEditLocally() {
   }
   renderAll();
   closeEditScrobbleModal();
+  return true;
 }
 
-async function pushEditToLastfm() {
-  const f = _readEditFields();
-  if (!f) return;
-  const btn      = document.getElementById('editPushLfmBtn');
-  const statusEl = f.statusEl;
-  btn.disabled = true;
-  statusEl.textContent = 'Pushing to Last.fm…';
-  statusEl.className   = 'scrobble-status loading';
+// Send the corrected play to Last.fm as a new scrobble (Last.fm can't edit or
+// delete one — the user removes the original on last.fm). Takes the fields
+// read before the window closed; returns null when sent, else the error text.
+async function _pushEditToLastfm(f) {
   try {
     const params = { method: 'track.scrobble', artist: f.artist, track: f.title, timestamp: String(f.ts), sk: getScrobbleSession() };
     if (f.album) params.album = f.album;
     const primaryArt = _primaryArtist(f.artist);
     if (primaryArt !== f.artist) params.albumArtist = primaryArt;
     await lfmPost(params);
-    statusEl.textContent = '✓ Pushed to Last.fm! Remove the original scrobble manually on the Last.fm website.';
-    statusEl.className   = 'scrobble-status ok';
+    return null;
   } catch (e) {
-    statusEl.textContent = 'Error: ' + e.message;
-    statusEl.className   = 'scrobble-status err';
+    return e.message || String(e);
   }
-  btn.disabled = false;
 }
 
 function _serializePlaysCsv() {
@@ -5091,6 +5203,9 @@ let _sheetQueueBusy  = false;    // a trip to the Sheet is under way
 let _sheetQueueSaved = 0;        // changes saved since the line was last empty
 let _sheetQueueFails = [];       // messages for jobs that failed in this run
 let _sheetCacheTimer = null;
+// Another place's result (Last.fm) that came in while the Sheet was still
+// saving: it rides along in the Sheet's summary instead of being covered by it
+let _sheetQueueExtra = null;   // { msg, err }
 
 // The cached copy of the sheet (IndexedDB) is rewritten after edits — but a
 // big library takes a moment to serialise, so rapid edits share one write.
@@ -5240,13 +5355,17 @@ async function _runSheetQueue() {
   }
 
   // The line is empty: one summary
-  const saved = _sheetQueueSaved, fails = _sheetQueueFails;
+  const saved = _sheetQueueSaved, fails = _sheetQueueFails, extra = _sheetQueueExtra;
   _sheetQueueSaved = 0;
   _sheetQueueFails = [];
+  _sheetQueueExtra = null;
+  const tail = extra ? ' · ' + extra.msg : '';
   if (fails.length) {
-    setSyncStatus(`Couldn't save ${fails.length} change${fails.length === 1 ? '' : 's'} to the sheet, so ${fails.length === 1 ? 'it was' : 'they were'} undone — ${fails.join(' · ')}`, 'err');
+    setSyncStatus(`Couldn't save ${fails.length} change${fails.length === 1 ? '' : 's'} to the sheet, so ${fails.length === 1 ? 'it was' : 'they were'} undone — ${fails.join(' · ')}${tail}`, 'err');
   } else if (saved) {
-    setSyncStatus(`✓ ${saved} change${saved === 1 ? '' : 's'} saved to sheet`, 'ok', { toast: true });
+    setSyncStatus(`✓ ${saved} change${saved === 1 ? '' : 's'} saved to sheet${tail}`, extra && extra.err ? 'err' : 'ok', { toast: true });
+  } else if (extra) {
+    setSyncStatus(extra.msg, extra.err ? 'err' : 'ok', { toast: true });
   }
 }
 
@@ -5259,11 +5378,11 @@ window.addEventListener('beforeunload', e => {
 
 async function pushEditToSheet() {
   const f = _readEditFields();
-  if (!f || !_editPlay) return;
+  if (!f || !_editPlay) return false;
   if (!getSheetWriteUrl()) {
     f.statusEl.textContent = 'No Apps Script URL configured.';
     f.statusEl.className   = 'scrobble-status err';
-    return;
+    return false;
   }
   const applyAll = document.getElementById('editApplyAll').checked;
   const saveRule = document.getElementById('editSaveRule').checked;
@@ -5274,7 +5393,7 @@ async function pushEditToSheet() {
   let runRule = false;
   if (saveRule && orig) {
     const { choice, idsToRemove } = await checkSimilarRules(orig.artist, orig.title, orig.album, f.artist, f.title, newAlbum);
-    if (choice === 'cancel') return;
+    if (choice === 'cancel') return false;
     if ((choice === 'override' || choice === 'run') && idsToRemove.length) overrideSimilarRules(idsToRemove);
     // skipSheetSync: the rules copy goes through the save line instead (below)
     saveAutocorrectRule(orig.artist, orig.title, orig.album, f.artist, f.title, newAlbum, { skipSheetSync: true });
@@ -5342,6 +5461,7 @@ async function pushEditToSheet() {
   if (saveRule) _enqueueSheetJob({ kind: 'rules' });
   _afterPlaysEdited();
   closeEditScrobbleModal();
+  return true;   // saveEditPlay() goes on to Last.fm only after this
 }
 
 // Last.fm's image list, biggest first. Its grey-star placeholder
