@@ -206,6 +206,13 @@
       '<path class="gk-f" d="M12 2.6l2.9 5.8 6.4.9-4.6 4.5 1.1 6.4L12 17.2l-5.8 3 1.1-6.4-4.6-4.5 6.4-.9z"/>' +
       '<path class="gk-o gk-fill" d="M12 2.6l2.9 5.8 6.4.9-4.6 4.5 1.1 6.4L12 17.2l-5.8 3 1.1-6.4-4.6-4.5 6.4-.9z"/>',
 
+    // Games (2026-11-14): a game pad, its two buttons hop on hover
+    games:
+      '<path class="gk-f" d="M7 6.5h10a4.4 4.4 0 0 1 4.3 3.5l1 4.6a2.8 2.8 0 0 1-4.8 2.5l-1.9-2.1H8.4l-1.9 2.1a2.8 2.8 0 0 1-4.8-2.5l1-4.6A4.4 4.4 0 0 1 7 6.5z"/>' +
+      '<path class="gk-s" d="M7.5 9.4v3.6M5.7 11.2h3.6"/>' +
+      '<circle class="gk-o gk-dot" cx="15.4" cy="11.9" r="1.1"/>' +
+      '<circle class="gk-o gk-dot gk-d1" cx="17.6" cy="9.9" r="1.1"/>',
+
     // Community Board: two speech bubbles, someone typing in the front one
     board:
       '<path class="gk-f" d="M9 2.8h10.2a2.5 2.5 0 0 1 2.5 2.5v5a2.5 2.5 0 0 1-2.5 2.5H18.5v2.8l-3.2-2.8"/>' +
@@ -361,7 +368,7 @@
     day: 'day', week: 'week', month: 'month', year: 'year', alltime: 'alltime',
     rawdata: 'raw', graphs: 'stats', records: 'records', events: 'events',
     awards: 'awards', soundtrack: 'sound', playlists: 'lists', ratings: 'ratings',
-    board: 'board', dank100: 'd100', worldcharts: 'world'
+    board: 'board', dank100: 'd100', worldcharts: 'world', games: 'games'
   };
 
   function dcGlowIco(name, cls) {

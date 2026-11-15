@@ -1233,12 +1233,12 @@ window.GL_TEXT['pt-PT'] = {
     },
     stats: {
       title: '{{t:tab_stats}}',
-      promise: 'O que ouviste em qualquer período: um resumo, a sua história, jogos, comparações lado a lado e gráficos.',
+      promise: 'O que ouviste em qualquer período: um resumo, a sua história, comparações lado a lado e gráficos.',
       scenes: {
         top: { title: 'O período e o {{t:sx_tab_overview}}', spots: {
           presets: ['Períodos rápidos', '{{t:range_4w}}, {{t:range_12m}}, {{t:range_3y}} ou {{t:range_all}}. Todos os separadores usam o período que escolheres aqui.'],
           dates: ['As tuas datas', 'Escolhe qualquer data de início e de fim.'],
-          tabs: ['Cinco separadores', '{{t:sx_tab_overview}}, {{t:sx_tab_story}}, {{t:sx_tab_games}}, {{t:sx_tab_compare}} e {{t:sx_tab_charts}}. O que deixares aberto é o que vês quando voltas.'],
+          tabs: ['Quatro separadores', '{{t:sx_tab_overview}}, {{t:sx_tab_story}}, {{t:sx_tab_compare}} e {{t:sx_tab_charts}}. O que deixares aberto é o que vês quando voltas.'],
           line: ['Numa frase', 'O período numa frase: quanto ouviste, face ao período anterior, e quem liderou. Clica no artista para abrir a janela dele.'],
           share: ['{{t:sx_share}}', 'Cria uma imagem deste resumo para guardar ou enviar.'],
           tile: ['Quatro quadros', 'Plays, músicas, artistas e álbuns do período.'],
@@ -1274,24 +1274,6 @@ window.GL_TEXT['pt-PT'] = {
           disc: ['{{t:sx_disc_title}}', 'Os teus maiores artistas novos do período, e se ainda os ouves.'],
           fun: ['{{t:sx_fun_title}}', 'O período noutras palavras: plays por dia, a tua música top, quanto andariam os teus plays.'],
           miles: ['{{t:sx_miles_title}}', 'Números redondos que passaste: plays, músicas e artistas diferentes, e quando.']
-        } },
-        games: { title: '{{t:sx_tab_games}}', spots: {
-          head: ['{{t:sx_games_title}}', 'Quizzes feitos com a tua própria biblioteca.'],
-          tally: ['O teu marcador', 'Quantos jogos já jogaste, e a tua sequência de dias no jogo do dia.'],
-          daily: ['{{t:sx_daily_k}}', 'Um desafio por dia, o mesmo todo o dia. Só conta a primeira tentativa; joga todos os dias para manter a sequência.'],
-          dailygo: ['{{t:sx_daily_play}}', 'Começa o desafio de hoje.'],
-          card: ['Um jogo', 'Doze jogos: {{t:sx_game_hl}}, {{t:sx_game_tune}}, {{t:sx_game_year}}, {{t:sx_game_one}} e mais.'],
-          tag: ['{{t:sx_games_new}}', 'Os jogos que ainda não jogaste têm uma etiqueta.'],
-          go: ['{{t:sx_game_play}}', 'Abre o jogo em ecrã inteiro.']
-        } },
-        game: { title: 'A jogar uma partida', spots: {
-          title: ['O jogo', 'O nome dele.'],
-          score: ['A tua pontuação', 'A tua sequência ou pontuação agora, e o teu recorde.'],
-          close: ['Fechar', 'Volta aos jogos. Esc faz o mesmo.'],
-          q: ['A pergunta', 'O que tens de adivinhar.'],
-          known: ['O que sabes', 'Um lado mostra a resposta.'],
-          guess: ['O que adivinhas', 'O outro está escondido.'],
-          btns: ['A tua resposta', 'Escolhe uma. Se acertares, a partida continua; no fim podes partilhar o resultado.']
         } },
         cmp: { title: '{{t:sx_tab_compare}}', spots: {
           gran: ['{{t:gran_daily}} / {{t:gran_monthly}} / {{t:gran_yearly}}', 'Como as linhas se dividem: por dia, por mês ou por ano. Aparece em {{t:sx_tab_compare}} e {{t:sx_tab_charts}}.'],
@@ -1394,14 +1376,6 @@ window.GL_TEXT['pt-PT'] = {
           'Como o teu top 10 mudou ano a ano.',
           'E os artistas novos que encontraste, e se ainda os ouves.'
         ] },
-        game: { title: 'Jogar uma partida', slides: [
-          'Começa pelo {{t:sx_daily_k}}: um desafio, o mesmo todo o dia.',
-          'Ou escolhe qualquer um dos doze jogos.',
-          'Dá o teu palpite.',
-          'A tua pontuação e o teu recorde, em cima.',
-          'Fecha quando quiseres.',
-          'O teu marcador conta os jogos jogados e a tua sequência de dias.'
-        ] },
         compare: { title: 'Comparar artistas, músicas ou anos', slides: [
           'Escolhe o que comparar.',
           'Escreve um nome e adiciona-o. Até 10.',
@@ -1442,7 +1416,6 @@ window.GL_TEXT['pt-PT'] = {
         tabs: { title: 'Separadores', items: {
           overview: ['{{t:sx_tab_overview}}', 'O período numa frase, quatro quadros e oito cartões.'],
           story: ['{{t:sx_tab_story}}', 'Do que tratou o período.'],
-          games: ['{{t:sx_tab_games}}', 'Doze jogos e um jogo do dia.'],
           compare: ['{{t:sx_tab_compare}}', 'Até 10 lado a lado, ou numa corrida.'],
           charts: ['{{t:sx_tab_charts}}', 'Volume, o relógio, a tua semana e o mapa de calor.']
         } },
@@ -1480,7 +1453,6 @@ window.GL_TEXT['pt-PT'] = {
         'stats.range': ['Muda o período', 'Um período rápido ou as tuas próprias datas.'],
         'stats.story': ['Abre {{t:sx_tab_story}}', 'O segundo separador.'],
         'stats.go': ['Segue a ligação de um quadro', 'Por baixo de qualquer um dos quatro quadros do {{t:sx_tab_overview}}.'],
-        'stats.game': ['Joga uma partida', 'Qualquer jogo em {{t:sx_tab_games}}, ou o {{t:sx_daily_k}}.'],
         'stats.add': ['Adiciona algo em {{t:sx_tab_compare}}', 'Escreve um nome na caixa de adicionar.'],
         'stats.race': ['Vê uma corrida', '{{t:sx_tab_compare}} → {{t:sx_cmp_mode_race}}.'],
         'stats.drill': ['Vê um período por dentro', 'Clica numa barra em {{t:sx_tab_charts}}.'],
@@ -1491,16 +1463,15 @@ window.GL_TEXT['pt-PT'] = {
           ['O mesmo tempo logo antes', 'O ano passado', 'A tua média de sempre'],
           'Cada quadro compara o período com o mesmo período logo antes.'],
         q2: ['Onde vês os teus artistas top numa corrida?',
-          ['{{t:sx_tab_story}}', '{{t:sx_tab_compare}} → {{t:sx_cmp_mode_race}}', '{{t:sx_tab_games}}'],
+          ['{{t:sx_tab_story}}', '{{t:sx_tab_compare}} → {{t:sx_cmp_mode_race}}', '{{t:sx_tab_charts}}'],
           '{{t:sx_cmp_mode_race}} é uma das quatro formas como {{t:sx_tab_compare}} mostra as tuas escolhas.'],
-        q3: ['O que tem de especial o {{t:sx_daily_k}}?',
-          ['É um tipo novo de jogo', 'Dá pontos a dobrar', 'Todos recebem o mesmo desafio todo o dia, e só conta a primeira tentativa'],
-          'Um desafio por dia, o mesmo todo o dia. Joga todos os dias para manteres a sequência.']
+        q3: ['Que separador conta do que foi o teu período, como as tuas eras e a tua obsessão de cada mês?',
+          ['{{t:sx_tab_charts}}', '{{t:sx_tab_compare}}', '{{t:sx_tab_story}}'],
+          '{{t:sx_tab_story}} percorre o período: o teu artista top de cada mês, as tuas eras, como o teu gosto muda e as tuas descobertas.']
       },
       tips: [
         'Os quadros de {{t:tab_stats}} comparam o período com o mesmo tempo logo antes. Experimenta {{t:range_4w}} para veres a tendência do mês.',
         'Em {{t:sx_tab_compare}}, {{t:sx_cmp_mode_race}} transforma os teus artistas top numa corrida que podes guardar como GIF.',
-        'Todos os dias há um novo {{t:sx_daily_k}} em {{t:sx_tab_games}}. Mantém a tua sequência.',
         'Clica em qualquer barra em {{t:sx_tab_charts}} para veres as músicas top e as descobertas desse mês.',
         'O mapa de calor tem seis esquemas de cores, e pode mostrar um só artista, música ou álbum.'
       ]
@@ -2683,6 +2654,65 @@ window.GL_TEXT['pt-PT'] = {
         'Uma instrumental? Marca {{t:rtc_lyr}} e {{t:rtc_voc}} como {{t:rte_na}} para não contarem.',
         '{{t:rp_rec_underplayed}}: o álbum a que dás boa nota mas quase nunca ouves.',
         'Toca num veredicto em {{t:ar_spread}} para veres só esses álbuns.'
+      ]
+    },
+    games: {
+      title: '{{t:nav_games}}',
+      promise: 'Doze jogos rápidos feitos com a tua própria biblioteca, e um jogo novo todos os dias.',
+      scenes: {
+        games: { title: '{{t:nav_games}}', spots: {
+          head: ['{{t:sx_games_title}}', 'Quizzes feitos com a tua própria biblioteca.'],
+          tally: ['O teu marcador', 'Quantos jogos já jogaste, e a tua sequência de dias no jogo do dia.'],
+          daily: ['{{t:sx_daily_k}}', 'Um desafio por dia, o mesmo todo o dia. Só conta a primeira tentativa; joga todos os dias para manter a sequência.'],
+          dailygo: ['{{t:sx_daily_play}}', 'Começa o desafio de hoje.'],
+          card: ['Um jogo', 'Doze jogos: {{t:sx_game_hl}}, {{t:sx_game_tune}}, {{t:sx_game_year}}, {{t:sx_game_one}} e mais.'],
+          tag: ['{{t:sx_games_new}}', 'Os jogos que ainda não jogaste têm uma etiqueta.'],
+          go: ['{{t:sx_game_play}}', 'Abre o jogo em ecrã inteiro.']
+        } },
+        game: { title: 'A jogar uma partida', spots: {
+          title: ['O jogo', 'O nome dele.'],
+          score: ['A tua pontuação', 'A tua sequência ou pontuação agora, e o teu recorde.'],
+          close: ['Fechar', 'Volta aos jogos. Esc faz o mesmo.'],
+          q: ['A pergunta', 'O que tens de adivinhar.'],
+          known: ['O que sabes', 'Um lado mostra a resposta.'],
+          guess: ['O que adivinhas', 'O outro está escondido.'],
+          btns: ['A tua resposta', 'Escolhe uma. Se acertares, a partida continua; no fim podes partilhar o resultado.']
+        } }
+      },
+      howto: {
+        game: { title: 'Jogar uma partida', slides: [
+          'Abre {{t:nav_games}} em Mais. Começa pelo {{t:sx_daily_k}}: um desafio, o mesmo todo o dia.',
+          'Ou escolhe qualquer um dos doze jogos.',
+          'Dá o teu palpite.',
+          'A tua pontuação e o teu recorde, em cima.',
+          'Fecha quando quiseres.',
+          'O teu marcador conta os jogos jogados e a tua sequência de dias.'
+        ] }
+      },
+      options: {
+        games: { title: '{{t:nav_games}}', items: {
+          daily: ['{{t:sx_daily_k}}', 'Um desafio por dia. Depois da primeira tentativa, voltar a jogar é treino.'],
+          card: ['Doze jogos', 'Joga qualquer um as vezes que quiseres. O teu recorde fica guardado neste dispositivo.']
+        } }
+      },
+      challenges: {
+        'stats.game': ['Joga uma partida', 'Qualquer jogo em {{t:nav_games}}, ou o {{t:sx_daily_k}}.']
+      },
+      quiz: {
+        q1: ['O que tem de especial o {{t:sx_daily_k}}?',
+          ['É um tipo novo de jogo', 'Dá pontos a dobrar', 'Todos recebem o mesmo desafio todo o dia, e só conta a primeira tentativa'],
+          'Um desafio por dia, o mesmo todo o dia. Joga todos os dias para manteres a sequência.'],
+        q2: ['Onde ficam os teus recordes?',
+          ['Neste dispositivo', 'Na tua folha do Google', 'No Last.fm'],
+          'Os recordes e a tua sequência de dias ficam neste navegador, neste dispositivo.'],
+        q3: ['Que plays usam os jogos?',
+          ['O período escolhido em {{t:tab_stats}}', 'Todo o teu histórico', 'Só este ano'],
+          'Os jogos usam tudo o que já ouviste, por isso não há período para escolher.']
+      },
+      tips: [
+        'Todos os dias há um novo {{t:sx_daily_k}} em {{t:nav_games}}. Um ponto em Mais avisa quando ainda não jogaste.',
+        'Só conta a primeira tentativa no {{t:sx_daily_k}}. Joga todos os dias para manteres a sequência.',
+        '{{t:sx_game_tune}} toca alguns segundos de uma das tuas músicas: liga o som.'
       ]
     },
     events: {

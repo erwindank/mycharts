@@ -27,13 +27,13 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=1037">
+  <link rel="stylesheet" href="style.css?v=1038">
   <!-- The Charts Guide's lessons (guide.js, GUIDE-PLAN.md) -->
   <link rel="stylesheet" href="guide.css?v=5">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=423"></script>
+  <script defer src="translations.js?v=424"></script>
   <!-- Only the visitor's own language is downloaded (translations.js holds
        English). This writes a defer tag for the saved language right here, so
        it runs straight after translations.js and before app.js, and the page
@@ -41,7 +41,7 @@
        whenever translations.es / pt-BR / pt-PT .js change (setup-guide.html
        has the same line). -->
   <script>
-    window.DC_I18N_V = 121;
+    window.DC_I18N_V = 122;
     (function () {
       try {
         var l = localStorage.getItem('dankcharts-lang');
@@ -327,6 +327,9 @@
           <button class="tb-more-item" data-go="records"><svg data-gico="records"></svg><span data-i18n="nav_records">Records</span></button>
           <button class="tb-more-item" data-go="awards"><svg data-gico="awards"></svg><span data-i18n="nav_awards">Awards</span></button>
           <button class="tb-more-item" data-go="soundtrack"><svg data-gico="sound"></svg><span data-i18n="tab_soundtrack">Soundtrack</span></button>
+          <!-- Games (2026-11-14): out of Stats into its own page. The dot shows
+               while today's Game of the day is still waiting (stats.js) -->
+          <button class="tb-more-item" data-go="games"><svg data-gico="games"></svg><span data-i18n="nav_games">Games</span><span class="tb-more-dot" aria-hidden="true"></span></button>
           <button class="tb-more-item" data-go="dank100"><svg data-gico="d100"></svg><span data-i18n="nav_dank100">The Dank 100</span></button>
           <button class="tb-more-item" data-go="worldcharts"><svg data-gico="world"></svg><span data-i18n="nav_worldcharts">World Charts</span></button>
           <button class="tb-more-item" data-go="ratings"><svg data-gico="ratings"></svg><span data-i18n="nav_ratings">Ratings</span></button>
@@ -451,6 +454,9 @@
           <button class="tb-more-item" data-go="records"><svg data-gico="records"></svg><span data-i18n="nav_records">Records</span></button>
           <button class="tb-more-item" data-go="awards"><svg data-gico="awards"></svg><span data-i18n="nav_awards">Awards</span></button>
           <button class="tb-more-item" data-go="soundtrack"><svg data-gico="sound"></svg><span data-i18n="tab_soundtrack">Soundtrack</span></button>
+          <!-- Games (2026-11-14): out of Stats into its own page. The dot shows
+               while today's Game of the day is still waiting (stats.js) -->
+          <button class="tb-more-item" data-go="games"><svg data-gico="games"></svg><span data-i18n="nav_games">Games</span><span class="tb-more-dot" aria-hidden="true"></span></button>
           <button class="tb-more-item" data-go="dank100"><svg data-gico="d100"></svg><span data-i18n="nav_dank100">The Dank 100</span></button>
           <button class="tb-more-item" data-go="worldcharts"><svg data-gico="world"></svg><span data-i18n="nav_worldcharts">World Charts</span></button>
           <button class="tb-more-item" data-go="ratings"><svg data-gico="ratings"></svg><span data-i18n="nav_ratings">Ratings</span></button>
@@ -593,6 +599,10 @@
             </button>
             <button data-period="ratings">
               <span class="nav-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.05" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 1.9l1.8 3.7 4.1.6-3 2.9.7 4.1L8 11.3l-3.6 1.9.7-4.1-3-2.9 4.1-.6z"/></svg></span><span data-i18n="nav_ratings">Ratings</span><span class="nav-eq" aria-hidden="true"></span>
+            </button>
+            <!-- Games (2026-11-14): the quizzes, moved out of Stats -->
+            <button data-period="games">
+              <span class="nav-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.05" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.6 4.6h6.8a3 3 0 0 1 2.9 2.3l.7 3.1a1.9 1.9 0 0 1-3.2 1.7l-1.3-1.4H5.5l-1.3 1.4A1.9 1.9 0 0 1 1 10l.7-3.1a3 3 0 0 1 2.9-2.3z"/><path d="M4.9 6.6v2M3.9 7.6h2"/><circle class="ni-a" cx="10.9" cy="7.6" r=".6" fill="currentColor"/></svg></span><span data-i18n="nav_games">Games</span><span class="nav-eq" aria-hidden="true"></span>
             </button>
             <button data-period="chartsguide">
               <span class="nav-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.05" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 4.3v9.1"/><path d="M8 4.3C6.6 3.1 4.8 2.7 2.5 2.7a.9.9 0 0 0-.9.9v7.4c0 .5.4.9.9.9 2.3 0 4.1.4 5.5 1.5"/><path class="ni-a" d="M8 4.3c1.4-1.2 3.2-1.6 5.5-1.6.5 0 .9.4.9.9v7.4c0 .5-.4.9-.9.9-2.3 0-4.1.4-5.5 1.5"/></svg></span><span data-i18n="nav_chartsguide">Charts Guide</span><span class="nav-eq" aria-hidden="true"></span>
@@ -1418,14 +1428,14 @@
         </div>
       </div>
 
-      <!-- Phase 15: the page in five tabs, one shown at a time like Records.
+      <!-- Phase 15: the page in tabs, one shown at a time like Records
+           (four since 2026-11-14, when Games moved to its own page in More).
            The open tab sits on #graphsView as data-st-tab; CSS hides every
            card whose data-st-group is another tab (stats.js, setStatsTab).
-           Story and Games stay hidden until they are built. -->
+           A tab can stay hidden in the row until it is built. -->
       <div class="dc-tabs stats-tabs" role="tablist" aria-label="Stats" data-i18n-aria="sec_graphs_title">
         <button type="button" role="tab" data-st-tab="overview" onclick="setStatsTab('overview')" data-i18n="sx_tab_overview">Overview</button>
         <button type="button" role="tab" data-st-tab="story" onclick="setStatsTab('story')" data-i18n="sx_tab_story">Story</button>
-        <button type="button" role="tab" data-st-tab="games" onclick="setStatsTab('games')" data-i18n="sx_tab_games">Games</button>
         <button type="button" role="tab" data-st-tab="compare" onclick="setStatsTab('compare')" data-i18n="sx_tab_compare">Compare</button>
         <button type="button" role="tab" data-st-tab="charts" onclick="setStatsTab('charts')" data-i18n="sx_tab_charts">Graphs</button>
       </div>
@@ -1435,9 +1445,6 @@
 
       <!-- Story: what the range was about, card by card (sxRenderStory) -->
       <div id="sxStory" class="sx-story" data-st-group="story"></div>
-
-      <!-- Games: quizzes on your library, played full screen (sxRenderGames) -->
-      <div id="sxGames" class="sx-games" data-st-group="games"></div>
 
       <!-- Compare studio (phase 15 step 3, stats.js): up to ten artists,
            songs, albums or years side by side, as a running total, per
@@ -2894,6 +2901,13 @@
   <!-- RATINGS VIEW (2026-10-29): every score you have given, rendered by
        renderRatingsPage() -->
   <div id="ratingsView" style="display:none;"></div>
+
+  <!-- GAMES VIEW (2026-11-14): the quizzes on your own library, moved out of
+       Stats into a page of their own in More. Drawn by sxRenderGames()
+       (stats.js); the games themselves open full screen over it. -->
+  <div id="gamesView" style="display:none;">
+    <div id="sxGames" class="sx-games"></div>
+  </div>
 
   <div id="chartsguideView" style="display:none;">
     <!-- Rendered by guide.js (the new Charts Guide) -->
@@ -4664,20 +4678,20 @@
        the whole start. app.js reads this tag's content and loads the file once
        the page has finished loading, or straight away when What's New opens
        (dcClEnsureData). Bump ?v= here exactly as before. -->
-  <meta id="dcChangelogSrc" name="dc-changelog-src" content="changelog.js?v=578">
+  <meta id="dcChangelogSrc" name="dc-changelog-src" content="changelog.js?v=579">
   <!-- Community board tab (suggestions / bugs / discussion). Loaded before
        app.js so window.dcBoard exists when app.js opens a #t=board/<id> link. -->
   <!-- Glow kit: the drawn, glowing icons for titles, Records headings, Guide cards and stat tiles -->
-  <script defer src="glowkit.js?v=11"></script>
+  <script defer src="glowkit.js?v=12"></script>
   <!-- logo drawing helpers: dcLogoSvg / dcLogoSpinner (before app.js) -->
   <script defer src="logo.js?v=5"></script>
   <script defer src="board.js?v=14"></script>
   <!-- The Charts Guide's words in four languages (read by guide.js: the Reference tab and search) -->
-  <script defer src="charts-guide-i18n.js?v=21"></script>
+  <script defer src="charts-guide-i18n.js?v=22"></script>
   <!-- One behaviour and one icon set for every pop-up window (phase 10); before
        app.js so dcIco() is there when app.js draws a window -->
   <script defer src="popups.js?v=13"></script>
-  <script defer src="app.js?v=786"></script>
+  <script defer src="app.js?v=787"></script>
   <!-- The song / album / artist details side panel (phase 10 step 3); wraps app.js's open functions -->
   <script defer src="panel.js?v=17"></script>
   <!-- ▶ Animate Chart: the play-by-play chart replay (phase 7 step 11); app.js calls into it -->
@@ -4697,7 +4711,7 @@
   <!-- Phase 20: the All #1s look laid over the other Records sections (recx*). -->
   <script defer src="records-look.js?v=14"></script>
   <script defer src="cert-plaque.js?v=4"></script>
-  <script defer src="stats.js?v=62"></script>
+  <script defer src="stats.js?v=63"></script>
   <!-- The Dank 100: weekly entries for the shared community chart; reads app.js and firebase.js globals -->
   <script defer src="dank100.js?v=28"></script>
   <script defer src="worldcharts.js?v=13"></script>
@@ -4708,7 +4722,7 @@
        anywhere in the app; the lessons themselves (guide-lessons*.js) and the
        picture measurements load only when the guide opens. After app.js: it
        wraps app functions and takes over dcRenderChartsGuideView. -->
-  <script defer src="guide.js?v=35"></script>
+  <script defer src="guide.js?v=36"></script>
 
   <!-- ── Settings Modal ──
        Split into three tabs so the whole form is never dumped on screen at

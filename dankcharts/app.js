@@ -8951,6 +8951,9 @@ function finalizeLoad() {
 
   renderAll();
 
+  // Plays are in: the Games dot in More can tell if today's game waits (stats.js)
+  if (typeof sxSyncGamesDot === 'function') sxSyncGamesDot();
+
   // Restore saved period (after renderAll so DOM is ready)
   const savedPeriod = localStorage.getItem('dc_period');
   if (savedPeriod && savedPeriod !== 'week') {
@@ -15424,7 +15427,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
      Raw Data left Stats, Events and Awards on screen under it, and Stats and
      Records left Awards. (Playlists shows part of Events again on purpose.) */
   ['rawDataView', 'graphsView', 'recordsView', 'eventsView', 'awardsView',
-   'soundtrackView', 'playlistsView', 'chartsguideView', 'ratingsView'].forEach(id => {
+   'soundtrackView', 'playlistsView', 'chartsguideView', 'ratingsView', 'gamesView'].forEach(id => {
     const v = document.getElementById(id);
     if (v) v.style.display = 'none';
   });
@@ -15781,6 +15784,28 @@ document.getElementById('periodNav').addEventListener('click', e => {
     return;
   }
 
+  if (btn.dataset.period === 'games') {
+    // The Games page (2026-11-14): the quizzes on your own library, moved out
+    // of Stats into More. They use your whole history, so no date bar here.
+    savedOffsets[currentPeriod] = currentOffset;
+    currentPeriod = 'games';
+    localStorage.setItem('dc_period', currentPeriod);
+    ['chartTypeToggleBar', 'exportPlaylistBtn', 'dateNav', 'navHint', 'statsStrip', 'statsStrip3',
+     'songsSection', 'artistsSection', 'albumsSection', 'buSongsSection', 'buArtistsSection', 'buAlbumsSection'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = 'none';
+    });
+    COLLAPSE_ALL_TYPES.forEach(hideOffSection);
+    NEW_ENTRY_SECTIONS.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
+    document.getElementById('gamesView').style.display = 'block';
+    // Before the plays have loaded there is nothing to quiz on; finalizeLoad
+    // clicks this tab again once they are in
+    if (allPlays.length && typeof sxRenderGames === 'function') sxRenderGames();
+    if (typeof window._refreshBackToTop === 'function') window._refreshBackToTop();
+    updateScrobbleBtn();
+    return;
+  }
+
   if (btn.dataset.period === 'chartsguide') {
     // Switch to charts guide view
     savedOffsets[currentPeriod] = currentOffset;
@@ -15815,7 +15840,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
   }
 
   // Leaving raw data, graphs, records, events, awards, soundtrack, playlists, chartsguide or board view — restore chart UI
-  if (currentPeriod === 'rawdata' || currentPeriod === 'graphs' || currentPeriod === 'records' || currentPeriod === 'events' || currentPeriod === 'awards' || currentPeriod === 'soundtrack' || currentPeriod === 'playlists' || currentPeriod === 'chartsguide' || currentPeriod === 'board' || currentPeriod === 'dank100' || currentPeriod === 'worldcharts' || currentPeriod === 'ratings') {
+  if (currentPeriod === 'rawdata' || currentPeriod === 'graphs' || currentPeriod === 'records' || currentPeriod === 'events' || currentPeriod === 'awards' || currentPeriod === 'soundtrack' || currentPeriod === 'playlists' || currentPeriod === 'chartsguide' || currentPeriod === 'board' || currentPeriod === 'dank100' || currentPeriod === 'worldcharts' || currentPeriod === 'ratings' || currentPeriod === 'games') {
     document.getElementById('dateNav').style.display = '';
     document.getElementById('navHint').style.display = '';
     document.getElementById('statsStrip').style.display = '';
@@ -15835,7 +15860,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
   }
 
 
-  savedOffsets[(currentPeriod === 'rawdata' || currentPeriod === 'graphs' || currentPeriod === 'records' || currentPeriod === 'events' || currentPeriod === 'awards' || currentPeriod === 'playlists' || currentPeriod === 'chartsguide' || currentPeriod === 'board' || currentPeriod === 'dank100' || currentPeriod === 'worldcharts' || currentPeriod === 'ratings') ? btn.dataset.period : currentPeriod] = currentOffset;
+  savedOffsets[(currentPeriod === 'rawdata' || currentPeriod === 'graphs' || currentPeriod === 'records' || currentPeriod === 'events' || currentPeriod === 'awards' || currentPeriod === 'playlists' || currentPeriod === 'chartsguide' || currentPeriod === 'board' || currentPeriod === 'dank100' || currentPeriod === 'worldcharts' || currentPeriod === 'ratings' || currentPeriod === 'games') ? btn.dataset.period : currentPeriod] = currentOffset;
   currentPeriod = btn.dataset.period;
   localStorage.setItem('dc_period', currentPeriod);
   currentOffset = savedOffsets[currentPeriod];
@@ -32665,11 +32690,6 @@ function renderGraphs() {
     sxRenderStory();
     return;
   }
-  if (typeof statsTab !== 'undefined' && statsTab === 'games') {
-    paintGraphRange();
-    sxRenderGames();
-    return;
-  }
   destroyGraphCharts();
   const gc = getGraphColors();
   paintGraphRange();
@@ -33529,8 +33549,8 @@ window.dcTopbarHome = dcTopbarHome;
 // "charts" is the exception: it reopens the chart period you used last.
 const DC_CHART_PERIODS = ['day', 'week', 'month', 'year', 'alltime'];
 // Pages inside More (2026-11-09: Soundtrack, then Records and Awards moved in;
-// Events and Playlists moved out to the tab bars)
-const DC_MORE_VIEWS = ['chartsguide', 'records', 'awards', 'soundtrack', 'dank100', 'worldcharts', 'ratings', 'board', 'rawdata'];
+// Events and Playlists moved out to the tab bars; 2026-11-14: Games, out of Stats)
+const DC_MORE_VIEWS = ['chartsguide', 'records', 'awards', 'soundtrack', 'games', 'dank100', 'worldcharts', 'ratings', 'board', 'rawdata'];
 // Keyboard shortcuts (initNavShortcuts) shown in the tab tooltips
 const DC_TAB_SHORTCUT = { charts: '1–4', graphs: '6', records: '7', awards: '9', events: '8', rawdata: '5' };
 
@@ -33567,6 +33587,8 @@ function dcSyncMainTabs(view) {
   if (tbMore) tbMore.classList.toggle('active', inMore);
   const btMore = document.querySelector('#bottomTabs .bt-more-btn');
   if (btMore) btMore.classList.toggle('active', inMore || view === 'soundtrack');
+  // The Games dot (stats.js): rechecked on every page change
+  if (typeof sxSyncGamesDot === 'function') sxSyncGamesDot();
 }
 
 (function initMainTabs() {
@@ -62169,7 +62191,7 @@ const _cgTourSteps = [
     nav: 'rawdata' },
 
   { title: 'Stats',
-    content: 'Five tabs for the date range at the top. Overview sums it up in a sentence and four tiles. Story tells what it was about: your obsession each month, your eras, how your taste drifted, discoveries and milestones. Games are quizzes on your own library, played full screen. Compare puts up to 10 artists, songs, albums or years side by side, or races them. Charts has play volume and discoveries, the listening clock, your week and the heatmap.',
+    content: 'Four tabs for the date range at the top. Overview sums it up in a sentence and four tiles. Story tells what it was about: your obsession each month, your eras, how your taste drifted, discoveries and milestones. Compare puts up to 10 artists, songs, albums or years side by side, or races them. Charts has play volume and discoveries, the listening clock, your week and the heatmap.',
     nav: 'graphs' },
 
   { title: 'Records',
@@ -62191,6 +62213,11 @@ const _cgTourSteps = [
   { title: 'Your Soundtrack',
     content: 'A full recap for any month, any year, or all time. It opens with a reel and headline stats, then walks through your top charts, a featured artist, when in the day and week you actually listen, your most loyal artists, what you discovered, milestones, streaks, a mini awards run, and a hidden gem you had half forgotten. It also replays your charts as an animation and exports the whole thing as a shareable card.',
     nav: 'soundtrack' },
+
+  // Games: out of Stats into its own page in More (2026-11-14)
+  { title: 'Games',
+    content: 'Twelve quick quizzes made from your own library, played full screen: Higher or lower, Name that tune, Guess the year, Guess the #1 and more. A new Game of the day waits every day (the same puzzle all day, and only your first try counts), so play daily to keep your streak. Your best scores stay on this device.',
+    nav: 'games' },
 
   { title: 'Playlists',
     content: 'Save any chart as a named playlist, queue tracks from anywhere in the app with + Play, and keep the queue across sessions. Recent releases and anniversaries sit alongside it so there is always something to add.',

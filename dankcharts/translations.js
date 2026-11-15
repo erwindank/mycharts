@@ -2844,6 +2844,7 @@ const TRANSLATIONS = {
     modal_rating_artist: '★ My Ratings',
     rec_ratings_sub: 'The album you play far more than its score, the one you score far above how often you play it, the album that holds its level from front to back, and the artist you rate best',
     nav_ratings: 'Ratings',
+    nav_games: 'Games',   // Games page in More (2026-11-14)
     rp_intro: 'Every album, single and song you have scored: your verdicts, your highs and lows, the artists you rate best and what you play a lot but have never rated.',
     rp_kicker_album: 'Your average album',
     rp_kicker_song: 'Your average song',

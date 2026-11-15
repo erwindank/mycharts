@@ -400,19 +400,16 @@ window.GL = {
       quiz: [ { id: 'q1', answer: 0 }, { id: 'q2', answer: 0 }, { id: 'q3', answer: 0 } ],
       tips: [ ['search', 'field', 'win.search'], ['win-song-listening', 'found', 'win.tab'], ['streak-records', 'badges', 'win.streak'], ['cover-hover', 'pencil', 'win.cover'] ]
     },
-    /* ── Lesson 7: Stats (Overview, Story, Games, Compare, Graphs) ── */
+    /* ── Lesson 7: Stats (Overview, Story, Compare, Graphs; Games has its own lesson since 2026-11-14) ── */
     { id: 'stats', area: 'insights', nav: 'graphs', mins: 9, cover: 'stats-top',
       scenes: [
-        // The range bar, the five tabs and the Overview's sentence and tiles
+        // The range bar, the tabs and the Overview's sentence and tiles
         { id: 'top', shot: 'stats-top', phone: true,
           spots: ['presets', 'dates', 'tabs', 'line', 'share', 'tile', 'delta', 'trend', 'sub', 'go'] },
         { id: 'ov', shot: 'stats-ov',
           spots: ['top5', 't5seg', 't5lead', 't5rows', 'sotp', 'movers', 'mvseg', 'persona', 'facts', 'shuffle', 'cal', 'calmore', 'otd', 'split'] },
         { id: 'story', shot: 'stats-story',
           spots: ['obs', 'obsone', 'eras', 'drift', 'driftkeys', 'loyal', 'comfort', 'disc', 'fun', 'miles'] },
-        { id: 'games', shot: 'stats-games', spots: ['head', 'tally', 'daily', 'dailygo', 'card', 'tag', 'go'] },
-        // Higher or lower, open full screen
-        { id: 'game', shot: 'stats-game', spots: ['title', 'score', 'close', 'q', 'known', 'guess', 'btns'] },
         { id: 'cmp', shot: 'stats-cmp', phone: true,
           spots: ['gran', 'top', 'saved', 'types', 'modes', 'chip', 'x', 'add', 'legend', 'chart', 'verdict'] },
         { id: 'cmpmore', shot: 'stats-cmp-more', spots: ['h2h', 'share', 'table', 'own', 'gaps', 'ts', 'hab'] },
@@ -435,9 +432,6 @@ window.GL = {
         { id: 'story', challenge: 'stats.story', slides: [
           { shot: 'stats-top', spot: 'tabs' }, { shot: 'stats-story', spot: 'obs' }, { shot: 'stats-story', spot: 'eras' },
           { shot: 'stats-story', spot: 'drift' }, { shot: 'stats-story', spot: 'disc' } ] },
-        { id: 'game', challenge: 'stats.game', slides: [
-          { shot: 'stats-games', spot: 'daily' }, { shot: 'stats-games', spot: 'go' }, { shot: 'stats-game', spot: 'btns' },
-          { shot: 'stats-game', spot: 'score' }, { shot: 'stats-game', spot: 'close' }, { shot: 'stats-games', spot: 'tally' } ] },
         { id: 'compare', challenge: 'stats.add', slides: [
           { shot: 'stats-cmp', spot: 'types' }, { shot: 'stats-cmp', spot: 'add' }, { shot: 'stats-cmp', spot: 'chip' },
           { shot: 'stats-cmp', spot: 'modes' }, { shot: 'stats-cmp', spot: 'legend' }, { shot: 'stats-cmp-more', spot: 'h2h' },
@@ -459,7 +453,7 @@ window.GL = {
           { id: 'gran', shot: 'stats-cmp', spot: 'gran', def: '{{t:gran_monthly}}' } ] },
         { id: 'tabs', items: [
           { id: 'overview', shot: 'stats-top', spot: 'tabs', def: 'on' }, { id: 'story', shot: 'stats-story', spot: 'obs' },
-          { id: 'games', shot: 'stats-games', spot: 'card' }, { id: 'compare', shot: 'stats-cmp', spot: 'chart' },
+          { id: 'compare', shot: 'stats-cmp', spot: 'chart' },
           { id: 'charts', shot: 'stats-vol', spot: 'canvas' } ] },
         { id: 'overview', items: [
           { id: 'share', shot: 'stats-top', spot: 'share' }, { id: 't5seg', shot: 'stats-ov', spot: 't5seg', def: '{{t:sx_cmp_type_songs}}' },
@@ -479,9 +473,9 @@ window.GL = {
           { id: 'hmtypes', shot: 'stats-heat', spot: 'types', def: '{{t:hm_type_all}}' }, { id: 'colors', shot: 'stats-heat', spot: 'colors' },
           { id: 'scope', shot: 'stats-heat', spot: 'scope' } ] }
       ],
-      challenges: ['stats.range', 'stats.story', 'stats.go', 'stats.game', 'stats.add', 'stats.race', 'stats.drill', 'stats.heat'],
+      challenges: ['stats.range', 'stats.story', 'stats.go', 'stats.add', 'stats.race', 'stats.drill', 'stats.heat'],
       quiz: [ { id: 'q1', answer: 0 }, { id: 'q2', answer: 1 }, { id: 'q3', answer: 2 } ],
-      tips: [ ['stats-top', 'delta', 'stats.range'], ['stats-race', 'play', 'stats.race'], ['stats-games', 'daily', 'stats.game'],
+      tips: [ ['stats-top', 'delta', 'stats.range'], ['stats-race', 'play', 'stats.race'],
         ['stats-drill', 'tabs', 'stats.drill'], ['stats-heat', 'colors', 'stats.heat'] ]
     },
     /* ── Lesson 8: Records (eleven sections, the plaque wall) ─────── */
@@ -836,6 +830,28 @@ window.GL = {
       tips: [ ['rt-tracks', 'row', 'rt.tracks'], ['rt-song', 'na', 'rt.mode'], ['rt-page', 'rec', 'rt.rate'], ['rt-list', 'bar', 'rt.band'] ]
     },
     /* ── Lesson 13: Events (birthdays, releases, shows, Time Machine) ── */
+    /* ── Games (2026-11-14): out of the Stats lesson with the page itself.
+       Same pictures as before (stats-games, stats-game); the challenge keeps
+       its old id, stats.game, so a finished one stays finished. ── */
+    { id: 'games', area: 'more', nav: 'games', mins: 3, cover: 'stats-games',
+      scenes: [
+        { id: 'games', shot: 'stats-games', spots: ['head', 'tally', 'daily', 'dailygo', 'card', 'tag', 'go'] },
+        // Higher or lower, open full screen
+        { id: 'game', shot: 'stats-game', spots: ['title', 'score', 'close', 'q', 'known', 'guess', 'btns'] }
+      ],
+      howto: [
+        { id: 'game', challenge: 'stats.game', slides: [
+          { shot: 'stats-games', spot: 'daily' }, { shot: 'stats-games', spot: 'go' }, { shot: 'stats-game', spot: 'btns' },
+          { shot: 'stats-game', spot: 'score' }, { shot: 'stats-game', spot: 'close' }, { shot: 'stats-games', spot: 'tally' } ] }
+      ],
+      options: [
+        { id: 'games', items: [
+          { id: 'daily', shot: 'stats-games', spot: 'daily' }, { id: 'card', shot: 'stats-games', spot: 'card' } ] }
+      ],
+      challenges: ['stats.game'],
+      quiz: [ { id: 'q1', answer: 2 }, { id: 'q2', answer: 0 }, { id: 'q3', answer: 1 } ],
+      tips: [ ['stats-games', 'daily', 'stats.game'], ['stats-games', 'tally', 'stats.game'], ['stats-games', 'card', 'stats.game'] ]
+    },
     { id: 'events', area: 'more', nav: 'events', mins: 6, cover: 'ev-today',
       scenes: [
         { id: 'today', shot: 'ev-today', phone: true,
@@ -2355,12 +2371,12 @@ window.GL_TEXT.en = {
     },
     stats: {
       title: '{{t:tab_stats}}',
-      promise: 'Your listening for any stretch of time: a summary, its story, games, side-by-side comparisons and graphs.',
+      promise: 'Your listening for any stretch of time: a summary, its story, side-by-side comparisons and graphs.',
       scenes: {
         top: { title: 'The range and the {{t:sx_tab_overview}}', spots: {
           presets: ['Quick ranges', '{{t:range_4w}}, {{t:range_12m}}, {{t:range_3y}} or {{t:range_all}}. Every tab uses the range you pick here.'],
           dates: ['Your own dates', 'Pick any start and end date for a stretch of your own.'],
-          tabs: ['Five tabs', '{{t:sx_tab_overview}}, {{t:sx_tab_story}}, {{t:sx_tab_games}}, {{t:sx_tab_compare}} and {{t:sx_tab_charts}}. The one you leave open is the one you come back to.'],
+          tabs: ['Four tabs', '{{t:sx_tab_overview}}, {{t:sx_tab_story}}, {{t:sx_tab_compare}} and {{t:sx_tab_charts}}. The one you leave open is the one you come back to.'],
           line: ['In one sentence', 'Your range in a sentence: how much you played, against the stretch before, and who led. Click the artist to open their window.'],
           share: ['{{t:sx_share}}', 'Makes a picture of this summary to save or send.'],
           tile: ['Four tiles', 'Plays, songs, artists and albums in the range.'],
@@ -2396,24 +2412,6 @@ window.GL_TEXT.en = {
           disc: ['{{t:sx_disc_title}}', 'Your biggest new artists of the range, and whether you still play them.'],
           fun: ['{{t:sx_fun_title}}', 'The range in other words: plays a day, your top song, how far your plays would walk.'],
           miles: ['{{t:sx_miles_title}}', 'Round numbers you passed: play counts, different songs and artists, and when.']
-        } },
-        games: { title: '{{t:sx_tab_games}}', spots: {
-          head: ['{{t:sx_games_title}}', 'Quizzes made from your own library.'],
-          tally: ['Your tally', 'How many of the games you have played, and your day streak for the game of the day.'],
-          daily: ['{{t:sx_daily_k}}', 'One puzzle a day, the same all day. Only your first try counts; play every day to keep the streak.'],
-          dailygo: ['{{t:sx_daily_play}}', 'Starts today’s puzzle.'],
-          card: ['A game', 'Twelve games: {{t:sx_game_hl}}, {{t:sx_game_tune}}, {{t:sx_game_year}}, {{t:sx_game_one}} and more.'],
-          tag: ['{{t:sx_games_new}}', 'Games you haven’t played yet are tagged.'],
-          go: ['{{t:sx_game_play}}', 'Opens the game full screen.']
-        } },
-        game: { title: 'Playing a game', spots: {
-          title: ['The game', 'Its name.'],
-          score: ['Your score', 'Your streak or score now, and your best ever.'],
-          close: ['Close', 'Back to the games. Esc does the same.'],
-          q: ['The question', 'What you have to guess.'],
-          known: ['What you know', 'One side shows its answer.'],
-          guess: ['What you guess', 'The other is hidden.'],
-          btns: ['Your answer', 'Pick one. Right answers keep the game going; at the end you can share your result.']
         } },
         cmp: { title: '{{t:sx_tab_compare}}', spots: {
           gran: ['{{t:gran_daily}} / {{t:gran_monthly}} / {{t:gran_yearly}}', 'How the lines are split: by day, by month or by year. Shows on {{t:sx_tab_compare}} and {{t:sx_tab_charts}}.'],
@@ -2516,14 +2514,6 @@ window.GL_TEXT.en = {
           'Taste drift: how your top 10 changed year by year.',
           'And the new artists you found, and if you still play them.'
         ] },
-        game: { title: 'Play a game', slides: [
-          'Start with the {{t:sx_daily_k}}: one puzzle, the same all day.',
-          'Or pick any of the twelve games.',
-          'Make your guess.',
-          'Your score and your best, at the top.',
-          'Close it whenever you like.',
-          'Your tally counts the games you’ve played and your day streak.'
-        ] },
         compare: { title: 'Compare artists, songs or years', slides: [
           'Pick what to compare.',
           'Type a name and add it. Up to 10.',
@@ -2564,7 +2554,6 @@ window.GL_TEXT.en = {
         tabs: { title: 'Tabs', items: {
           overview: ['{{t:sx_tab_overview}}', 'The range in a sentence, four tiles and eight cards.'],
           story: ['{{t:sx_tab_story}}', 'What the range was about.'],
-          games: ['{{t:sx_tab_games}}', 'Twelve quizzes and a game of the day.'],
           compare: ['{{t:sx_tab_compare}}', 'Up to 10 side by side, or as a race.'],
           charts: ['{{t:sx_tab_charts}}', 'Volume, the clock, your week and the heatmap.']
         } },
@@ -2602,7 +2591,6 @@ window.GL_TEXT.en = {
         'stats.range': ['Change the range', 'A quick range or your own dates.'],
         'stats.story': ['Open {{t:sx_tab_story}}', 'The second tab.'],
         'stats.go': ['Follow a tile’s link', 'Under any of the four tiles on {{t:sx_tab_overview}}.'],
-        'stats.game': ['Play a game', 'Any game on {{t:sx_tab_games}}, or the {{t:sx_daily_k}}.'],
         'stats.add': ['Add something to {{t:sx_tab_compare}}', 'Type a name in the Add box.'],
         'stats.race': ['Watch a race', '{{t:sx_tab_compare}} → {{t:sx_cmp_mode_race}}.'],
         'stats.drill': ['Look inside a period', 'Click a bar on {{t:sx_tab_charts}}.'],
@@ -2613,16 +2601,15 @@ window.GL_TEXT.en = {
           ['The same length of time just before', 'Last year', 'Your all-time average'],
           'Each tile compares the range with the same stretch just before it.'],
         q2: ['Where can you watch your top artists race each other?',
-          ['{{t:sx_tab_story}}', '{{t:sx_tab_compare}} → {{t:sx_cmp_mode_race}}', '{{t:sx_tab_games}}'],
+          ['{{t:sx_tab_story}}', '{{t:sx_tab_compare}} → {{t:sx_cmp_mode_race}}', '{{t:sx_tab_charts}}'],
           '{{t:sx_cmp_mode_race}} is one of the four ways {{t:sx_tab_compare}} shows your picks.'],
-        q3: ['What is special about the {{t:sx_daily_k}}?',
-          ['It is a new kind of game', 'It gives double points', 'Everyone gets the same puzzle all day, and only your first try counts'],
-          'One puzzle a day, the same all day. Play every day to keep your day streak.']
+        q3: ['Which tab tells what your range was about, like your eras and your obsession each month?',
+          ['{{t:sx_tab_charts}}', '{{t:sx_tab_compare}}', '{{t:sx_tab_story}}'],
+          '{{t:sx_tab_story}} walks through the range: your top artist each month, your eras, taste drift and discoveries.']
       },
       tips: [
         'Stats tiles compare your range with the same stretch just before it. Try {{t:range_4w}} to see this month’s trend.',
         'On {{t:sx_tab_compare}}, {{t:sx_cmp_mode_race}} turns your top artists into a race you can save as a GIF.',
-        'A new {{t:sx_daily_k}} waits on {{t:sx_tab_games}} every day. Keep your day streak going.',
         'Click any bar on {{t:sx_tab_charts}} to see the top songs and new finds of that month.',
         'The heatmap has six colour schemes, and can show one artist, song or album on its own.'
       ]
@@ -3805,6 +3792,65 @@ window.GL_TEXT.en = {
         'An instrumental? Mark {{t:rtc_lyr}} and {{t:rtc_voc}} {{t:rte_na}} so they don’t count.',
         '{{t:rp_rec_underplayed}}: the album you score high but hardly ever play.',
         'Tap a verdict in {{t:ar_spread}} to see only those albums.'
+      ]
+    },
+    games: {
+      title: '{{t:nav_games}}',
+      promise: 'Twelve quick quizzes made from your own library, and a new game every day.',
+      scenes: {
+        games: { title: '{{t:nav_games}}', spots: {
+          head: ['{{t:sx_games_title}}', 'Quizzes made from your own library.'],
+          tally: ['Your tally', 'How many of the games you have played, and your day streak for the game of the day.'],
+          daily: ['{{t:sx_daily_k}}', 'One puzzle a day, the same all day. Only your first try counts; play every day to keep the streak.'],
+          dailygo: ['{{t:sx_daily_play}}', 'Starts today’s puzzle.'],
+          card: ['A game', 'Twelve games: {{t:sx_game_hl}}, {{t:sx_game_tune}}, {{t:sx_game_year}}, {{t:sx_game_one}} and more.'],
+          tag: ['{{t:sx_games_new}}', 'Games you haven’t played yet are tagged.'],
+          go: ['{{t:sx_game_play}}', 'Opens the game full screen.']
+        } },
+        game: { title: 'Playing a game', spots: {
+          title: ['The game', 'Its name.'],
+          score: ['Your score', 'Your streak or score now, and your best ever.'],
+          close: ['Close', 'Back to the games. Esc does the same.'],
+          q: ['The question', 'What you have to guess.'],
+          known: ['What you know', 'One side shows its answer.'],
+          guess: ['What you guess', 'The other is hidden.'],
+          btns: ['Your answer', 'Pick one. Right answers keep the game going; at the end you can share your result.']
+        } }
+      },
+      howto: {
+        game: { title: 'Play a game', slides: [
+          'Open {{t:nav_games}} from More. Start with the {{t:sx_daily_k}}: one puzzle, the same all day.',
+          'Or pick any of the twelve games.',
+          'Make your guess.',
+          'Your score and your best, at the top.',
+          'Close it whenever you like.',
+          'Your tally counts the games you’ve played and your day streak.'
+        ] }
+      },
+      options: {
+        games: { title: '{{t:nav_games}}', items: {
+          daily: ['{{t:sx_daily_k}}', 'One puzzle a day. After your first try, playing it again is practice.'],
+          card: ['Twelve games', 'Play any of them as often as you like. Your best score stays on this device.']
+        } }
+      },
+      challenges: {
+        'stats.game': ['Play a game', 'Any game on {{t:nav_games}}, or the {{t:sx_daily_k}}.']
+      },
+      quiz: {
+        q1: ['What is special about the {{t:sx_daily_k}}?',
+          ['It is a new kind of game', 'It gives double points', 'Everyone gets the same puzzle all day, and only your first try counts'],
+          'One puzzle a day, the same all day. Play every day to keep your day streak.'],
+        q2: ['Where are your best scores kept?',
+          ['On this device', 'In your Google Sheet', 'On Last.fm'],
+          'Best scores and your day streak stay in this browser, on this device.'],
+        q3: ['Which plays do the games use?',
+          ['The range picked in {{t:tab_stats}}', 'Your whole history', 'Only this year'],
+          'The games use everything you have ever played, so there is no date range to pick.']
+      },
+      tips: [
+        'A new {{t:sx_daily_k}} waits on {{t:nav_games}} every day. A dot on More tells you it hasn’t been played yet.',
+        'Only your first try at the {{t:sx_daily_k}} counts. Play every day to keep your day streak going.',
+        '{{t:sx_game_tune}} plays a few seconds of one of your songs: turn the sound on.'
       ]
     },
     events: {

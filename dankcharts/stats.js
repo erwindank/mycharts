@@ -1,10 +1,12 @@
 /* ─── STATS PAGE (phase 15) ─────────────────────────────────────────────────
-   The Stats page rebuilt in five tabs, one shown at a time like Records:
+   The Stats page rebuilt in tabs, one shown at a time like Records:
      Overview  one sentence and four tiles for the range picked in the bar
      Story     what the stretch was about (step 5–6)
-     Games     quizzes on your own library, played full screen (step 7–8)
      Compare   anything side by side, the race included (step 3–4)
      Charts    play volume, discoveries, the clock, the heatmap (step 2)
+   Games (step 7–8), quizzes on your own library played full screen, was a
+   fifth tab until 2026-11-14 and is now its own page in More (#gamesView,
+   app.js's period-nav branch for 'games'); its code still lives here.
 
    Lives in its own file like daily.js and insights.js; it only reads app.js
    globals (allPlays, graphRange, graphRangeDates, graphRangeTs,
@@ -19,7 +21,16 @@
    whose data-st-group names another tab. Story and Games are hidden in the
    tab row until they are built, so a saved choice of one falls back to
    Overview. */
-const ST_TABS = ['overview', 'story', 'games', 'compare', 'charts'];
+const ST_TABS = ['overview', 'story', 'compare', 'charts'];
+/* Games left Stats on 2026-11-14. Anyone who had it open last time is sent to
+   the new Games page instead (the period the app restores on load), and Stats
+   opens on Overview from then on. Runs before app.js restores the period. */
+try {
+  if (localStorage.getItem('dc_stats_tab') === 'games') {
+    localStorage.setItem('dc_stats_tab', 'overview');
+    if (localStorage.getItem('dc_period') === 'graphs') localStorage.setItem('dc_period', 'games');
+  }
+} catch (e) { }
 let statsTab = (() => {
   try { const v = localStorage.getItem('dc_stats_tab'); return ST_TABS.includes(v) ? v : 'overview'; }
   catch (e) { return 'overview'; }
@@ -3629,11 +3640,30 @@ function sxRenderGames() {
       `</div></section>`;
   }).join('');
 
-  box.innerHTML = `<div class="sx-games-head"><div><h2 class="sx-games-title">${esc(t('sx_games_title'))}</h2>` +
+  // The page's header, like the other pages in More (Ratings, Records…)
+  const pageHead = `<div class="section-header sx-games-page-head"><h2 class="section-header-h2">` +
+    `${typeof dcGlowIco === 'function' ? dcGlowIco('games') : ''}<span>${esc(t('nav_games'))}</span></h2>` +
+    `<div class="section-rule"></div></div>`;
+  box.innerHTML = pageHead + `<div class="sx-games-head"><div><h3 class="sx-games-title">${esc(t('sx_games_title'))}</h3>` +
     `<p class="sx-games-intro">${esc(t('sx_games_intro'))}</p></div>${tally}</div>` +
     daily + `<div class="sx-games-grid">${cards}</div>`;
   arts.forEach(([el, s]) => _sxSongArt(document.getElementById(el), s));
+  sxSyncGamesDot();
 }
+
+/* The Games dot (2026-11-14): a small dot on Games in the More menu, and on
+   the More button itself, while today's Game of the day hasn't been played.
+   It used to sit in front of you on the Stats tab; in More it would be easy
+   to forget. Only shown once plays are loaded (no plays, no puzzle), and
+   rechecked on every page change (app.js, dcSyncMainTabs) and when the tab
+   comes back into view, so it also turns on again after midnight. */
+function sxSyncGamesDot() {
+  const waiting = typeof allPlays !== 'undefined' && allPlays.length > 0 &&
+    _sxDaily.date !== _sxDailyToday().key;
+  document.querySelectorAll('.tb-more-item[data-go="games"]').forEach(b => b.classList.toggle('has-dot', waiting));
+  document.querySelectorAll('#topbarNav .tb-more-btn, #bottomTabs .bt-more-btn').forEach(b => b.classList.toggle('has-games-dot', waiting));
+}
+document.addEventListener('visibilitychange', () => { if (!document.hidden) sxSyncGamesDot(); });
 
 // ── The full-screen stage ──
 // daily: true for Game of the day (seeded picks, the result is kept)

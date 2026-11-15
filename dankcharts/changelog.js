@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 492;
+const DC_CL_I18N_V = 493;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -88,7 +88,7 @@ const DC_CL_AREAS = {
              sample data so it never shows anyone's real library
      go      the data-period of the tab "Take me there" opens (optional)
      then    [function name, argument] calls made after that, for a
-             sub-tab or a window, e.g. [['setStatsTab', 'games']] (optional)
+             sub-tab or a window, e.g. [['setStatsTab', 'compare']] (optional)
      title   headline, in plain words
      intro   one or two sentences: what it is and why you would care
      points  2-4 short bullets of what you can do with it
@@ -231,7 +231,7 @@ const DC_CL_HIGHLIGHTS = [
       "Look back at older weeks, records and every #1, and share the top 10 as an image.",
     ],
     also: ["20984e3", "b5266b2", "4633b01", "5985dda", "4679756", "3449b86"] },
-  { id: "games", d: "2026-11-01", a: "graphs", img: "whatsnew/games.webp", go: "graphs", then: [["setStatsTab", "games"]],
+  { id: "games", d: "2026-11-01", a: "graphs", img: "whatsnew/games.webp", go: "games",
     title: "Twelve games about your own music",
     intro: "Stats has a Games tab: quick quizzes made from your own library, and a new Game of the day every day.",
     points: [
@@ -419,6 +419,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-14', t: 'change', a: 'graphs',
+    title: "Games has its own page",
+    detail: "Games moved out of Stats and into the More menu. All twelve games, the Game of the day, your streak and your best scores are just where you left them. A small dot on More tells you when today's Game of the day is still waiting." },
   { d: '2026-11-14', t: 'feature', a: 'ratings',
     title: "Listening Scores for what you haven't rated",
     detail: "Every song, album, EP and single you haven't rated now gets a Listening Score, worked out from how much you play it, how long you keep coming back to it, its chart run and its certifications. You can turn them off in Settings → Releases. Your own scores always come first: an album you've partly rated mixes your track scores with Listening Scores for the rest until every track is yours. Listening Scores have a dashed outline so you can tell them apart, and each one has a Why this score breakdown. They don't count in Rating Records, Awards, smart playlists or an artist's verdict unless you turn that on." },

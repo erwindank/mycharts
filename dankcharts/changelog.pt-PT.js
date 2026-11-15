@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Games has its own page":
+    ["Os jogos têm agora uma página própria",
+     "Os jogos saíram de Estatísticas e passaram para o menu Mais. Os doze jogos, o Jogo do dia, a tua sequência e os teus recordes continuam como os deixaste. Um pequeno ponto em Mais avisa quando o Jogo do dia de hoje ainda está à espera."],
   "Listening Scores for what you haven't rated":
     ["Notas de escuta para o que não avaliaste",
      "Cada música, álbum, EP e single que não avaliaste recebe uma nota de escuta, pelo quanto o ouves, por quanto tempo continuas a voltar, pelo percurso nos Tops e pelas certificações. Podes desligá-las em Definições → Lançamentos. As tuas próprias notas vêm sempre primeiro: um álbum que avaliaste em parte mistura as tuas notas das faixas com notas de escuta para o resto até todas as faixas serem tuas. As notas de escuta têm um contorno tracejado para as distinguires, e cada uma explica porque tem essa nota. Não contam nos recordes de avaliação, nos Prémios, nas playlists inteligentes nem no veredicto de um artista, a não ser que o ligues."],

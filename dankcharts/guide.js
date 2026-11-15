@@ -32,7 +32,7 @@
   'use strict';
 
   // Bump when the lesson files or the pictures change (it's their ?v=)
-  const GUIDE_V = '29';
+  const GUIDE_V = '30';
   const STORE = 'dc_guide_progress';
   const LANG_FILES = ['es', 'pt-BR', 'pt-PT'];
 
@@ -167,7 +167,7 @@
     'stats.range':   { lesson: 'stats', period: 'graphs', click: '#graphRangePresets button', input: '#gRangeFrom, #gRangeTo' },
     'stats.story':   { lesson: 'stats', fn: 'setStatsTab', test: a => a[0] === 'story' },
     'stats.go':      { lesson: 'stats', click: '.sx-tile-go' },
-    'stats.game':    { lesson: 'stats', fn: 'sxGameOpen' },
+    'stats.game':    { lesson: 'games', fn: 'sxGameOpen' },   // id kept from when Games was in Stats
     'stats.add':     { lesson: 'stats', fn: 'sxCmpAddKey' },
     'stats.race':    { lesson: 'stats', click: '#sxCmpMode [data-cmode="race"]' },
     'stats.drill':   { lesson: 'stats', fn: 'sxShowVolDrill' },
@@ -345,7 +345,7 @@
     'stats.range':   { nav: 'graphs', ring: '#graphsControls' },
     'stats.story':   { nav: 'graphs', ring: '.stats-tabs [data-st-tab="story"]' },
     'stats.go':      { nav: 'graphs', stab: 'overview', ring: '#sxOverview .sx-tiles' },
-    'stats.game':    { nav: 'graphs', stab: 'games', ring: '#sxGames .sx-daily, #sxGames .sx-game-card' },
+    'stats.game':    { nav: 'games', ring: '#sxGames .sx-daily, #sxGames .sx-game-card' },
     'stats.add':     { nav: 'graphs', stab: 'compare', ring: '#sxCmpAddCard' },
     'stats.race':    { nav: 'graphs', stab: 'compare', ring: '#sxCmpMode' },
     'stats.drill':   { nav: 'graphs', stab: 'charts', ring: '.sx-vol-card' },
@@ -979,7 +979,7 @@
     const tName = k => (typeof window.t === 'function' ? window.t(k) : k);
     const TAB_NAME = { day: 'nav_daily', week: 'nav_weekly', month: 'nav_monthly', year: 'nav_yearly', alltime: 'nav_alltime',
       graphs: 'tab_stats', records: 'nav_records', awards: 'nav_awards', soundtrack: 'nav_soundtrack', events: 'nav_events',
-      playlists: 'nav_playlists', rawdata: 'nav_rawdata', board: 'nav_board', chartsguide: 'nav_chartsguide', dank100: 'nav_dank100', worldcharts: 'nav_worldcharts', ratings: 'nav_ratings' };
+      playlists: 'nav_playlists', rawdata: 'nav_rawdata', board: 'nav_board', chartsguide: 'nav_chartsguide', dank100: 'nav_dank100', worldcharts: 'nav_worldcharts', ratings: 'nav_ratings', games: 'nav_games' };
     const recSections = ['rec_nav_overview', 'rec_nav_all_ones', 'rec_nav_pak', 'rec_nav_appearances', 'rec_nav_debuts', 'rec_nav_new_charts',
       'rec_nav_peak_plays', 'rec_nav_milestones', 'rec_nav_fastest', 'rec_nav_streaks', 'rec_nav_certs'].map(tName).join(', ');
     const sec = (k, inner, sub) => `<section class="gd-rsec" id="gd-ref-${k}"><h3 class="gd-rsec-h">${h(refTitle(k))}</h3>

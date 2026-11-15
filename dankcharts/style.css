@@ -11311,11 +11311,11 @@
        The open tab is #graphsView[data-st-tab]; every block tagged
        data-st-group for another tab is hidden. */
     .stats-tabs { margin: 0 0 1.25rem; }
-    /* Story and Games wait in the row, hidden, until they are built */
+    /* A tab can wait in the row, hidden, until it is built (Games was the
+       fifth tab until 2026-11-14; it is its own page in More now) */
     .stats-tabs > button[hidden] { display: none; }
     #graphsView[data-st-tab="overview"] [data-st-group]:not([data-st-group="overview"]),
     #graphsView[data-st-tab="story"] [data-st-group]:not([data-st-group="story"]),
-    #graphsView[data-st-tab="games"] [data-st-group]:not([data-st-group="games"]),
     #graphsView[data-st-tab="compare"] [data-st-group]:not([data-st-group="compare"]),
     #graphsView[data-st-tab="charts"] [data-st-group]:not([data-st-group="charts"]) { display: none; }
     /* Daily / Monthly / Yearly only means something for the charts */
@@ -12508,8 +12508,8 @@
     .sx-miles b { display: block; font-family: var(--font-display); font-size: var(--fs-sm); }
     .sx-miles span { display: block; font-size: var(--fs-xs); color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-    /* Games (step 7): the range doesn't apply, so its bar steps aside */
-    #graphsView[data-st-tab="games"] .graphs-controls { display: none; }
+    /* Games (step 7; its own page in More since 2026-11-14, #gamesView) */
+    .sx-games-page-head { margin-bottom: var(--sp-4); }
     /* The head: a title and intro on the left, the tally on the right */
     .sx-games-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--sp-3) var(--sp-5); margin-bottom: var(--sp-4); }
     .sx-games-title { margin: 0 0 var(--sp-1); font-family: var(--font-display); font-size: var(--fs-lg); line-height: 1.15; }
@@ -17235,6 +17235,7 @@
     #soundtrackView>.section-header .section-header-h2,
     .dc-pl-view>.section-header .section-header-h2,
     #ratingsView>.section-header .section-header-h2,
+    #sxGames>.section-header .section-header-h2,
     #boardView .bd-section>.section-header .section-header-h2,
     #dank100View .d100-section>.section-header .section-header-h2,
     #worldchartsView .wc-section>.section-header .section-header-h2,
@@ -40704,6 +40705,8 @@ body.green-light :is(.sv--bronze, .modal-cb-detail-peak--bronze) {
        body carries .dp-body so those rules apply, with the theme accent
        standing in for the cover colour a details window takes. */
     #ratingsView { max-width: 1100px; margin: 0 auto; padding: 0 var(--sp-4) var(--sp-8); }
+    /* Games page (2026-11-14): the same column as Ratings */
+    #gamesView { max-width: 1100px; margin: 0 auto; padding: 0 var(--sp-4) var(--sp-8); }
     #ratingsView .rp-intro { margin: calc(-1 * var(--sp-2)) 0 var(--sp-5); max-width: 62ch; font-size: var(--fs-sm); color: var(--text2); }
     #ratingsView .rp-page { --dp-ac: var(--accent); --dp-on-ac: var(--on-accent); padding: 0; }
     #ratingsView .rp > * + * { margin-top: var(--sp-5); }
@@ -48904,6 +48907,7 @@ body.yellow-light .dc-gico, body.pink-light .dc-gico, body.green-light .dc-gico 
 .dc-gico--board   { --gk-c: #f472b6; }
 .dc-gico--d100    { --gk-c: #2dd4bf; }
 .dc-gico--ratings { --gk-c: #facc15; }
+.dc-gico--games   { --gk-c: #a3e635; }
 /* chart periods share the chart icon but keep their own nav hue */
 .dc-gico.gk-nav-day     { --gk-c: #f59e0b; }
 .dc-gico.gk-nav-week    { --gk-c: #4dabf7; }
@@ -49324,6 +49328,24 @@ body.yellow-light .dc-gtile, body.pink-light .dc-gtile, body.green-light .dc-gti
 /* More menus: icon + word on each row */
 .tb-more-item { display: flex; align-items: center; gap: 0.6em; }
 .tb-more-item > .dc-gico { width: 1.25em; height: 1.25em; }
+
+/* The Games dot (2026-11-14, stats.js sxSyncGamesDot): today's Game of the day
+   is still waiting. A small accent dot at the end of the Games row, and one on
+   the More button (top bar and phone bar) so it shows with the menu closed. */
+.tb-more-dot { display: none; width: 7px; height: 7px; margin-left: auto; border-radius: 50%; background: var(--accent); flex: none; }
+.tb-more-item.has-dot > .tb-more-dot { display: block; }
+.tb-more-btn.has-games-dot,
+.bt-more-btn.has-games-dot { position: relative; }
+.tb-more-btn.has-games-dot::after,
+.bt-more-btn.has-games-dot::after {
+  content: ''; position: absolute; top: 6px; right: 2px;
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 2px var(--bg);   /* a ring in the bar's colour so it reads on any icon */
+  pointer-events: none;
+}
+/* On the phone bar it sits by the dots icon, not at the button's far edge */
+#bottomTabs .bt-more-btn.has-games-dot::after { top: 8px; right: calc(50% - 16px); }
 
 /* Records menu + phone picker: the picture a touch larger than the old line icon */
 .records-nav-btn > .dc-gico,

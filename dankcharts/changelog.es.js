@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Games has its own page":
+    ["Los juegos tienen su propia página",
+     "Los juegos salen de Estadísticas y pasan al menú Más. Los doce juegos, el Juego del día, tu racha y tus mejores marcas siguen tal como los dejaste. Un pequeño punto en Más te avisa cuando el Juego del día de hoy aún te espera."],
   "Listening Scores for what you haven't rated":
     ["Puntuaciones de escucha para lo que no has valorado",
      "Cada canción, álbum, EP y sencillo que no has valorado recibe una puntuación de escucha, según cuánto lo escuchas, cuánto tiempo sigues volviendo a él, su recorrido en las listas y sus certificaciones. Puedes desactivarlas en Ajustes → Lanzamientos. Tus propias notas siempre van primero: un álbum que has valorado en parte mezcla tus notas de canciones con puntuaciones de escucha para el resto hasta que todas las canciones son tuyas. Las puntuaciones de escucha tienen un borde discontinuo para distinguirlas, y cada una explica por qué tiene esa nota. No cuentan en los récords de valoración, los Premios, las playlists inteligentes ni el veredicto de un artista a menos que lo actives."],

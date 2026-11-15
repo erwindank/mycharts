@@ -2787,6 +2787,7 @@ TRANSLATIONS['es'] = Object.assign({
     modal_rating_artist: '★ Mis Valoraciones',
     rec_ratings_sub: 'El álbum que escuchas mucho más de lo que su nota merece, el que puntúas muy por encima de lo que lo escuchas, el álbum que mantiene su nivel de principio a fin y el artista que mejor valoras',
     nav_ratings: 'Valoraciones',
+    nav_games: 'Juegos',   // Games page in More (2026-11-14)
     rp_intro: 'Cada álbum, single y canción que has puntuado: tus veredictos, tus mejores y peores notas, los artistas que mejor valoras y lo que escuchas mucho pero nunca has puntuado.',
     rp_kicker_album: 'Tu álbum promedio',
     rp_kicker_song: 'Tu canción promedio',
