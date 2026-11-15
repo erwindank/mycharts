@@ -34,12 +34,20 @@
    =========================================================================== */
 
 const AS_DAY_MS = 86400000;
-const AS_MIN_PLAYS = 5;        // fewer plays than this → no score ("not enough listening yet")
+const AS_MIN_PLAYS = 5;        // fewer plays than this → not ranked with the rest (see AS_LOW_SCORES)
 const AS_EARLY_DAYS = 90;      // first played less than this long ago → "Early"
+/* Songs / releases you played only 1–4 times (user, 2026-11-14: "if you
+   didn't play it much, you didn't like it"). They get a fixed "Poor" score
+   by play count, under the 3.0 floor of the ranked ones — but only once you've
+   known them AS_LOW_DAYS: something found last week hasn't had its chance,
+   so it still shows no score. Index = plays. */
+const AS_LOW_SCORES = [null, 1.0, 1.5, 2.0, 2.5];
+const AS_LOW_DAYS = 30;        // user, 2026-11-14: a month is enough to judge (was 90)
 /* Where a rank in your library (0 = lowest, 1 = highest) lands on the 0–10
    scale. Straight lines between these points, so roughly: the top 10% are
    Masterpieces (9+), the next 15% Essential, 20% Great, 20% Good, 20% Mixed
-   and the bottom 15% Weak (3.0–5.0). Nothing you play 5+ times is "Poor". */
+   and the bottom 15% Weak (3.0–5.0). Nothing you play 5+ times is "Poor";
+   only the barely-played ones above are. */
 const AS_CURVE = [[0, 3.0], [0.15, 5.0], [0.35, 6.0], [0.55, 7.0], [0.75, 8.0], [0.90, 9.0], [1, 10.0]];
 function _asScoreOfRank(q) {
   for (let i = 1; i < AS_CURVE.length; i++) {
@@ -248,9 +256,26 @@ function _asBuild() {
   // Turn raw facts into signal values. null = the signal doesn't apply.
   const staying = f => f.months.size + (f.late6 ? 2 : 0) + (f.late12 ? 3 : 0);
   const items = { song: [], album: [], single: [] };   // the three ranking pools
+  const outSongs = new Map(), outRels = new Map();
+
+  /* A barely-played item (under AS_MIN_PLAYS): a fixed Poor score, not
+     ranked. Only "depth" shows in "Why this score" (an empty bar), plus a
+     note saying why. Returns null when it's too new to judge. */
+  const lowScore = (f, kind, nTracks) => {
+    if (now - f.first < AS_LOW_DAYS * AS_DAY_MS) return null;
+    return {
+      score: AS_LOW_SCORES[f.plays], early: false, kind, low: true,
+      parts: { depth: 0 },
+      raw: { plays: f.plays, nTracks: nTracks || 1, hasTl: true, covered: null, months: f.months.size, late6: f.late6, late12: f.late12, peak: null, wks: 0, at1: 0, cert: 0 }
+    };
+  };
 
   for (const [k, s] of songs) {
-    if (s.plays < AS_MIN_PLAYS) continue;
+    if (s.plays < AS_MIN_PLAYS) {
+      const res = lowScore(s, 'song');
+      if (res) outSongs.set(k, res);
+      continue;
+    }
     const ch = songCh.get(k);
     const early = now - s.first < AS_EARLY_DAYS * AS_DAY_MS;
     items.song.push({
@@ -268,8 +293,12 @@ function _asBuild() {
   }
 
   for (const [k, r] of rels) {
-    if (r.plays < AS_MIN_PLAYS) continue;
     const kind = (typeof ratingReleaseKind === 'function') ? ratingReleaseKind(k).kind : 'album';
+    if (r.plays < AS_MIN_PLAYS) {
+      const res = lowScore(r, kind, r.tracks.size);
+      if (res) outRels.set(k, res);
+      continue;
+    }
     const pool = kind === 'album' ? 'album' : 'single';
     const [album, artist = ''] = k.split('|||');
     const ch = relCh.get(k);
@@ -302,8 +331,7 @@ function _asBuild() {
     });
   }
 
-  // Rank each pool
-  const outSongs = new Map(), outRels = new Map();
+  // Rank each pool (outSongs / outRels already hold the barely-played ones)
   for (const pool of ['song', 'album', 'single']) {
     const list = items[pool];
     if (!list.length) continue;
@@ -368,7 +396,8 @@ function _asPercentiles(list, get) {
 // ─── LOOKUPS ──────────────────────────────────────────────────────────────
 
 // A song's / release's Listening Score: { score, early, kind, parts, raw } or null.
-// null when the feature is off, or the item has fewer than AS_MIN_PLAYS plays.
+// null when the feature is off, or the item has fewer than AS_MIN_PLAYS plays
+// and was first played less than AS_LOW_DAYS ago.
 function asSong(key)    { if (!asOn() || !allPlays || !allPlays.length) return null; return _asBuild().songs.get(key) || null; }
 function asRelease(key) { if (!asOn() || !allPlays || !allPlays.length) return null; return _asBuild().rels.get(key) || null; }
 
@@ -386,9 +415,9 @@ function asSongView(key) {
                   missing). The album score is exactly ratingAlbumScore().
      mixed      — some of your scores, the gaps filled per track with the
                   song's Listening Score. Aspects are yours or left out.
-     listening  — nothing of yours: the release's own Listening Score (or,
-                  for a release under AS_MIN_PLAYS plays whose songs have
-                  scores from other releases, the average of those).
+     listening  — nothing of yours: the average of its songs' Listening
+                  Scores; the release's own ranked score only when none of
+                  its songs has one (since 2026-11-14).
    { score, state, yourTracks, lsTracks, early } or null. */
 function asAlbumView(albumKey) {
   const own = ratingAlbumScore(albumKey);
@@ -402,9 +431,14 @@ function asAlbumView(albumKey) {
     if (ls) { filled++; sum += ls.score; }
   }
   if (!own) {
-    const rel = asRelease(albumKey);
-    if (rel) return { score: rel.score, state: 'listening', yourTracks: 0, lsTracks: filled, early: rel.early };
+    // The average of its songs' Listening Scores (user, 2026-11-14: a
+    // one-song single scored differently from its song read as wrong), the
+    // same way your own album score is built from your track scores
     if (filled) return { score: Math.round(sum / filled * 10) / 10, state: 'listening', yourTracks: 0, lsTracks: filled };
+    // No song has one: fall back to the release's own ranking. fromRel tells
+    // the album page its "Why this score" breakdown matches this number.
+    const rel = asRelease(albumKey);
+    if (rel) return { score: rel.score, state: 'listening', yourTracks: 0, lsTracks: 0, early: rel.early, fromRel: true };
     return null;
   }
   if (!filled) return { score: own.score, state: 'yours', yourTracks: yours, lsTracks: 0 };
@@ -484,6 +518,7 @@ function asWhyHTML(res, kind) {
     <div class="as-why-h"><span class="ao-kicker">${esc(t('as_why'))}</span><span class="as-why-hint">${esc(t('as_why_hint'))}</span></div>
     ${rows.join('')}
     ${res.early ? `<p class="as-why-early">${esc(t('as_early_note'))}</p>` : ''}
+    ${res.low ? `<p class="as-why-note">${esc(t('as_low_note'))}</p>` : ''}
     ${kind === 'album' && !r.hasTl && res.kind === 'album' ? `<p class="as-why-note">${esc(t('as_no_tracklist'))}</p>` : ''}
   </div>`;
 }
@@ -524,7 +559,9 @@ function _asRenderSettingsPreview() {
     .filter((v, i, a) => v >= 0 && v < top.length && a.indexOf(v) === i).map(i => top[i]);
   el.innerHTML = pick.length ? `<div class="as-prev-h ao-kicker">${esc(t('as_preview'))}</div>` + pick.map(([k, r]) => {
     const [name, artist] = k.split('|||');
-    return `<div class="as-prev-row"><span class="as-prev-t"><b>${esc(name)}</b><span>${esc(artist || '')}</span></span>${asChip({ score: r.score, state: 'listening' })}</div>`;
+    // The score the album page shows (its songs' average), not the raw release rank
+    const v = asAlbumView(k);
+    return `<div class="as-prev-row"><span class="as-prev-t"><b>${esc(name)}</b><span>${esc(artist || '')}</span></span>${asChip(v && v.state !== 'yours' ? v : { score: r.score, state: 'listening' })}</div>`;
   }).join('') : '';
 }
 

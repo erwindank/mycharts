@@ -64489,7 +64489,9 @@ function renderAlbumRatingSection(albumKey) {
           <button class="dc-btn dc-btn-main" onclick="openRatingModal('album', ${esc(JSON.stringify(albumKey))})">${t('rtp_rate_album')}</button>
         </div>
       </div>
-      ${asRel ? `<div class="rt-al-card">${asWhyHTML(asRel, 'album')}</div>` : ''}
+      ${/* the release breakdown only explains the number when the score came
+           from it; a songs' average is explained by the track list below */
+        asRel && asView.fromRel ? `<div class="rt-al-card">${asWhyHTML(asRel, 'album')}</div>` : ''}
       ${_asTrackTableHTML(tracks)}
     </div>`;
     return;

@@ -6263,6 +6263,7 @@ TRANSLATIONS['pt-BR'] = Object.assign({
     as_tip_mixed: "Nota em parte sua {{score}}: {{n}} de {{of}} faixas têm a sua nota, o resto a nota de escuta",
     as_early: "Recente",
     as_early_note: "Ouvida pela primeira vez há menos de 90 dias, então quanto tempo você continua voltando ainda não conta.",
+    as_low_note: "Ouvida menos de 5 vezes em mais de 30 dias, então conta como uma que você não voltou a ouvir.",
     as_no_tracklist: "As faixas ouvidas não contam até a lista de faixas do álbum ser encontrada.",
     as_song_sub: "Vem de como você escuta. Avalie para dar a sua própria nota.",
     as_album_sub: "Vem de como você escuta. Avalie o álbum, ou algumas faixas, para torná-lo seu.",

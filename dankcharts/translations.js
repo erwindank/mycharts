@@ -6427,6 +6427,7 @@ const TRANSLATIONS = {
     as_tip_mixed: "Part-yours score {{score}}: {{n}} of {{of}} tracks have your score, the rest their Listening Score",
     as_early: "Early",
     as_early_note: "First played less than 90 days ago, so how long you keep coming back isn't counted yet.",
+    as_low_note: "Played fewer than 5 times in over 30 days, so it counts as one you didn't come back to.",
     as_no_tracklist: "Tracks played isn't counted until the album's tracklist is found.",
     as_song_sub: "Worked out from how you listen. Rate it to give it your own score.",
     as_album_sub: "Worked out from how you listen. Rate it, or rate a few tracks, to make it yours.",
