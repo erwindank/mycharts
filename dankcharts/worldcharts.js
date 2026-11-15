@@ -157,7 +157,9 @@
 
   // ── Loading ──
   function loadMenu() {
-    fetch(API + '/world-charts?chart=list')
+    // &v= is ignored by the function; it only makes browsers drop their
+    // hour-old copy of the list. Bump it whenever the menu order changes.
+    fetch(API + '/world-charts?chart=list&v=2')
       .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
       .then(function (j) {
         // Only charts this file knows a name for, so a chart added to the
