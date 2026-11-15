@@ -64508,17 +64508,35 @@ function _renderAlbumRatingMini(albumKey) {
 /* The album's tracks with the score each one counts with (Listening Scores,
    autoscore.js): your score as a filled chip, or the song's Listening Score
    outlined. Same rows as the normal track list. */
+/* The "by listening" slot on an album's track rows (user, 2026-11-14: hard
+   to see a song's Listening Score without opening the song). Rows you rated
+   show the song's Listening Score small, with a headphones icon, beside your
+   chip; rows whose main chip already IS the Listening Score leave it empty.
+   The slot is always there (fixed width) so the chips line up. */
+function _asTrLsSlot(key, own) {
+  const ls = own != null && typeof asSong === 'function' ? asSong(key) : null;
+  if (!ls) return '<span class="rt-al-tr-ls" aria-hidden="true"></span>';
+  return `<span class="rt-al-tr-ls ${ratingBand(ls.score).cls}" title="${esc(t('as_tip_ls', { score: ratingFmt(ls.score) }))}">${_amIco('headphones')}<b>${ratingFmt(ls.score)}</b></span>`;
+}
+// The small key above the list, only when some row shows a listening slot
+function _asTrLsKey(tracks) {
+  if (typeof asSong !== 'function' || !asOn()) return '';
+  const any = tracks.some(tr => ratingSongScore(tr.key) != null && asSong(tr.key));
+  return any ? `<div class="rt-al-tr-key">${_amIco('headphones')}<span>${esc(t('as_name'))}</span></div>` : '';
+}
+
 function _asTrackTableHTML(tracks) {
   if (!tracks.length) return '';
   const rows = tracks.map(tr => ({ ...tr, view: asSongView(tr.key) }))
     .sort((a, b) => (b.view ? b.view.score : -1) - (a.view ? a.view.score : -1));
-  return `<div class="rt-al-tracks">${rows.map((tr, i) => {
+  return `${_asTrLsKey(tracks)}<div class="rt-al-tracks">${rows.map((tr, i) => {
     const sc = tr.view ? tr.view.score : null;
     const b = sc == null ? null : ratingBand(sc);
     return `<button type="button" class="rt-al-tr ${b ? b.cls : 'rt-al-tr--unrated'}${tr.view && tr.view.state !== 'yours' ? ' as-tr--ls' : ''}" onclick="openSongModal(${esc(JSON.stringify(tr.key))})">
         <span class="rt-al-tr-n">${sc == null ? '–' : i + 1}</span>
         <span class="rt-al-tr-txt"><span class="rt-al-tr-title">${esc(tr.title)}</span><span class="rt-al-tr-plays">${tCount('plays', tr.count)}</span></span>
         <span class="rt-al-tr-bar"><i style="width:${sc == null ? 0 : (sc / RATING_MAX * 100).toFixed(1)}%"></i></span>
+        ${_asTrLsSlot(tr.key, tr.view && tr.view.state === 'yours' ? sc : null)}
         ${sc == null ? `<span class="rt-tt-unrated">${t('rtp_unrated')}</span>` : asChip(tr.view)}
       </button>`;
   }).join('')}</div>`;
@@ -64606,13 +64624,14 @@ function renderAlbumRatingSection(albumKey) {
     .sort((a, b) => (b.score ?? -1) - (a.score ?? -1));
   // Listening Scores on: unrated tracks show theirs (outlined), the same
   // numbers the mixed album score is made from
-  const trackTable = asView && asView.state === 'mixed' ? _asTrackTableHTML(tracks) : tracks.length ? `<div class="rt-al-tracks">
+  const trackTable = asView && asView.state === 'mixed' ? _asTrackTableHTML(tracks) : tracks.length ? `${_asTrLsKey(tracks)}<div class="rt-al-tracks">
     ${scored.map((tr, i) => {
       const b = tr.score == null ? null : ratingBand(tr.score);
       return `<button type="button" class="rt-al-tr ${b ? b.cls : 'rt-al-tr--unrated'}" onclick="openSongModal(${esc(JSON.stringify(tr.key))})">
           <span class="rt-al-tr-n">${tr.score == null ? '–' : i + 1}</span>
           <span class="rt-al-tr-txt"><span class="rt-al-tr-title">${esc(tr.title)}</span><span class="rt-al-tr-plays">${tCount('plays', tr.count)}</span></span>
           <span class="rt-al-tr-bar"><i style="width:${tr.score == null ? 0 : (tr.score / RATING_MAX * 100).toFixed(1)}%"></i></span>
+          ${_asTrLsSlot(tr.key, tr.score)}
           ${tr.score == null ? `<span class="rt-tt-unrated">${t('rtp_unrated')}</span>` : ratingChip(tr.score)}
         </button>`;
     }).join('')}

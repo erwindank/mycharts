@@ -3687,7 +3687,7 @@
     /* Track scores: place, title + plays, score bar, chip */
     .dp-body .rt-al-tracks { display: flex; flex-direction: column; }
     .dp-body .rt-al-tr {
-      display: grid; grid-template-columns: 28px minmax(0, 1fr) minmax(60px, 160px) auto; align-items: center; gap: var(--sp-3);
+      display: grid; grid-template-columns: 28px minmax(0, 1fr) minmax(60px, 160px) auto auto; align-items: center; gap: var(--sp-3);
       width: 100%; padding: 9px var(--sp-2); text-align: left;
       font: inherit; color: var(--text); background: none; border: 0;
       border-top: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
@@ -3704,9 +3704,19 @@
     .dp-body .rt-al-tr-bar i { display: block; height: 100%; border-radius: inherit; background: var(--rt-c); transform-origin: left; animation: aoGrow 0.9s var(--ease) both; }
     .dp-body .rt-al-tr .rt-chip { margin-left: 0; font-size: var(--fs-xs); min-width: 3.2em; }
     .dp-body .rt-al-tr--unrated { opacity: 0.6; }
+    /* "By listening" slot (2026-11-14): the song's Listening Score, small and
+       quiet beside your own chip — headphones icon + number in its band
+       colour. Empty slots keep the same width (only when the key above the
+       list is shown) so every chip stays in one column. */
+    .dp-body .rt-al-tr-ls { display: inline-flex; align-items: center; justify-content: flex-end; gap: 4px; font-size: var(--fs-xs); color: var(--text3); font-variant-numeric: tabular-nums; }
+    .dp-body .rt-al-tr-ls svg { width: 13px; height: 13px; flex-shrink: 0; opacity: 0.8; }
+    .dp-body .rt-al-tr-ls b { font-weight: 700; color: color-mix(in srgb, var(--rt-c, var(--text2)) 80%, var(--text3)); }
+    .dp-body .rt-al-tr-key + .rt-al-tracks .rt-al-tr-ls { min-width: 3.6em; }
+    .dp-body .rt-al-tr-key { display: flex; align-items: center; justify-content: flex-end; gap: 5px; margin: 0 var(--sp-2) var(--sp-1); font-size: var(--fs-xs); color: var(--text3); }
+    .dp-body .rt-al-tr-key svg { width: 13px; height: 13px; }
     @media (max-width: 640px) {
       .dp-body .rt-al-card { padding: var(--sp-3); }
-      .dp-body .rt-al-tr { grid-template-columns: 22px minmax(0, 1fr) 48px auto; gap: var(--sp-2); }
+      .dp-body .rt-al-tr { grid-template-columns: 22px minmax(0, 1fr) 48px auto auto; gap: var(--sp-2); }
       .dp-body .rt-al .ar-meters { grid-template-columns: 1fr; }
     }
 
