@@ -773,7 +773,7 @@ TRANSLATIONS['es'] = Object.assign({
     d100_signin_note: "Inicia sesión con Google para sumar tu semana a The Dank 100. Cualquiera puede ver la lista.",
     d100_demo: "Esta es la biblioteca de demostración, así que no se puede enviar. Conecta tus propios datos para participar.",
     d100_soon_title: "La próxima lista",
-    d100_soon: "The Dank 100 de la semana del {{range}} sale el {{day}}.",
+    d100_soon: "The Dank 100 de la semana del {{range}} sale el {{day}} en tu hora.",
     // Countdown + "Notify me" in the next-chart box (dank100.js)
     d100_cd_label: "Tiempo hasta la próxima lista",
     d100_cd_days: "días",

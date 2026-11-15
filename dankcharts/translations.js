@@ -815,7 +815,7 @@ const TRANSLATIONS = {
     d100_signin_note: "Sign in with Google to add your week to The Dank 100. Anyone can look at the chart.",
     d100_demo: "This is the demo library, so it can't be sent in. Connect your own data to take part.",
     d100_soon_title: "The next chart",
-    d100_soon: "The Dank 100 for the week of {{range}} comes out on {{day}}.",
+    d100_soon: "The Dank 100 for the week of {{range}} comes out on {{day}} your time.",
     // Countdown + "Notify me" in the next-chart box (dank100.js)
     d100_cd_label: "Time until the next chart",
     d100_cd_days: "days",

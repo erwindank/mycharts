@@ -491,6 +491,11 @@
     cdParts(at).forEach(function (n, i) { if (nums[i]) nums[i].textContent = i ? pad2(n) : n; });
   }
 
+  // A moment in the user's own clock and language ("Sun, Nov 15, 7:00 PM"),
+  // so the Monday 00:00 UTC deadlines never need working out
+  function localWhen(ts) {
+    return new Date(ts).toLocaleString(locale(), { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+  }
   // Time left before sending a week closes: "2d 05h 12m" with days left,
   // then "7h 43m 12s" on the last day
   function fmtLeft(ts) {
@@ -502,7 +507,7 @@
   // moment in the user's own clock, so nobody has to work out UTC.
   function deadlineHTML(b, isLast) {
     var at = +b.closes;
-    var when = new Date(at).toLocaleString(locale(), { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+    var when = localWhen(at);
     var mark = '\u0001';
     return '<p class="d100-entry-note d100-deadline' + (isLast ? ' is-last' : '') + '">⏳ ' +
       esc(tr(isLast ? 'd100_left_last' : 'd100_left', { time: mark, when: when }))
@@ -604,7 +609,7 @@
     var atTop = cdAtTop();
     var soon = '<section class="d100-soon' + (atTop ? ' is-top' : '') + '"><div class="d100-soon-n" aria-hidden="true">100</div><div class="d100-soon-main">' +
       '<div class="d100-soon-title">' + esc(tr('d100_soon_title')) + '</div>' +
-      '<p>' + esc(tr('d100_soon', { range: rangeLabel(closed), day: fmtDay(chartDay(closed), { weekday: 'long', month: 'long', day: 'numeric' }) })) + '</p>' +
+      '<p>' + esc(tr('d100_soon', { range: rangeLabel(closed), day: localWhen(+chartDay(closed)) })) + '</p>' +
       // Live countdown to when the chart is counted, plus the "Notify me" switch
       countdownHTML(+chartDay(closed)) + notifyHTML() +
       '</div>' +
