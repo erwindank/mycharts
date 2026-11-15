@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 493;
+const DC_CL_I18N_V = 494;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -419,6 +419,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-15', t: 'feature', a: 'charts',
+    title: "A countdown to the next Dank 100",
+    detail: "The Dank 100 page now counts down the days, hours, minutes and seconds until the next chart is out. Press Notify me and you'll be told when it's ready: a pop-up while dankcharts is open, and a line in your Notifications if you're signed in." },
   { d: '2026-11-14', t: 'change', a: 'graphs',
     title: "Games has its own page",
     detail: "Games moved out of Stats and into the More menu. All twelve games, the Game of the day, your streak and your best scores are just where you left them. A small dot on More tells you when today's Game of the day is still waiting." },

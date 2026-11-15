@@ -430,6 +430,116 @@
       esc(tr('d100_week_this')) + ' · ' + esc(tr('gk_stk_live')) + '</span>';
   }
 
+  // ── Countdown + "Notify me" (2026-11-15) ──
+  // The "next chart" box counts down to the Monday 00:00 UTC the next chart
+  // is counted (chartDay). "Notify me" is a standing choice saved on this
+  // browser (dc_d100_notify): each time a new chart is out it shows a browser
+  // pop-up (if allowed, while dankcharts is open in a tab) and, signed in, a
+  // line in the Notifications panel. There is no push server, so a closed
+  // site can't be woken up: the check runs when the site opens and every
+  // minute while it's open. dc_d100_told = the newest week already told.
+  var NOTIFY_KEY = 'dc_d100_notify';
+  var TOLD_KEY = 'dc_d100_told';
+  var CD_UNITS = ['d100_cd_days', 'd100_cd_hours', 'd100_cd_mins', 'd100_cd_secs'];
+  function notifyOn() { return lsGet(NOTIFY_KEY) === '1'; }
+  function canPopUp() { return typeof Notification !== 'undefined'; }
+
+  // [days, hours, minutes, seconds] left until `ts` (never below zero)
+  function cdParts(ts) {
+    var left = Math.max(0, Math.floor((ts - Date.now()) / 1000));
+    return [Math.floor(left / 86400), Math.floor(left / 3600) % 24, Math.floor(left / 60) % 60, left % 60];
+  }
+  function countdownHTML(ts) {
+    var parts = cdParts(ts);
+    return '<div class="d100-cd" id="d100Cd" data-at="' + ts + '" role="timer" aria-label="' + esc(tr('d100_cd_label')) + '">' +
+      parts.map(function (n, i) {
+        return '<span class="d100-cd-box"><b class="d100-cd-n">' + (i ? pad2(n) : n) + '</b>' +
+          '<span class="d100-cd-u">' + esc(tr(CD_UNITS[i])) + '</span></span>';
+      }).join('') + '</div>';
+  }
+  // Updates the numbers in place each second (no full re-render). At zero the
+  // page is drawn again, which moves on to the next week and loads the chart.
+  function tickCountdown() {
+    var el = S.active && document.getElementById('d100Cd');
+    if (!el) return;
+    var at = +el.getAttribute('data-at');
+    if (Date.now() >= at) {
+      render(); loadChart(true, latestClosedWeek());
+      setTimeout(checkReady, 5000);
+      return;
+    }
+    var nums = el.querySelectorAll('.d100-cd-n');
+    cdParts(at).forEach(function (n, i) { if (nums[i]) nums[i].textContent = i ? pad2(n) : n; });
+  }
+
+  // The "Notify me" button, and a line saying how the user will be told.
+  function notifyHTML() {
+    var on = notifyOn();
+    var h = '<div class="d100-notify"><button type="button" class="dc-btn dc-btn-sm ' + (on ? 'dc-btn-normal is-on' : 'dc-btn-main') +
+      ' d100-notify-btn" aria-pressed="' + on + '"' + (on ? ' title="' + esc(tr('d100_notify_stop')) + '"' : '') +
+      ' onclick="dcDank100.toggleNotify()">' + (on ? '✓ ' : '🔔 ') + esc(tr(on ? 'd100_notify_on' : 'd100_notify_btn')) + '</button>';
+    if (on) {
+      var pop = canPopUp() && Notification.permission === 'granted';
+      var list = !!signedInUid();
+      h += '<span class="d100-notify-hint">' + esc(tr(pop && list ? 'd100_nh_both' : pop ? 'd100_nh_pop' : list ? 'd100_nh_list' : 'd100_nh_none')) + '</span>';
+    }
+    return h + '</div>';
+  }
+
+  function toggleNotify() {
+    if (notifyOn()) { lsSet(NOTIFY_KEY, null); render(); return; }
+    lsSet(NOTIFY_KEY, '1');
+    // No telling about a chart that is already out: start from the newest one
+    lsSet(TOLD_KEY, latestClosedWeek());
+    render();
+    // Ask the browser for pop-ups (only ever asked from this click)
+    if (canPopUp() && Notification.permission === 'default') {
+      try {
+        var p = Notification.requestPermission(function () { render(); });
+        if (p && p.then) p.then(function () { render(); }, function () {});
+      } catch (e) {}
+    }
+  }
+
+  // Is a chart out that the user wasn't told about yet? Asks the server
+  // (which counts the week on that first visit if nobody has yet).
+  var _checking = false;
+  function checkReady() {
+    if (!notifyOn() || _checking) return;
+    var w = latestClosedWeek();
+    var told = lsGet(TOLD_KEY);
+    if (told && told >= w) return;
+    if (!told) { lsSet(TOLD_KEY, w); return; }
+    _checking = true;
+    fetch(API + '/dank100/chart?week=' + encodeURIComponent(w), { cache: 'no-store' })
+      .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
+      .then(function (d) {
+        _checking = false;
+        // still building / counting: the next minute's check tries again
+        if (!d || (d.status !== 'done' && d.status !== 'small')) return;
+        if ((lsGet(TOLD_KEY) || '') >= w) return;   // another tab got there first
+        lsSet(TOLD_KEY, w);
+        tellReady(w);
+      }, function () { _checking = false; });
+  }
+
+  function tellReady(w) {
+    var range = rangeLabel(weekBounds(w));
+    if (typeof dcNotify === 'function') dcNotify({ kind: 'd100_ready', week: w, link: { tab: 'dank100' } });
+    if (canPopUp() && Notification.permission === 'granted') {
+      try {
+        var n = new Notification(tr('d100_ready_title'), {
+          body: tr('d100_ready_body', { range: range }), icon: 'apple-touch-icon.png', tag: 'd100-' + w
+        });
+        n.onclick = function () {
+          try { window.focus(); } catch (e) {}
+          if (typeof dcGoTab === 'function') dcGoTab('dank100');
+          n.close();
+        };
+      } catch (e) {}   // phones need a service worker for this; the Notifications line still lands
+    }
+  }
+
   function viewHTML() {
     var u = signedInUid();
     var weeks = openWeeks();
@@ -456,9 +566,11 @@
 
     // When the next one is out
     var closed = weekBounds(weeks[weeks.length - 1]);
-    h += '<section class="d100-soon"><div class="d100-soon-n" aria-hidden="true">100</div><div>' +
+    h += '<section class="d100-soon"><div class="d100-soon-n" aria-hidden="true">100</div><div class="d100-soon-main">' +
       '<div class="d100-soon-title">' + esc(tr('d100_soon_title')) + '</div>' +
       '<p>' + esc(tr('d100_soon', { range: rangeLabel(closed), day: fmtDay(chartDay(closed), { weekday: 'long', month: 'long', day: 'numeric' }) })) + '</p>' +
+      // Live countdown to when the chart is counted, plus the "Notify me" switch
+      countdownHTML(+chartDay(closed)) + notifyHTML() +
       '</div></section>';
 
     // Your entry: last week first while it can still be sent, then this week
@@ -1817,6 +1929,11 @@
     document.addEventListener('DOMContentLoaded', function () {
       syncSwitch();
       if (typeof firebase !== 'undefined' && firebase.apps) hookAuth();
+      // Countdown ticks every second; "Notify me" checks for a new chart a
+      // little after opening (sign-in has landed by then) and every minute
+      setInterval(tickCountdown, 1000);
+      setTimeout(checkReady, 6000);
+      setInterval(checkReady, 60000);
     });
   }
 
@@ -1845,6 +1962,10 @@
     autoSend: autoSend,
     setAutoSend: setAutoSend,
     openSettings: openSettings,
+    toggleNotify: toggleNotify,
+    checkReady: checkReady,
+    // "Oct 30 – Nov 5" for a week id (the Notifications line uses it)
+    weekRange: function (w) { var b = weekBounds(w); return b ? rangeLabel(b) : w; },
     MAX_ROWS: MAX_ROWS,
     weekIdOf: weekIdOf,
     weekBounds: weekBounds,

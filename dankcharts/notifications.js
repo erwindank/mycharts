@@ -52,7 +52,13 @@ const NT_KINDS = {
   // A month has ended: its Soundtrack is ready to look back on (p.key 'YYYY-MM')
   st_month: { emoji: '🎬', cat: 'soundtrack', text: p => t('nt_st_month', { month: crPeriodTitle('month', p.key) }) },
   // A year has ended: its Soundtrack is ready (p.key 'YYYY')
+  // A new Dank 100 chart is out and the user asked to be told (dank100.js "Notify me", p.week)
+  d100_ready: { emoji: '💯', cat: 'd100', text: p => t('nt_d100_ready', { range: window.dcDank100 ? window.dcDank100.weekRange(p.week) : p.week }) },
   st_year: { emoji: '🎉', cat: 'soundtrack', text: p => t('nt_st_year', { year: p.key }) },
+  // Today's Game of the day is ready to play (stats.js _sxTellDaily, p.day
+  // 'YYYY-MM-DD', p.game = which game). Only the newest one is kept, and it
+  // turns read once that day's game is played (ntGameOfDayDone).
+  gm_daily: { emoji: '🎮', cat: 'games', text: p => t('nt_gm_daily', { game: t('sx_game_' + p.game) }) },
   // A song or album reached Gold / Platinum / Diamond (p.tier, p.mult)
   // The emoji follows the tier, same as the Certifications wall: 📀 gold, 💿 platinum, 💎 diamond
   // Single / EP / album is decided when the list is drawn, from the release's
@@ -458,6 +464,25 @@ function ntFollow(link) {
   if (currentPeriod !== link.tab) dcGoTab(link.tab);
 }
 
+/* Game of the day (2026-11-15): one line a day saying today's game is ready.
+   Posted from stats.js (_sxTellDaily) the first time the site sees the
+   day's game still waiting. Yesterday's line is swapped out for today's so
+   a daily player's list doesn't fill up with them, and two devices open on
+   the same day don't post it twice (the check runs in the transaction). */
+function ntGameOfDay(day, game) {
+  if (typeof dcIsSignedIn !== 'function' || !dcIsSignedIn()) return;
+  const at = _ntLastAt = Math.max(Date.now(), _ntLastAt + 1);
+  const item = { id: at.toString(36) + Math.random().toString(36).slice(2, 7),
+    kind: 'gm_daily', at, read: false, p: { day, game }, link: { tab: 'games' } };
+  _ntChange(list => list.some(x => x.kind === 'gm_daily' && x.p && x.p.day === day) ? list
+    : [item].concat(list.filter(x => x.kind !== 'gm_daily')));
+}
+// The day's game was played: its line no longer needs to count as unread
+function ntGameOfDayDone() {
+  if (!ntItems.some(x => x.kind === 'gm_daily' && !x.read)) return;
+  _ntChange(list => list.map(x => x.kind === 'gm_daily' && !x.read ? Object.assign({}, x, { read: true }) : x));
+}
+
 // ─── Watchers: things worth telling the user about ─────────────────────────
 /* Run after every data load and refresh (app.js finalizeLoad /
    refreshAfterPoll), after sign-in, and every few minutes for the Board.
@@ -487,6 +512,8 @@ async function ntWatch() {
       _ntRecordsCheck();   // reads Records now if built, else builds it later in idle time
       // Smart playlists with their bell on (smartplaylists.js)
       if (typeof spNotifyWatch === 'function') await spNotifyWatch();
+      // Today's Game of the day (stats.js): told once a day, also after midnight
+      if (typeof sxSyncGamesDot === 'function') sxSyncGamesDot();
     }
     await _ntWatchBoard();
   } catch (e) {

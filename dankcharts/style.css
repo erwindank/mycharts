@@ -46413,6 +46413,33 @@ th.cr-th { width: 92px; }              /* = .chart-table .cr-cell */
 }
 .d100-soon-title { font-weight: 600; color: var(--text); }
 .d100-soon p { margin: 2px 0 0; font-size: var(--fs-sm); color: var(--text2); }
+.d100-soon-main { min-width: 0; flex: 1; }
+
+/* Live countdown to the next chart: four small boxes (days / hours / min / sec) */
+.d100-cd { display: flex; gap: 8px; margin-top: var(--sp-3); flex-wrap: wrap; }
+.d100-cd-box {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  min-width: 58px; padding: 8px 6px;
+  border-radius: var(--r-sm);
+  border: 1px solid color-mix(in srgb, var(--accent) 25%, var(--border));
+  background: color-mix(in srgb, var(--bg) 60%, var(--bg2));
+}
+.d100-cd-n {
+  font-family: var(--font-display); font-weight: 700; font-size: 24px; line-height: 1.1;
+  color: var(--text); font-variant-numeric: tabular-nums;
+}
+.d100-cd-u { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text3); }
+
+/* "Notify me" button + how the user will be told */
+.d100-notify { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: var(--sp-3); }
+.d100-notify-hint { font-size: var(--fs-sm); color: var(--text3); }
+.d100-notify-btn.is-on { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); }
+@media (max-width: 480px) {
+  .d100-soon { align-items: flex-start; }
+  .d100-soon-n { font-size: 32px; }
+  .d100-cd-box { min-width: 0; flex: 1; }
+  .d100-cd-n { font-size: 20px; }
+}
 
 /* Entry cards: last week (while it can still be sent) and this week */
 .d100-entries { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
@@ -48553,6 +48580,7 @@ html.lsx-open { overflow: hidden; }
 @media (hover: none) { .nt-dismiss { opacity: 0.7; } }
 /* A one-time note from the site (notifications.js kind 'notice') */
 .nt-tone-news { --nt-tone: var(--accent); }
+.nt-tone-games { --nt-tone: var(--teal); }   /* Game of the day (gm_daily) */
 /* Record notifications covering several lists open into a breakdown
    (notifications.js _ntListHtml). The ✕ stays level with the first line
    instead of sliding to the middle of a tall, opened item. */
@@ -49356,6 +49384,21 @@ body.yellow-light .dc-gtile, body.pink-light .dc-gtile, body.green-light .dc-gti
 }
 /* On the phone bar it sits by the dots icon, not at the button's far edge */
 #bottomTabs .bt-more-btn.has-games-dot::after { top: 8px; right: calc(50% - 16px); }
+
+/* Game of the day reminders (2026-11-15, stats.js sxToggleRemind): two small
+   on/off switches under the Game of the day card — the dot in More, and a
+   daily line in Notifications. */
+.sx-games-remind { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: calc(var(--sp-3) * -1) 0 var(--sp-4); font-size: var(--fs-sm); color: var(--text3); }
+.sx-games-remind-k { margin-right: 2px; }
+.sx-remind-btn { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--border); background: transparent; color: var(--text2); font: inherit; font-size: var(--fs-sm); cursor: pointer; }
+.sx-remind-btn:hover { border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); color: var(--text); }
+.sx-remind-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.sx-remind-btn .sx-remind-sw { width: 26px; height: 14px; border-radius: 999px; background: color-mix(in srgb, var(--text) 18%, transparent); position: relative; flex: none; transition: background .15s; }
+.sx-remind-btn .sx-remind-sw::after { content: ''; position: absolute; top: 2px; left: 2px; width: 10px; height: 10px; border-radius: 50%; background: var(--text2); transition: transform .15s, background .15s; }
+.sx-remind-btn.is-on { color: var(--text); }
+.sx-remind-btn.is-on .sx-remind-sw { background: var(--accent); }
+.sx-remind-btn.is-on .sx-remind-sw::after { transform: translateX(12px); background: var(--on-accent); }
+.sx-games-remind-hint { flex-basis: 100%; font-size: var(--fs-xs); }
 
 /* Records menu + phone picker: the picture a touch larger than the old line icon */
 .records-nav-btn > .dc-gico,

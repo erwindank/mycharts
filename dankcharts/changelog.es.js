@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "A countdown to the next Dank 100":
+    ["Una cuenta atrás para la próxima Dank 100",
+     "La página de The Dank 100 ahora cuenta los días, horas, minutos y segundos que faltan para la próxima lista. Pulsa Avísame y te avisaremos cuando esté lista: un aviso mientras dankcharts esté abierto, y una línea en tus Notificaciones si has iniciado sesión."],
   "Games has its own page":
     ["Los juegos tienen su propia página",
      "Los juegos salen de Estadísticas y pasan al menú Más. Los doce juegos, el Juego del día, tu racha y tus mejores marcas siguen tal como los dejaste. Un pequeño punto en Más te avisa cuando el Juego del día de hoy aún te espera."],
