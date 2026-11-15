@@ -3646,7 +3646,7 @@ function sxRenderGames() {
     `<div class="section-rule"></div></div>`;
   box.innerHTML = pageHead + `<div class="sx-games-head"><div><h3 class="sx-games-title">${esc(t('sx_games_title'))}</h3>` +
     `<p class="sx-games-intro">${esc(t('sx_games_intro'))}</p></div>${tally}</div>` +
-    daily + `<div class="sx-games-grid">${cards}</div>`;
+    daily + _sxRemindHtml() + `<div class="sx-games-grid">${cards}</div>`;
   arts.forEach(([el, s]) => _sxSongArt(document.getElementById(el), s));
   sxSyncGamesDot();
 }
@@ -3656,12 +3656,69 @@ function sxRenderGames() {
    It used to sit in front of you on the Stats tab; in More it would be easy
    to forget. Only shown once plays are loaded (no plays, no puzzle), and
    rechecked on every page change (app.js, dcSyncMainTabs) and when the tab
-   comes back into view, so it also turns on again after midnight. */
+   comes back into view, so it also turns on again after midnight.
+   2026-11-15: it can be switched off on the Games page (dc_sxGamesDot = '0'),
+   the Games row says what the dot means when hovered, and the same check
+   posts the daily "Game of the day is ready" notification (_sxTellDaily). */
+const SX_DOT_KEY = 'dc_sxGamesDot';         // '0' = no dot in More
+const SX_NOTIFY_KEY = 'dc_sxGamesNotify';   // '0' = no daily notification
+const SX_TOLD_KEY = 'dc_sxGamesTold';       // the day last told about (this device)
+// Both reminders are on unless switched off
+function _sxRemindOn(key) { try { return localStorage.getItem(key) !== '0'; } catch (e) { return true; } }
 function sxSyncGamesDot() {
   const waiting = typeof allPlays !== 'undefined' && allPlays.length > 0 &&
     _sxDaily.date !== _sxDailyToday().key;
-  document.querySelectorAll('.tb-more-item[data-go="games"]').forEach(b => b.classList.toggle('has-dot', waiting));
-  document.querySelectorAll('#topbarNav .tb-more-btn, #bottomTabs .bt-more-btn').forEach(b => b.classList.toggle('has-games-dot', waiting));
+  const dot = waiting && _sxRemindOn(SX_DOT_KEY);
+  document.querySelectorAll('.tb-more-item[data-go="games"]').forEach(b => {
+    b.classList.toggle('has-dot', dot);
+    // Hovering the row says what the dot is for
+    if (dot) b.title = t('sx_daily_dot_tip'); else b.removeAttribute('title');
+  });
+  document.querySelectorAll('#topbarNav .tb-more-btn, #bottomTabs .bt-more-btn').forEach(b => b.classList.toggle('has-games-dot', dot));
+  if (waiting) _sxTellDaily();
+}
+
+/* The daily notification: the first time each day the site sees the day's
+   game still waiting, one line in the Notifications panel (notifications.js
+   ntGameOfDay), which opens the Games page. Signed in only (that's where the
+   panel lives) and only for the user's own library, not the demo — the same
+   rule as the other notifications. Works with Last.fm, Sheets and CSV: it
+   only needs the loaded plays. */
+function _sxTellDaily() {
+  if (!_sxRemindOn(SX_NOTIFY_KEY) || typeof ntGameOfDay !== 'function') return;
+  if (typeof _apAllowed !== 'function' || !_apAllowed()) return;
+  const today = _sxDailyToday();
+  let told = null;
+  try { told = localStorage.getItem(SX_TOLD_KEY); } catch (e) { }
+  if (told === today.key) return;
+  try { localStorage.setItem(SX_TOLD_KEY, today.key); } catch (e) { }
+  ntGameOfDay(today.key, today.id);
+}
+
+/* The two switches under the Game of the day card: the dot in More and the
+   daily notification. Kept on this device. */
+function _sxRemindHtml() {
+  const sw = (which, key, label) => {
+    const on = _sxRemindOn(key);
+    return `<button type="button" class="sx-remind-btn${on ? ' is-on' : ''}" role="switch" aria-checked="${on}" ` +
+      `onclick="sxToggleRemind('${which}')"><span class="sx-remind-sw" aria-hidden="true"></span>${esc(t(label))}</button>`;
+  };
+  // Signed out there's no Notifications panel to post to: say so
+  const signedIn = typeof dcIsSignedIn === 'function' && dcIsSignedIn();
+  const hint = _sxRemindOn(SX_NOTIFY_KEY) && !signedIn
+    ? `<span class="sx-games-remind-hint">${esc(t('sx_remind_signin'))}</span>` : '';
+  return `<div class="sx-games-remind"><span class="sx-games-remind-k">🔔 ${esc(t('sx_remind_k'))}</span>` +
+    sw('dot', SX_DOT_KEY, 'sx_remind_dot') + sw('notify', SX_NOTIFY_KEY, 'sx_remind_notify') + hint + `</div>`;
+}
+function sxToggleRemind(which) {
+  const key = which === 'dot' ? SX_DOT_KEY : SX_NOTIFY_KEY;
+  const on = !_sxRemindOn(key);
+  try { if (on) localStorage.removeItem(key); else localStorage.setItem(key, '0'); } catch (e) { }
+  // Turning the notification back on today doesn't post one right away for
+  // a day already told about; it starts again tomorrow (or now if not told)
+  const box = document.querySelector('.sx-games-remind');
+  if (box) box.outerHTML = _sxRemindHtml();
+  sxSyncGamesDot();
 }
 document.addEventListener('visibilitychange', () => { if (!document.hidden) sxSyncGamesDot(); });
 
@@ -3776,6 +3833,9 @@ function _sxGameOver(score, scoreTxt, extraHtml) {
       const streak = _sxDaily.last === _sxDayKey(y) ? (_sxDaily.streak || 0) + 1 : 1;
       _sxDaily = { date: today, id, scoreTxt, last: today, streak };
       try { localStorage.setItem('dc_sxGameDaily', JSON.stringify(_sxDaily)); } catch (e) { }
+      // Played: the dot goes and today's notification counts as read
+      sxSyncGamesDot();
+      if (typeof ntGameOfDayDone === 'function') ntGameOfDayDone();
     }
     dailyLine = `<div class="sx-game-daily-line">🔥 ${esc(t('sx_daily_over').replace('{n}', _sxDailyStreak()))}</div>`;
   }
