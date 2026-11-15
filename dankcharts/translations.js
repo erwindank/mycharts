@@ -5954,6 +5954,10 @@ const TRANSLATIONS = {
     np_first_time: '✦ First time',
     np_nth_play: '{{n}} play',        // {{n}} is a pre-formatted ordinal, e.g. "43rd"
     np_by_artist: '{{n}} by this artist',
+    // Daily streak chip for the song on air ({{n}} = day number of the streak)
+    np_streak_day: '🔥 Day {{n}} of a daily streak',
+    np_streak_new: '🔥 Starts a new daily streak',
+    np_streak_saved: '✓ Day {{n}} · already saved today',
     np_open_album: 'Open album',
     yt_scrobble_no_dest: 'Not saved — nowhere to scrobble to.',
     yt_scrobble_connect: 'Connect Last.fm →',

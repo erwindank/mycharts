@@ -35712,6 +35712,17 @@ button.ns-art {
   border-color: color-mix(in srgb, var(--gold1) 55%, transparent);
 }
 
+/* Daily streak of the song on air: amber while it counts, quiet once today is saved */
+.ns-chip-streak {
+  color: var(--amber);
+  border-color: color-mix(in srgb, var(--amber) 55%, transparent);
+}
+
+.ns-chip-streak.is-saved {
+  color: var(--text2);
+  border-color: var(--border2);
+}
+
 .ns-chip-album {
   color: var(--text);
   cursor: pointer;

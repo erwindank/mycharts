@@ -7643,11 +7643,14 @@ function _npHistory(track) {
   const wantAk   = hasAlbum ? albumKeyOf(track) : null;
   const albNorm  = hasAlbum ? norm(track.album) : null;
   let exactAk = null, looseAk = null;
+  // Every day (in the chart time zone) this song was played on, for the
+  // daily-streak chip — see _npDayStreak().
+  const songDays = new Set();
   for (const p of allPlays) {
     // Song identity mirrors songKey() (title + the raw artist string) so this chip
     // agrees with the Songs chart entry for the same play. Counted independently of
     // the artist match below — the two charts key on deliberately different things.
-    if (norm(p.title) === tKey && norm(p.artist) === aRaw) song++;
+    if (norm(p.title) === tKey && norm(p.artist) === aRaw) { song++; songDays.add(dayStrOf(p)); }
     const pArtists = (p.artists && p.artists.length) ? p.artists : [p.artist || ''];
     let artistHit = false;
     for (const a of pArtists) {
@@ -7659,7 +7662,30 @@ function _npHistory(track) {
       else if (!looseAk && artistHit && norm(p.album) === albNorm) looseAk = ak;
     }
   }
-  return { song, artist, albumKey: exactAk || looseAk };
+  return { song, artist, albumKey: exactAk || looseAk, songDays };
+}
+
+// The song's daily streak as this live play would leave it — days in a row
+// with at least one play of this song, counted in the chart time zone.
+//   'saved'    already played today: the streak is safe, this play adds nothing.
+//              n = the streak's length including today.
+//   'continue' last played yesterday: this play makes day n of the streak.
+//   'new'      played before, but not yesterday: this play starts a new one.
+// null when the song has never been played (the FIRST TIME chip covers that).
+function _npDayStreak(songDays) {
+  if (!songDays || !songDays.size) return null;
+  const today = tzNow();
+  const dayBefore = (d, k) => new Date(d.getFullYear(), d.getMonth(), d.getDate() - k);
+  // Length of the run of played days ending on `start` (0 if start wasn't played)
+  const runFrom = start => {
+    let n = 0;
+    while (songDays.has(localDateStr(dayBefore(start, n)))) n++;
+    return n;
+  };
+  if (songDays.has(localDateStr(today))) return { kind: 'saved', n: runFrom(today) };
+  const yesterday = dayBefore(today, 1);
+  if (songDays.has(localDateStr(yesterday))) return { kind: 'continue', n: runFrom(yesterday) + 1 };
+  return { kind: 'new', n: 1 };
 }
 
 function _npOrdinal(n) {
@@ -7728,6 +7754,14 @@ function renderNowPlaying(track, opts) {
     : stats.song > 0
       ? `<span class="ns-chip ns-chip-count">${esc(t('np_nth_play', { n: _npOrdinal(stats.song + 1) }))}</span>`
       : `<span class="ns-chip ns-chip-first">${esc(t('np_first_time'))}</span>`;
+  // Daily streak for this song: which day of a run this play makes, whether it
+  // starts a new run, or that today is already covered (see _npDayStreak).
+  const ds = stats ? _npDayStreak(stats.songDays) : null;
+  const streakChip = !ds ? ''
+    : `<span class="ns-chip ns-chip-streak is-${ds.kind}">${esc(
+        ds.kind === 'saved'    ? t('np_streak_saved', { n: ds.n.toLocaleString() })
+      : ds.kind === 'continue' ? t('np_streak_day',   { n: ds.n.toLocaleString() })
+      :                          t('np_streak_new'))}</span>`;
   const artistChip = (stats && stats.artist > 0)
     ? `<span class="ns-chip">${esc(t('np_by_artist', { n: stats.artist.toLocaleString() }))}</span>`
     : '';
@@ -7761,7 +7795,7 @@ function renderNowPlaying(track, opts) {
         <div class="ns-title">${esc(track.title)}</div>
         <div class="ns-artist">${esc(track.artist)}${hasAlbum ? ` · <em>${esc(track.album)}</em>` : ''}</div>
       </div>
-      <div class="ns-chips">${countChip}${artistChip}${albumChip}</div>
+      <div class="ns-chips">${countChip}${streakChip}${artistChip}${albumChip}</div>
     </div>
   `;
   el.style.display = '';
