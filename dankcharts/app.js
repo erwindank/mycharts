@@ -25151,9 +25151,13 @@ function renderOffChart(type, plays, periodStats, buPool, lowestChartCount) {
       line3 = `<span class="atc-muted"><span class="atc-why${lp ? '' : ' is-only'}">${esc(why)}${lp ? ' <span class="atc-dot">·</span> ' : ''}</span>${lp ? esc(buT('off_last_played', { date: shortDate(lp) })) : ''}</span>`;
     }
 
-    // Exit type: one label for how it left; the first rule that matches wins
+    // Exit type: one label for how it left; the first rule that matches wins.
+    // "Long run ended" needs the run that just ended to be 10+ in a row — a
+    // chart regular (10+ in all) that only came back for a week or two gets
+    // "Short comeback" instead, so the tag doesn't oversell a brief return.
     const exit = rank <= 3 ? ['off_exit_top3', '']
-      : wks >= 10 ? ['off_exit_long', '']
+      : streakWks >= 10 ? ['off_exit_long', '']
+      : (wks >= 10 && streakWks <= 2) ? ['off_exit_comeback', ' is-soft']
       : buEntry ? ['off_exit_slipped', ' is-soft']
       : wks === 1 ? ['off_exit_oneweek', ' is-soft']
       : ['off_exit_dropped', ''];
