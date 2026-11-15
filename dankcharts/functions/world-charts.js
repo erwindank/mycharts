@@ -56,18 +56,20 @@ const DAY = 86400;
 //   minPast: the same for a past week (old charts could be shorter)
 //   first:  the oldest week the source has (Billboard only), for the week picker
 const CHARTS = {
-  'hot-100': {
-    title: 'Billboard Hot 100', source: 'billboard', kind: 'songs', period: 'week',
-    path: 'hot-100', ttl: 6 * HOUR, min: 90, minPast: 90, first: '1958-08-04',
+  // Order here = order of the menu buttons. Global 200 and Hot 100 swapped
+  // places 2026-11-14 (Global 200 first, Hot 100 third).
+  // Added 2026-11-09. Same page layout as the Hot 100; started 2020-09-19.
+  'billboard-global-200': {
+    title: 'Billboard Global 200', source: 'billboard', kind: 'songs', period: 'week',
+    path: 'billboard-global-200', ttl: 6 * HOUR, min: 180, minPast: 180, first: '2020-09-19',
   },
   'billboard-200': {
     title: 'Billboard 200', source: 'billboard', kind: 'albums', period: 'week',
     path: 'billboard-200', ttl: 6 * HOUR, min: 180, minPast: 100, first: '1963-08-17',
   },
-  // Added 2026-11-09. Same page layout as the Hot 100; started 2020-09-19.
-  'billboard-global-200': {
-    title: 'Billboard Global 200', source: 'billboard', kind: 'songs', period: 'week',
-    path: 'billboard-global-200', ttl: 6 * HOUR, min: 180, minPast: 180, first: '2020-09-19',
+  'hot-100': {
+    title: 'Billboard Hot 100', source: 'billboard', kind: 'songs', period: 'week',
+    path: 'hot-100', ttl: 6 * HOUR, min: 90, minPast: 90, first: '1958-08-04',
   },
   'spotify-global-daily': {
     title: 'Spotify Global Daily', source: 'kworb', kind: 'songs', period: 'day',

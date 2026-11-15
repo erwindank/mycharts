@@ -42,9 +42,10 @@
   // does), so the buttons are there straight away. Keep in step with CHARTS
   // in functions/world-charts.js.
   var FALLBACK_MENU = [
-    { id: 'hot-100',               source: 'billboard', kind: 'songs',  period: 'week', pastWeeks: true, first: '1958-08-04' },
-    { id: 'billboard-200',         source: 'billboard', kind: 'albums', period: 'week', pastWeeks: true, first: '1963-08-17' },
+    // Global 200 first, Hot 100 third (swapped 2026-11-14, user's wish)
     { id: 'billboard-global-200',  source: 'billboard', kind: 'songs',  period: 'week', pastWeeks: true, first: '2020-09-19' },
+    { id: 'billboard-200',         source: 'billboard', kind: 'albums', period: 'week', pastWeeks: true, first: '1963-08-17' },
+    { id: 'hot-100',               source: 'billboard', kind: 'songs',  period: 'week', pastWeeks: true, first: '1958-08-04' },
     { id: 'spotify-global-daily',  source: 'kworb',     kind: 'songs',  period: 'day'  },
     { id: 'spotify-global-weekly', source: 'kworb',     kind: 'songs',  period: 'week' },
     { id: 'apple-global-daily',    source: 'kworb',     kind: 'songs',  period: 'day'  },
@@ -141,13 +142,17 @@
     return { from: isoAdd(d.date, -15), to: isoAdd(d.date, -9) };
   }
 
+  // The chart you looked at last comes back. If you have never opened the tab
+  // (nothing saved), it starts on the Billboard Global 200 (2026-11-14).
+  var START_CHART = 'billboard-global-200';
   function pickStart() {
     var saved = lsGet(LS_CHART);
     // 2026-11-09: the YouTube chart changed from Most Viewed to Trending and
     // then to YouTube's own Top Music Videos
     if (saved === 'youtube-top' || saved === 'youtube-trending') saved = 'youtube-music-videos';
     var ids = S.menu.map(function (c) { return c.id; });
-    return ids.indexOf(saved) >= 0 ? saved : ids[0];
+    if (ids.indexOf(saved) >= 0) return saved;
+    return ids.indexOf(START_CHART) >= 0 ? START_CHART : ids[0];
   }
 
   // ── Loading ──
