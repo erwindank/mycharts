@@ -822,6 +822,8 @@ const TRANSLATIONS = {
     d100_cd_hours: "hours",
     d100_cd_mins: "min",
     d100_cd_secs: "sec",
+    d100_cd_to_top: "Show at top",
+    d100_cd_to_bottom: "Show at bottom",
     d100_notify_btn: "Notify me",
     d100_notify_on: "We'll let you know",
     d100_notify_stop: "Stop notifying me",
@@ -837,6 +839,9 @@ const TRANSLATIONS = {
     d100_week_last: "Last week",
     d100_week_of: "Week of {{range}}",
     d100_closes: "Last chance: you can send it until {{day}} night (UTC).",
+    // Live "time left to send" in the entry cards (dank100.js deadlineHTML)
+    d100_left_last: "Last chance: {{time}} left to send, until {{when}} your time.",
+    d100_left: "{{time}} left to send, until {{when}} your time.",
     d100_status_sent: "Sent {{when}}",
     d100_status_none: "Not sent yet",
     d100_no_plays: "No plays in this week yet.",

@@ -382,7 +382,8 @@
       h += '<span class="d100-status">' + esc(tr('d100_status_none')) + '</span>';
     }
     h += '</header>';
-    if (isLast) h += '<p class="d100-entry-note">' + esc(tr('d100_closes', { day: fmtDay(+b.closes - 1, { weekday: 'long' }) })) + '</p>';
+    // How long is left to send this week (was "until Sunday night (UTC)")
+    h += deadlineHTML(b, isLast);
 
     if (!e.plays) {
       h += '<p class="d100-empty">' + esc(tr('d100_no_plays')) + '</p>';
@@ -442,6 +443,16 @@
   var TOLD_KEY = 'dc_d100_told';
   var CD_UNITS = ['d100_cd_days', 'd100_cd_hours', 'd100_cd_mins', 'd100_cd_secs'];
   function notifyOn() { return lsGet(NOTIFY_KEY) === '1'; }
+  // Where the next-chart box sits: 'top' of the page, or under the chart (default)
+  var CD_POS_KEY = 'dc_d100_cd_pos';
+  function cdAtTop() { return lsGet(CD_POS_KEY) === 'top'; }
+  function moveCountdown() {
+    lsSet(CD_POS_KEY, cdAtTop() ? null : 'top');
+    render();
+    // keep the box in view after it jumps
+    var el = document.querySelector('.d100-soon');
+    if (el && el.scrollIntoView) el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }
   function canPopUp() { return typeof Notification !== 'undefined'; }
 
   // [days, hours, minutes, seconds] left until `ts` (never below zero)
@@ -460,7 +471,15 @@
   // Updates the numbers in place each second (no full re-render). At zero the
   // page is drawn again, which moves on to the next week and loads the chart.
   function tickCountdown() {
-    var el = S.active && document.getElementById('d100Cd');
+    if (!S.active) return;
+    // "Time left to send" in the entry cards; one running out redraws them
+    var lefts = document.querySelectorAll('.d100-left[data-at]');
+    for (var i = 0; i < lefts.length; i++) {
+      var end = +lefts[i].getAttribute('data-at');
+      if (Date.now() >= end) { render(); return; }
+      lefts[i].textContent = fmtLeft(end);
+    }
+    var el = document.getElementById('d100Cd');
     if (!el) return;
     var at = +el.getAttribute('data-at');
     if (Date.now() >= at) {
@@ -470,6 +489,24 @@
     }
     var nums = el.querySelectorAll('.d100-cd-n');
     cdParts(at).forEach(function (n, i) { if (nums[i]) nums[i].textContent = i ? pad2(n) : n; });
+  }
+
+  // Time left before sending a week closes: "2d 05h 12m" with days left,
+  // then "7h 43m 12s" on the last day
+  function fmtLeft(ts) {
+    var p = cdParts(ts);
+    return p[0] ? p[0] + 'd ' + pad2(p[1]) + 'h ' + pad2(p[2]) + 'm'
+      : p[1] + 'h ' + pad2(p[2]) + 'm ' + pad2(p[3]) + 's';
+  }
+  // The deadline line in an entry card: a live "time left" plus the closing
+  // moment in the user's own clock, so nobody has to work out UTC.
+  function deadlineHTML(b, isLast) {
+    var at = +b.closes;
+    var when = new Date(at).toLocaleString(locale(), { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+    var mark = '\u0001';
+    return '<p class="d100-entry-note d100-deadline' + (isLast ? ' is-last' : '') + '">⏳ ' +
+      esc(tr(isLast ? 'd100_left_last' : 'd100_left', { time: mark, when: when }))
+        .replace(mark, '<b class="d100-left" data-at="' + at + '">' + fmtLeft(at) + '</b>') + '</p>';
   }
 
   // The "Notify me" button, and a line saying how the user will be told.
@@ -561,17 +598,27 @@
       h += '<div class="bd-signin d100-signin"><span>' + esc(tr('d100_demo')) + '</span></div>';
     }
 
-    // The latest finished chart (step 4)
-    h += chartHTML();
-
-    // When the next one is out
+    // When the next one is out. The user picks where this box sits: under
+    // the chart (default) or at the top of the page (dc_d100_cd_pos = 'top').
     var closed = weekBounds(weeks[weeks.length - 1]);
-    h += '<section class="d100-soon"><div class="d100-soon-n" aria-hidden="true">100</div><div class="d100-soon-main">' +
+    var atTop = cdAtTop();
+    var soon = '<section class="d100-soon' + (atTop ? ' is-top' : '') + '"><div class="d100-soon-n" aria-hidden="true">100</div><div class="d100-soon-main">' +
       '<div class="d100-soon-title">' + esc(tr('d100_soon_title')) + '</div>' +
       '<p>' + esc(tr('d100_soon', { range: rangeLabel(closed), day: fmtDay(chartDay(closed), { weekday: 'long', month: 'long', day: 'numeric' }) })) + '</p>' +
       // Live countdown to when the chart is counted, plus the "Notify me" switch
       countdownHTML(+chartDay(closed)) + notifyHTML() +
-      '</div></section>';
+      '</div>' +
+      // Move the box to the top of the page / back under the chart
+      '<button type="button" class="d100-soon-move" onclick="dcDank100.moveCountdown()" title="' +
+      esc(tr(atTop ? 'd100_cd_to_bottom' : 'd100_cd_to_top')) + '">' + (atTop ? '↓ ' : '↑ ') +
+      esc(tr(atTop ? 'd100_cd_to_bottom' : 'd100_cd_to_top')) + '</button></section>';
+
+    if (atTop) h += soon;
+
+    // The latest finished chart (step 4)
+    h += chartHTML();
+
+    if (!atTop) h += soon;
 
     // Your entry: last week first while it can still be sent, then this week
     h += '<h3 class="d100-h3">' + esc(tr('d100_entry_title')) + '</h3>';
@@ -1963,6 +2010,7 @@
     setAutoSend: setAutoSend,
     openSettings: openSettings,
     toggleNotify: toggleNotify,
+    moveCountdown: moveCountdown,
     checkReady: checkReady,
     // "Oct 30 – Nov 5" for a week id (the Notifications line uses it)
     weekRange: function (w) { var b = weekBounds(w); return b ? rangeLabel(b) : w; },

@@ -780,6 +780,8 @@ TRANSLATIONS['es'] = Object.assign({
     d100_cd_hours: "horas",
     d100_cd_mins: "min",
     d100_cd_secs: "seg",
+    d100_cd_to_top: "Mostrar arriba",
+    d100_cd_to_bottom: "Mostrar abajo",
     d100_notify_btn: "Avísame",
     d100_notify_on: "Te avisaremos",
     d100_notify_stop: "Dejar de avisarme",
@@ -795,6 +797,9 @@ TRANSLATIONS['es'] = Object.assign({
     d100_week_last: "La semana pasada",
     d100_week_of: "Semana del {{range}}",
     d100_closes: "Última oportunidad: puedes enviarla hasta el {{day}} por la noche (UTC).",
+    // Live "time left to send" in the entry cards (dank100.js deadlineHTML)
+    d100_left_last: "Última oportunidad: quedan {{time}} para enviarla, hasta el {{when}} en tu hora.",
+    d100_left: "Quedan {{time}} para enviarla, hasta el {{when}} en tu hora.",
     d100_status_sent: "Enviada {{when}}",
     d100_status_none: "Aún no enviada",
     d100_no_plays: "Aún no hay reproducciones esta semana.",

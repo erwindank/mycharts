@@ -46414,6 +46414,14 @@ th.cr-th { width: 92px; }              /* = .chart-table .cr-cell */
 .d100-soon-title { font-weight: 600; color: var(--text); }
 .d100-soon p { margin: 2px 0 0; font-size: var(--fs-sm); color: var(--text2); }
 .d100-soon-main { min-width: 0; flex: 1; }
+/* "Show at top" / "Show at bottom": a quiet text button in the box's corner */
+.d100-soon-move {
+  align-self: flex-start; flex: none;
+  background: none; border: 0; padding: 2px 4px; cursor: pointer;
+  font: inherit; font-size: var(--fs-sm); color: var(--text3);
+  border-radius: var(--r-sm);
+}
+.d100-soon-move:hover, .d100-soon-move:focus-visible { color: var(--accent); }
 
 /* Live countdown to the next chart: four small boxes (days / hours / min / sec) */
 .d100-cd { display: flex; gap: 8px; margin-top: var(--sp-3); flex-wrap: wrap; }
@@ -46435,8 +46443,10 @@ th.cr-th { width: 92px; }              /* = .chart-table .cr-cell */
 .d100-notify-hint { font-size: var(--fs-sm); color: var(--text3); }
 .d100-notify-btn.is-on { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); }
 @media (max-width: 480px) {
-  .d100-soon { align-items: flex-start; }
+  .d100-soon { align-items: flex-start; flex-wrap: wrap; row-gap: 0; }
   .d100-soon-n { font-size: 32px; }
+  /* the move button gets its own row on top, so the countdown keeps its width */
+  .d100-soon-move { order: -1; flex-basis: 100%; text-align: right; margin: -6px 0 2px; }
   .d100-cd-box { min-width: 0; flex: 1; }
   .d100-cd-n { font-size: 20px; }
 }
@@ -46455,6 +46465,9 @@ th.cr-th { width: 92px; }              /* = .chart-table .cr-cell */
 .d100-entry-kicker { font-size: var(--fs-xs); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text3); }
 .d100-entry-range { font-weight: 600; color: var(--text); }
 .d100-entry-note { margin: 0; font-size: var(--fs-sm); color: var(--accent); }
+/* Time left to send: accent on last week's card (last chance), quieter on this week's */
+.d100-deadline:not(.is-last) { color: var(--text2); }
+.d100-left { font-weight: 700; font-variant-numeric: tabular-nums; }
 .d100-status {
   flex: none; white-space: nowrap;
   padding: 3px 8px; border-radius: var(--r-sm);
