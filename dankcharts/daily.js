@@ -2334,10 +2334,12 @@ function dyPlainTitle(s) {
   return String(s || '').toLowerCase().replace(/\s*[\(\[][^\)\]]*[\)\]]/g, '').replace(/\s+-\s+.*$/, '').replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
 }
 
-// A play's genre, or undefined when its artist has not been looked up yet
+// A play's genre, or undefined when its artist has not been looked up yet.
+// Read through the shared genre lookup (app.js), so a song's genre here is
+// the one the Awards and Smart Playlists use: the sheet / CSV first, then
+// Gemini, Last.fm and MusicBrainz artist tags.
 function dyPlayGenre(p) {
-  let tags = p.genres;
-  if (!tags && typeof _awardsSongTags === 'function') tags = _awardsSongTags(p);
+  let tags = typeof _awardsSongTags === 'function' ? _awardsSongTags(p) : p.genres;
   if (tags === undefined) return undefined;
   for (const g of tags || []) if (!DY_TAG_JUNK.test(g)) return g;
   return null;   // looked up, nothing usable
@@ -2468,12 +2470,13 @@ function dyGenreHtml(h, ds, plays) {
     known++;
   }
   // Look up the day's top artists that have no tags yet, then redraw once
-  if (missing.size && !_dyTagFetching && typeof _awardsGetArtistGenre === 'function') {
+  // (through the shared lookup: Gemini, then Last.fm, then MusicBrainz)
+  if (missing.size && !_dyTagFetching && typeof genreLookupArtists === 'function') {
     const byPlays = {};
     for (const p of plays) { const a = _pa(p); if (missing.has(a)) byPlays[a] = (byPlays[a] || 0) + 1; }
     const want = Object.keys(byPlays).sort((a, b) => byPlays[b] - byPlays[a]).slice(0, 15);
     _dyTagFetching = true;
-    Promise.all(want.map(a => _awardsGetArtistGenre(a))).finally(() => {
+    genreLookupArtists(want).finally(() => {
       _dyTagFetching = false;
       dyRefreshPatterns(ds);
     });

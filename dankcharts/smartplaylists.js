@@ -283,7 +283,8 @@ function spDataHas(need) {
   if (need === 'genres') {
     const facts = spSongFacts();
     for (const s of facts.list) if (s.genres) return true;
-    // Last.fm users get genres from the tag lookups the Awards tab caches
+    // Last.fm users get genres from the shared lookup (MusicBrainz, Gemini, Last.fm)
+    if (typeof genreHaveLookedUp === 'function') return genreHaveLookedUp();
     return typeof _awardsGenreCache !== 'undefined' &&
       Object.values(_awardsGenreCache).some(v => Array.isArray(v) && v.length);
   }
@@ -297,14 +298,44 @@ function spDataHas(need) {
   return true;
 }
 
-// A song's genre tags: its own (sheet/CSV columns), else its artist's Last.fm
-// tags. null = nothing known.
+// A song's genre tags, read through the shared genre lookup (app.js) so they
+// match the Awards and the Daily tab: the sheet / CSV columns (the song's,
+// else its album's, else its artist's), then Gemini, Last.fm and MusicBrainz
+// artist tags. null = nothing known.
 function spGenresOf(s) {
+  if (typeof _awardsSongTags === 'function') {
+    const v = _awardsSongTags({ title: s.title, artist: s.artist, artists: s.artists, album: s.album });
+    return (Array.isArray(v) && v.length) ? v : null;
+  }
   if (s.genres) return s.genres;
   if (typeof _awardsGenreCache === 'undefined') return null;
-  const a = _spNorm(s.artists[0] || s.artist);
-  const v = _awardsGenreCache[a];
+  const v = _awardsGenreCache[_spNorm(s.artists[0] || s.artist)];
   return (Array.isArray(v) && v.length) ? v : null;
+}
+
+/* Genre rules need the artists looked up, and the Awards tab used to be the
+   only thing that did that — so a Last.fm library had no genres here until
+   the Awards ran. Now a list with a genre rule asks the shared lookup for its
+   most-played artists with no genre yet, in the background, and redraws the
+   builder's preview when they arrive. Each artist is only ever asked once. */
+const SP_GENRE_WARM_MAX = 150;
+let _spGenreWarming = false;
+function _spWarmGenres(facts) {
+  if (_spGenreWarming || typeof genreLookupArtists !== 'function' || typeof _awardsGenreCache === 'undefined') return;
+  const n = new Map();
+  for (const s of facts.list) {
+    if (spGenresOf(s)) continue;
+    const a = s.artists[0] || s.artist;
+    if (!a || _awardsGenreCache[_spNorm(a)] !== undefined) continue;
+    n.set(a, (n.get(a) || 0) + s.plays);
+  }
+  if (!n.size) return;
+  const want = [...n.keys()].sort((a, b) => n.get(b) - n.get(a)).slice(0, SP_GENRE_WARM_MAX);
+  _spGenreWarming = true;
+  genreLookupArtists(want).finally(() => {
+    _spGenreWarming = false;
+    if (_spB && typeof _spBPreview === 'function') _spBPreview();
+  });
 }
 
 // A song's rating (0–10), or null when it isn't rated. Your own score; a
@@ -548,7 +579,10 @@ function spRun(list, opts) {
 
   // Which "needs" this library can't meet, so those rules are skipped
   const skip = new Set();
-  for (const id of _spFieldsUsed(list)) {
+  const used = _spFieldsUsed(list);
+  // A genre rule (or sort) looks up the artists it's missing, in the background
+  if (used.has('genre') || (list.sort && list.sort.f === 'genre')) _spWarmGenres(facts);
+  for (const id of used) {
     const f = SP_FIELDS[id];
     if (f && f.needs && !skip.has(f.needs) && !spDataHas(f.needs)) skip.add(f.needs);
   }

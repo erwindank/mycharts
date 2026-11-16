@@ -32380,15 +32380,22 @@ async function searchArtistMBID(name) {
     _mbArtistInfoCache[name] = match ? {
       type: match.type || null,
       dis:  match.disambiguation || '',
+      // The name matched exactly (not just the closest hit), so the genre
+      // lookup can trust its tags for this artist
+      exact: String(match.name || '').toLowerCase() === name.toLowerCase(),
       // The first 30 are plenty; popular artists collect long tails of joke tags
       tags: (match.tags || []).slice(0, 30).map(t => String(t.name || '').toLowerCase()),
     } : null;
     _mbSaveArtistInfo();
     const born = match?.['life-span']?.begin;
     if (born && born.length >= 10) _mbBirthdayCache[name] = born.slice(0, 10);
+    delete _mbSearchFailed[name];
     return _mbidCache[name];
-  } catch (e) { _mbidCache[name] = null; return null; }
+  } catch (e) { _mbidCache[name] = null; _mbSearchFailed[name] = true; return null; }
 }
+// Names whose last search failed (busy / offline), so the genre lookup can
+// tell "MusicBrainz doesn't know them" from "MusicBrainz didn't answer"
+const _mbSearchFailed = {};
 
 // Shared cache for release-groups — avoids duplicate MB API calls across upcoming, recent, and events
 const _mbReleasesCache = {};
@@ -49152,12 +49159,251 @@ function _awardsSheetGenres() {
     if (!artists.has(pk)) artists.set(pk, []);
     artists.get(pk).push(p.genres);
   }
-  return (_awardsSheetGenreCache = { plays: allPlays, n: allPlays.length, songs, albums, artists });
+  // artistTop / albumTop memoise the "most common sheet genres" lists below, so
+  // a loop over thousands of plays doesn't re-count the same artist every play
+  return (_awardsSheetGenreCache = { plays: allPlays, n: allPlays.length, songs, albums, artists, artistTop: new Map(), albumTop: new Map() });
 }
 
-// A song's tags: the sheet's, else the artist's (undefined = artist not looked up yet)
+/* ─── GENRE LOOKUP: the one flow every tab uses ───────────────────────────────
+   Awards, Smart Playlists, the Daily tab and the nominee picker all read
+   genres through the functions below, so a song carries the same genres
+   everywhere. The order, best source first:
+     1. The Google Sheet / CSV Genre 1–5 columns — the song's own, else its
+        album's (the most common across its tagged tracks), else its artist's
+        (the most common across their tagged songs). The user's own call wins.
+     2. MusicBrainz genres with enough votes behind them — the only outside
+        source with genres per album, EP and single, not just per artist.
+        A song takes its single's, else its album's, else its artist's.
+     3. Gemini artist tags, when a Gemini key is saved (one call for a batch).
+     4. Last.fm artist tags, for whatever Gemini left unknown.
+     5. MusicBrainz genres with only a vote or two, when nothing else has any.
+   MusicBrainz allows about one request a second, so it can't answer on the
+   spot: it fills _mbGenreStore in the background (most-played first) and is
+   kept in this browser, so each artist is looked up once and the answer is
+   there the next time. Until it lands, Gemini / Last.fm answer.
+   Gemini and Last.fm land in _awardsGenreCache (artist name, lower-cased →
+   tags), also kept in this browser. undefined there = not looked up yet. */
+
+// A song's tags (undefined = nothing in the sheet and the artist not looked up yet)
 function _awardsSongTags(p) {
-  return _awardsSheetGenres().songs.get(_sk(p)) || _awardsGenreCache[_pa(p).toLowerCase()];
+  return _awardsSheetGenres().songs.get(_sk(p))
+    || (p.album && p.album !== '—' ? _awardsAlbumSheetTags(p)?.slice(0, 5) : undefined)
+    || _awardsArtistSheetTags(p)?.slice(0, 5)
+    || _genreSongOutside(p);
+}
+
+// An album's tags: its tracks' sheet genres, else the artist's sheet genres,
+// else MusicBrainz's for that album, else the artist's looked-up ones
+function _awardsAlbumTags(p) {
+  return _awardsAlbumSheetTags(p) || _awardsArtistSheetTags(p)?.slice(0, 5)
+    || _genreAlbumOutside(p) || _genreArtistOutside(_pa(p));
+}
+
+// ─── Outside sources, best first (sources 2–5 above) ───
+
+// An artist's looked-up genres. undefined = not looked up yet
+function _genreArtistOutside(name) {
+  const k = String(name || '').toLowerCase();
+  const mb = _mbGenreStore[k];
+  if (mb && mb.a && mb.a.length) return mb.a;          // 2. well-voted MusicBrainz
+  const c = _awardsGenreCache[k];                       // 3–4. Gemini / Last.fm
+  if (Array.isArray(c) && c.length) return c;
+  if (mb && mb.w && mb.w.length) return mb.w;           // 5. lightly-voted MusicBrainz
+  return c;
+}
+
+// The MusicBrainz genres of one of the artist's releases (album, EP or
+// single), matched by title; undefined = no well-voted match
+function _genreReleaseOutside(artist, title) {
+  const mb = _mbGenreStore[String(artist || '').toLowerCase()];
+  if (!mb || !mb.rg || !title) return undefined;
+  const full = _mbTitleNorm(title);
+  if (mb.rg[full]) return mb.rg[full];
+  // "Midnights (3am Edition)" is the "Midnights" release group
+  const bare = _mbTitleBare(title);
+  if (!mb._bare) {   // built once per session, not stored
+    mb._bare = {};
+    for (const [t, g] of Object.entries(mb.rg)) { const b = _mbTitleBare(t); if (!mb._bare[b]) mb._bare[b] = g; }
+  }
+  return mb._bare[bare];
+}
+function _genreAlbumOutside(p) {
+  return (p.album && p.album !== '—') ? _genreReleaseOutside(_pa(p), p.album) : undefined;
+}
+// A song: its own single's genres, else its album's, else the artist's
+function _genreSongOutside(p) {
+  return _genreReleaseOutside(_pa(p), p.title) || _genreAlbumOutside(p) || _genreArtistOutside(_pa(p));
+}
+
+// Whether any outside source has genres yet (Smart Playlists greys out
+// genre rules until something does)
+function genreHaveLookedUp() {
+  for (const v of Object.values(_awardsGenreCache)) if (Array.isArray(v) && v.length) return true;
+  for (const v of Object.values(_mbGenreStore)) if ((v.a && v.a.length) || (v.w && v.w.length)) return true;
+  return false;
+}
+
+/* Look up genres for artists: MusicBrainz is queued in the background (it is
+   slow), Gemini → Last.fm answer now. Calls that land within a moment of each
+   other share one run (the nominee picker asks row by row), so Gemini gets
+   one request for the lot instead of one per row. Names already looked up, or
+   already in a run, cost nothing. Resolves once every asked-for name has a
+   Gemini / Last.fm answer (or the caps below left it for a later call). */
+const GENRE_LOOKUP_GEMINI_MAX = 150;   // artists per Gemini request
+const GENRE_LOOKUP_LASTFM_MAX = 60;    // Last.fm requests per run
+let _genreLookupNext = null;           // the run still collecting names: { names: Map, promise }
+const _genreLookupInFlight = new Map(); // lower-cased name → the run that has it
+function genreLookupArtists(names) {
+  mbGenreQueue(names);
+  const waits = new Set();
+  for (const n of names || []) {
+    if (!n) continue;
+    const k = String(n).toLowerCase();
+    if (_awardsGenreCache[k] !== undefined) continue;
+    if (_genreLookupInFlight.has(k)) { waits.add(_genreLookupInFlight.get(k)); continue; }
+    if (!_genreLookupNext) {
+      const run = { names: new Map() };
+      run.promise = new Promise(res => setTimeout(res, 40)).then(() => {
+        if (_genreLookupNext === run) _genreLookupNext = null;   // later names start a new run
+        return _genreLookupRun([...run.names.values()]);
+      }).finally(() => { for (const key of run.names.keys()) _genreLookupInFlight.delete(key); });
+      _genreLookupNext = run;
+    }
+    _genreLookupNext.names.set(k, String(n));
+    _genreLookupInFlight.set(k, _genreLookupNext.promise);
+    waits.add(_genreLookupNext.promise);
+  }
+  return Promise.all(waits).then(() => {});
+}
+
+async function _genreLookupRun(names) {
+  const unknown = () => names.filter(a => _awardsGenreCache[a.toLowerCase()] === undefined);
+  // Gemini, in requests of up to 150 artists
+  const forGemini = unknown();
+  for (let i = 0; i < forGemini.length; i += GENRE_LOOKUP_GEMINI_MAX) {
+    await _awardsGeminiClassifyArtists(forGemini.slice(i, i + GENRE_LOOKUP_GEMINI_MAX));
+  }
+  // Last.fm for whatever Gemini didn't answer (or every name, without a key)
+  await Promise.all(unknown().slice(0, GENRE_LOOKUP_LASTFM_MAX).map(a => _awardsGetArtistGenre(a)));
+  _awardsSaveLookupCaches();
+}
+
+/* ─── MusicBrainz genres, in the background ───
+   Per artist, three requests at most a second apart: the name search (to
+   find them), the artist with its genres, and every album / EP / single
+   with theirs (one browse request covers 100). Votes decide what counts:
+   an artist's genres need a top genre with 3+ votes and keep the ones with
+   at least 15% of its votes; a release needs 2+ votes and keeps 30%. Fewer
+   votes than that is kept apart (w) as the last resort.
+   _mbGenreStore: artist name, lower-cased → { a: [genres], w: [genres],
+   rg: { normalised title → [genres] }, t: when looked up }. An artist
+   MusicBrainz doesn't know exactly is stored empty, so it isn't asked again
+   until the entry is MB_GENRE_MAX_AGE old. */
+const MB_GENRE_LS = 'dc_mb_genres';
+const MB_GENRE_MAX_AGE = 60 * 24 * 3600 * 1000;   // new releases get genres over time
+const MB_GENRE_QUEUE_MAX = 400;                     // ~20 minutes of lookups, at most
+const MB_GENRE_RG_PAGES = 3;                        // up to 300 releases per artist
+const _mbGenreStore = (() => {
+  try { const v = JSON.parse(localStorage.getItem(MB_GENRE_LS) || '{}'); return v && typeof v === 'object' ? v : {}; }
+  catch (e) { return {}; }
+})();
+let _mbGenreSaveTimer = null;
+function _mbGenreSave() {
+  clearTimeout(_mbGenreSaveTimer);
+  _mbGenreSaveTimer = setTimeout(() => {
+    // _bare is the in-memory title index; it isn't saved
+    const out = {};
+    for (const [k, v] of Object.entries(_mbGenreStore)) out[k] = { a: v.a, w: v.w, rg: v.rg, t: v.t };
+    try { localStorage.setItem(MB_GENRE_LS, JSON.stringify(out)); } catch (e) { /* storage full: memory still works */ }
+  }, 1500);
+}
+
+// Titles are matched loosely: case, accents, curly quotes and punctuation don't count
+function _mbTitleNorm(s) {
+  return String(s || '').toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '')
+    .replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+}
+// …and without the "(Deluxe)" / "[Remastered]" / " - Single" part
+function _mbTitleBare(s) {
+  return _mbTitleNorm(String(s || '').replace(/\s*[\(\[][^\)\]]*[\)\]]/g, '').replace(/\s+-\s+.*$/, ''));
+}
+
+// Voted genres → the ones that count, most votes first
+function _mbPickGenres(list, minTop, share) {
+  const s = (list || []).filter(g => g && g.name).sort((a, b) => (b.count || 0) - (a.count || 0));
+  if (!s.length) return { keep: [], weak: [] };
+  const top = s[0].count || 0;
+  const keep = top >= minTop
+    ? s.filter(g => (g.count || 0) >= Math.max(2, top * share)).map(g => g.name.toLowerCase()).slice(0, 8)
+    : [];
+  return { keep, weak: s.slice(0, 5).map(g => g.name.toLowerCase()) };
+}
+
+let _mbGenreWant = new Map();   // lower-cased name → name, next to look up first
+let _mbGenreBusy = false;
+// Newest asks go to the front: they are what's on screen now
+function mbGenreQueue(names) {
+  const fresh = new Map();
+  for (const n of names || []) {
+    if (!n) continue;
+    const k = String(n).toLowerCase();
+    const have = _mbGenreStore[k];
+    if (have && Date.now() - (have.t || 0) < MB_GENRE_MAX_AGE) continue;
+    if (!fresh.has(k)) fresh.set(k, String(n));
+  }
+  if (!fresh.size) return;
+  for (const [k, v] of _mbGenreWant) if (!fresh.has(k)) fresh.set(k, v);
+  _mbGenreWant = new Map([...fresh].slice(0, MB_GENRE_QUEUE_MAX));
+  if (!_mbGenreBusy) _mbGenrePump();
+}
+
+async function _mbGenrePump() {
+  _mbGenreBusy = true;
+  let fails = 0;
+  try {
+    while (_mbGenreWant.size) {
+      const [k, name] = _mbGenreWant.entries().next().value;
+      _mbGenreWant.delete(k);
+      const ok = await _mbGenreFetchArtist(name);
+      // MusicBrainz busy (503) or offline: stop after a few misses; the
+      // names are asked again by the next lookup that wants them
+      if (!ok && ++fails >= 3) break;
+      if (ok) fails = 0;
+    }
+  } finally { _mbGenreBusy = false; }
+}
+
+// true = stored (genres or a known "none"); false = the request failed
+async function _mbGenreFetchArtist(name) {
+  const k = name.toLowerCase();
+  // searchArtistMBID answers from memory when this session already searched
+  const mbid = await searchArtistMBID(name);
+  const info = _mbArtistInfoCache[name];
+  if (_mbSearchFailed[name] || info === undefined) { delete _mbidCache[name]; return false; }   // the search itself failed
+  // Not found, or only a near miss (somebody else's genres)
+  if (!mbid || !info || !info.exact) {
+    _mbGenreStore[k] = { a: [], w: [], rg: {}, t: Date.now() };
+    _mbGenreSave();
+    return true;
+  }
+  try {
+    const ad = await mbFetch(`artist/${mbid}?inc=genres&fmt=json`);
+    const artist = _mbPickGenres(ad.genres, 3, 0.15);
+    const rg = {};
+    for (let page = 0; page < MB_GENRE_RG_PAGES; page++) {
+      const d = await mbFetch(`release-group?artist=${mbid}&type=album%7Cep%7Csingle&inc=genres&limit=100&offset=${page * 100}&fmt=json`);
+      const list = d['release-groups'] || [];
+      for (const r of list) {
+        const g = _mbPickGenres(r.genres, 2, 0.3).keep;
+        const t = _mbTitleNorm(r.title);
+        if (g.length && t && !rg[t]) rg[t] = g.slice(0, 5);
+      }
+      if (list.length < 100 || (page + 1) * 100 >= (d['release-group-count'] || 0)) break;
+    }
+    _mbGenreStore[k] = { a: artist.keep, w: artist.weak, rg, t: Date.now() };
+    _mbGenreSave();
+    return true;
+  } catch (e) { return false; }
 }
 
 // An album fits a genre when at least half its sheet-tagged tracks do; null = no sheet data
@@ -49169,41 +49415,62 @@ function _awardsAlbumSheetFits(p, f) {
 
 // An artist's most common sheet genres across their songs; undefined = none tagged
 function _awardsArtistSheetTags(p) {
-  const tracks = _awardsSheetGenres().artists.get(_pk(p));
-  if (!tracks) return undefined;
-  const n = {};
-  for (const tags of tracks) for (const t of tags) n[t] = (n[t] || 0) + 1;
-  return Object.keys(n).sort((a, b) => n[b] - n[a]);
+  const c = _awardsSheetGenres(), pk = _pk(p);
+  if (c.artistTop.has(pk)) return c.artistTop.get(pk);
+  const tracks = c.artists.get(pk);
+  let out;
+  if (tracks) {
+    const n = {};
+    for (const tags of tracks) for (const t of tags) n[t] = (n[t] || 0) + 1;
+    out = Object.keys(n).sort((a, b) => n[b] - n[a]);
+  }
+  c.artistTop.set(pk, out);
+  return out;
 }
 // An artist's tags: the sheet's (their top five, so one stray song doesn't
-// make a rapper pop), else the Last.fm / Gemini ones
+// make a rapper pop), else the looked-up ones (MusicBrainz, Gemini, Last.fm)
 function _awardsArtistTags(p) {
   const sheet = _awardsArtistSheetTags(p);
-  return sheet ? sheet.slice(0, 5) : _awardsGenreCache[_pa(p).toLowerCase()];
+  return sheet ? sheet.slice(0, 5) : _genreArtistOutside(_pa(p));
 }
 
 // An album's most common sheet genres across its tracks, for the picker row
 function _awardsAlbumSheetTags(p) {
-  const tracks = _awardsSheetGenres().albums.get(_ak(p));
-  if (!tracks) return undefined;
-  const n = {};
-  for (const tags of tracks) for (const t of tags) n[t] = (n[t] || 0) + 1;
-  return Object.keys(n).sort((a, b) => n[b] - n[a]);
+  const c = _awardsSheetGenres(), ak = _ak(p);
+  if (c.albumTop.has(ak)) return c.albumTop.get(ak);
+  const tracks = c.albums.get(ak);
+  let out;
+  if (tracks) {
+    const n = {};
+    for (const tags of tracks) for (const t of tags) n[t] = (n[t] || 0) + 1;
+    out = Object.keys(n).sort((a, b) => n[b] - n[a]);
+  }
+  c.albumTop.set(ak, out);
+  return out;
 }
 
-/* Warm the genre cache for every artist in the window: Gemini first (one call
-   for the lot, if a key is set), then Last.fm tags for whatever it left unknown.
-   Both are capped — a window can hold thousands of artists and the awards only
-   ever rank the top of the pile. */
+/* Warm the genre cache for the window's artists through the shared lookup
+   (Gemini → Last.fm → MusicBrainz). Sheet artists are looked up too: their
+   genres still come from the sheet, but the DJ check (_awardsCollabRole) reads
+   the looked-up tags. Capped — a window can hold thousands of artists and the
+   awards only ever rank the top of the pile, so the most-played go first. */
 async function _awardsEnsureGenres(plays) {
-  const uniq = [...new Set(plays.map(p => _pa(p)))];
-  await _awardsGeminiClassifyArtists(uniq.slice(0, 150));
-  await Promise.all(uniq.filter(a => _awardsGenreCache[a.toLowerCase()] === undefined).slice(0, 60).map(a => _awardsGetArtistGenre(a)));
+  const n = new Map();
+  for (const p of plays) {
+    const a = _pa(p);
+    n.set(a, (n.get(a) || 0) + 1);
+  }
+  const uniq = [...n.keys()].sort((a, b) => n.get(b) - n.get(a));
+  await genreLookupArtists(uniq.slice(0, GENRE_LOOKUP_GEMINI_MAX));
 }
 
+// A failed Gemini call (bad key, daily limit) rests Gemini for a while
+// instead of retrying on every lookup; Last.fm fills in meanwhile
+let _genreGeminiRestUntil = 0;
+const GENRE_GEMINI_REST_MS = 10 * 60 * 1000;
 async function _awardsGeminiClassifyArtists(artists) {
   const apiKey = localStorage.getItem('dc_gemini_api_key');
-  if (!apiKey) return;
+  if (!apiKey || Date.now() < _genreGeminiRestUntil) return;
   const needed = artists.filter(a => _awardsGenreCache[a.toLowerCase()] === undefined);
   if (!needed.length) return;
   const tags = 'rock, classic rock, hard rock, indie rock, punk rock, alternative rock, metal, emo, post-rock, alternative, indie, indie rock, post-punk, dream pop, shoegaze, hip-hop, hip hop, rap, trap, conscious hip hop, r&b, soul, neo soul, contemporary r&b, rnb, rhythm and blues, pop, dance pop, indie pop, pop rock, teen pop, synth-pop, electropop, latin, reggaeton, latin pop, salsa, cumbia, bachata, latin rap, regional mexicano, electronic, edm, house, techno, dance, electro, trance, ambient, k-pop, kpop, korean pop, k pop, korean, country, country pop, country rock, americana, bluegrass, alt-country, outlaw country, nashville, reggae, dancehall, roots reggae, ska, dub, reggae fusion, eurodance, disco, nu-disco, folk, folk pop, indie folk, contemporary folk, folk rock, acoustic, singer-songwriter, acoustic pop, piano, soft rock, indie pop, bedroom pop, chamber pop, heavy metal, metalcore, nu metal, alternative metal, pop punk, midwest emo, post-hardcore, afrobeats, afropop, amapiano, j-pop, japanese, anime, j-rock, city pop, jazz, smooth jazz, vocal jazz, jazz fusion, classical, instrumental, orchestral, neoclassical, modern classical, opera, pop rock, power pop, garage rock, post-punk revival, classic rock, album rock, arena rock, blues rock, southern rock, glam rock, heavy rock, post-grunge, stoner rock, new wave, gothic rock, darkwave, grunge, britpop, progressive rock, psychedelic rock, art rock, noise pop, goth rock, goth, deathrock, gothic metal, synthpop, alternative pop, alt-pop, dark pop, hyperpop, pc music, glitchcore, art pop, experimental pop, baroque pop, urbano latino, gospel, contemporary christian, ccm, christian, worship, christian hip hop, christian rap, instrumental hip hop, lo-fi hip hop, chillhop, solo piano, video game music';
@@ -49224,12 +49491,14 @@ async function _awardsGeminiClassifyArtists(artists) {
     const map = JSON.parse(text);
     for (const [artist, artistTags] of Object.entries(map)) {
       const key = artist.toLowerCase();
-      if (needed.some(a => a.toLowerCase() === key)) {
-        _awardsGenreCache[key] = Array.isArray(artistTags) ? artistTags.map(t => String(t).toLowerCase()) : [];
+      // An empty answer means Gemini doesn't know them: leave it unset so
+      // Last.fm (next in the shared lookup) still gets a go
+      if (needed.some(a => a.toLowerCase() === key) && Array.isArray(artistTags) && artistTags.length) {
+        _awardsGenreCache[key] = artistTags.map(t => String(t).toLowerCase());
       }
     }
     _awardsSaveLookupCaches();
-  } catch (e) { /* fall through to Last.fm */ }
+  } catch (e) { _genreGeminiRestUntil = Date.now() + GENRE_GEMINI_REST_MS; /* fall through to Last.fm */ }
 }
 
 // Play-level tests for the categories that are just "plays that pass a test".
@@ -49502,9 +49771,8 @@ async function _awardsSplitGenre(catDef, eligStart, eligEnd, log) {
   return pool.filter(c => _awardsItemGenreFits(c, catDef.type, g)).slice(0, 20);
 }
 function _awardsItemGenreFits(item, type, g) {
-  const artistTags = _awardsGenreCache[(item.artist || '').toLowerCase()] || [];
   if (type === 'song') return _genreMatch(_awardsSongTags(item) || [], g);
-  if (type === 'album') return _awardsAlbumSheetFits(item, g) ?? _genreMatch(artistTags, g);
+  if (type === 'album') return _awardsAlbumSheetFits(item, g) ?? _genreMatch(_awardsAlbumTags(item) || [], g);
   return _genreMatch(_awardsArtistTags(item) || [], g);
 }
 
@@ -49962,7 +50230,8 @@ async function _awardsGetCandidates(catDef, eligStart, eligEnd, log) {
     await _awardsEnsureGenres(inWin);
     const gs = {}, ga = {}, gr = {};
     for (const p of inWin) {
-      const artistTags = _awardsGenreCache[_pa(p).toLowerCase()] || [];
+      // The artist's sheet genres first, then the looked-up ones (shared lookup)
+      const artistTags = _awardsArtistTags(p) || [];
       const sk = _sk(p), ak = _ak(p), rk = _rk(p);
       if (_genreMatch(_awardsSongTags(p) || [], f)) {
         if (!gs[sk]) gs[sk] = { title: p.title, artist: p.artist, album: p.album, plays: 0 };
@@ -49970,11 +50239,13 @@ async function _awardsGetCandidates(catDef, eligStart, eligEnd, log) {
       }
       // An album is judged as a whole (its tagged tracks), not track by track
       const albumFits = _awardsAlbumSheetFits(p, f);
-      if (p.album && (albumFits ?? _genreMatch(artistTags, f))) {
+      // No sheet tracks to judge by: the album's own genres (sheet artist,
+      // then MusicBrainz for that album, then the artist's looked-up ones)
+      if (p.album && (albumFits ?? _genreMatch(_awardsAlbumTags(p) || [], f))) {
         if (!ga[ak]) ga[ak] = { album: p.album, artist: p.artist, plays: 0 };
         ga[ak].plays++;
       }
-      if (_genreMatch(_awardsArtistTags(p) || [], f)) {
+      if (_genreMatch(artistTags, f)) {
         if (!gr[rk]) gr[rk] = { artist: _pa(p), plays: 0 };
         gr[rk].plays++;
       }
@@ -52174,7 +52445,7 @@ function _awardsPickerFitChip(item) {
 // Genre tags for a picker row: the sheet's for that song / album, else the artist's
 function _awardsPickerItemTags(item) {
   if (_awardsPickerCatType === 'song')  return _awardsSongTags(item);
-  if (_awardsPickerCatType === 'album') return _awardsAlbumSheetTags(item) || _awardsGenreCache[(item.artist || '').toLowerCase()];
+  if (_awardsPickerCatType === 'album') return _awardsAlbumTags(item);
   return _awardsArtistTags(item);
 }
 
@@ -52934,8 +53205,9 @@ async function _awardsPickerFetchMeta(item) {
   const jobs = [];
   if (_awardsPickerItemYear(item) === undefined) jobs.push(_awardsAlbumYearOnce(item.album, item.artist || ''));
   if (_awardsPickerItemTags(item) === undefined) {
+    // The shared lookup batches the rows' artists into one Gemini call
     const a = _awardsPickerGenreArtist(item);
-    if (a) jobs.push(_awardsGetArtistGenre(a));
+    if (a) jobs.push(genreLookupArtists([a]));
   }
   try { await Promise.all(jobs); } catch (e) {}
 }
