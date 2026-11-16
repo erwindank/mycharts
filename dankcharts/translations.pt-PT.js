@@ -5145,7 +5145,7 @@ TRANSLATIONS['pt-PT'] = Object.assign({
     sp_h_artistBest: 'A música que mais ouves desse artista',
     sp_h_artistShare: 'Alto = quase tudo o que ouves do artista é esta música',
     sp_h_artistPlays: 'Quanto ouves o artista no total',
-    sp_h_artistSongs: '2 ou mais ajuda a encontrar sucessos únicos',
+    sp_h_artistSongs: 'Quantas músicas do artista ouves',
     sp_h_albumPlays: 'Quanto ouves o álbum no total',
     sp_h_albumRank: '1 = a mais ouvida do álbum',
     sp_h_albumTop: '1 = o teu álbum mais ouvido',

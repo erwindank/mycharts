@@ -1018,7 +1018,7 @@ spAddField('topDay',  { kind: 'enum',   needs: 'times', get: _spHabitGet('topDay
      artistBest   it's its artist's most-played song
      artistShare  % of its artist's plays that are this song (high = a one-hit wonder)
      artistPlays  its artist's total plays
-     artistSongs  how many songs its artist has (a one-hit wonder needs 2+)
+     artistSongs  how many songs its artist has (the One-Hit Wonders preset uses 1+ so artists with a single song count too)
      albumPlays   its album's total plays (deep cuts: a loved album…)
      albumRank    its place by plays inside its album (…where it sits low)
      albumTop     its album's place among all albums by plays (1 = most played album)
@@ -1570,7 +1570,7 @@ const SP_READY = {
   no1s:         () => ({ rules: [{ f: 'at1', op: 'gte', v: 1, ch: 'week' }], sort: { f: 'at1At', ch: 'week', dir: 'asc' } }),
   topRated:     () => ({ rules: [{ f: 'rating', op: 'gte', v: 7 }], sort: { f: 'rating' }, limit: 50 }),
   onThisDay:    o => ({ rules: [{ f: 'otd', op: 'gte', v: 1, span: (o && o.span != null) ? o.span : 3 }], sort: { f: 'otd', span: (o && o.span != null) ? o.span : 3 }, limit: 50 }),
-  oneHit:       () => ({ rules: [{ f: 'artistShare', op: 'gte', v: 75 }, { f: 'artistSongs', op: 'gte', v: 2 }, { f: 'plays', op: 'gte', v: 10 }], sort: { f: 'plays' }, limit: 50 }),
+  oneHit:       () => ({ rules: [{ f: 'artistShare', op: 'gte', v: 75 }, { f: 'artistSongs', op: 'gte', v: 1 }, { f: 'plays', op: 'gte', v: 10 }], sort: { f: 'plays' }, limit: 50 }),
   slow:         () => ({ rules: [{ f: 'toPeak', op: 'gte', v: 6, ch: 'week' }], sort: { f: 'toPeak', ch: 'week' }, limit: 50 }),
   year50:       o => { const y = (o && o.year) || _spDefaultYear(); const win = { from: y + '-01-01', to: y + '-12-31' };
                        return { rules: [{ f: 'plays', op: 'gte', v: 1, win }], sort: { f: 'plays', win }, limit: 50 }; },

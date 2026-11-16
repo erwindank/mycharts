@@ -5305,7 +5305,7 @@ const TRANSLATIONS = {
     sp_h_artistBest: 'The one song you play most by that artist',
     sp_h_artistShare: 'High = most of the artist’s plays are this song',
     sp_h_artistPlays: 'How much you play the artist overall',
-    sp_h_artistSongs: '2+ helps find one-hit wonders',
+    sp_h_artistSongs: 'How many of the artist’s songs you play',
     sp_h_albumPlays: 'How much you play the album overall',
     sp_h_albumRank: '1 = the album’s most-played song',
     sp_h_albumTop: '1 = your most-played album',
