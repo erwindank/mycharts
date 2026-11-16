@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Smart playlists can pick plays from yesterday, last month, a season and more":
+    ["Las listas inteligentes pueden elegir reproducciones de ayer, el mes pasado, una estación y más",
+     "Las reglas de reproducciones ahora tienen periodos rápidos: hoy, ayer, esta semana, la semana pasada, este mes, el mes pasado, este año y el año pasado. También puedes elegir un año, un mes, una estación, las últimas semanas, meses o años, este mes en años anteriores, o los primeros días de una canción desde que la descubriste. Primera escucha y Última escucha usan los mismos periodos, por ejemplo primera escucha el mes pasado."],
   "Smart playlist rules are easier to pick, with Bubbling Under and more":
     ["Las reglas de las listas inteligentes son más fáciles de elegir, con Aspirantes y más",
      "Elegir una regla ya no es leer una lista larguísima. Toca una regla y elige entre grupos como Reproducciones, Listas y Cuándo escuchas, cada opción con una línea que explica lo que hace, o búscala. Las reglas de listas muestran los botones Diario, Semanal, Mensual y Anual en la propia regla. Reglas nuevas: en la lista ahora o la última vez, Nueva entrada, Reentrada, Fuera del Ranking y Aspirantes (estar ahora, tiempo pasado ahí, mejor puesto)."],

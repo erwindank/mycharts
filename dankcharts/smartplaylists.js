@@ -29,6 +29,8 @@
      win (only on fields with `win: true`, e.g. plays):
        { last: 30 }                           the last 30 days
        { from: '2025-01-01', to: '2025-12-31' } day strings, both included
+       …and since 2026-11-16 named periods, last N weeks / months / years,
+       this month in earlier years and a song's first N days: see _spWinRange
    =========================================================================== */
 
 // ─── SMALL HELPERS ────────────────────────────────────────────────────────
@@ -149,32 +151,109 @@ function _spCertLevel(n) {
 
 let _spWinCache = new Map();
 
+// ─── NAMED PERIODS (2026-11-16) ───────────────────────────────────────────
+/* Periods a plays window or a first / last played rule can name, as short
+   codes so they're easy to store and share:
+     today · yesterday · thisWeek · lastWeek · thisMonth · lastMonth ·
+     thisYear · lastYear       move on by themselves (thisWeek = so far,
+                               from the user's own week start day)
+     y:2023                    a whole calendar year
+     m:2025-03                 a whole calendar month
+     s:summer:2025             a season: spring Mar–May, summer Jun–Aug,
+                               autumn Sep–Nov, winter Dec 2025 – Feb 2026 */
+const SP_PERIODS = ['today', 'yesterday', 'thisWeek', 'lastWeek', 'thisMonth', 'lastMonth', 'thisYear', 'lastYear'];
+const SP_SEASONS = ['spring', 'summer', 'autumn', 'winter'];
+
+function _spDs(d) { return (typeof localDateStr === 'function') ? localDateStr(d) : d.toISOString().slice(0, 10); }
+function _spToday() {
+  return (typeof localDateStr === 'function' && typeof tzNow === 'function') ? localDateStr(tzNow()) : new Date().toISOString().slice(0, 10);
+}
+// A day string moved by n days
+function _spShift(ds, n) { const d = new Date(ds + 'T12:00:00'); d.setDate(d.getDate() + n); return _spDs(d); }
+// The last day of a month (m = 1–12)
+function _spMonthEnd(y, m) { return y + '-' + String(m).padStart(2, '0') + '-' + String(new Date(y, m, 0).getDate()).padStart(2, '0'); }
+
+// A period code → { from, to } day strings (both included), or null
+function _spPeriodRange(code) {
+  code = String(code || '');
+  const today = _spToday();
+  const Y = +today.slice(0, 4), M = +today.slice(5, 7);
+  const ws = (typeof _spNowKey === 'function') ? _spNowKey('week') : today;   // this week's first day
+  switch (code) {
+    case 'today':     return { from: today, to: today };
+    case 'yesterday': { const y = _spShift(today, -1); return { from: y, to: y }; }
+    case 'thisWeek':  return { from: ws, to: today };
+    case 'lastWeek':  return { from: _spShift(ws, -7), to: _spShift(ws, -1) };
+    case 'thisMonth': return { from: today.slice(0, 8) + '01', to: today };
+    case 'lastMonth': { const y = M === 1 ? Y - 1 : Y, m = M === 1 ? 12 : M - 1; return { from: y + '-' + String(m).padStart(2, '0') + '-01', to: _spMonthEnd(y, m) }; }
+    case 'thisYear':  return { from: Y + '-01-01', to: today };
+    case 'lastYear':  return { from: (Y - 1) + '-01-01', to: (Y - 1) + '-12-31' };
+  }
+  let x;
+  if ((x = /^y:(\d{4})$/.exec(code))) return { from: x[1] + '-01-01', to: x[1] + '-12-31' };
+  if ((x = /^m:(\d{4})-(\d{2})$/.exec(code))) return { from: x[1] + '-' + x[2] + '-01', to: _spMonthEnd(+x[1], +x[2]) };
+  if ((x = /^s:(spring|summer|autumn|winter):(\d{4})$/.exec(code))) {
+    const y = +x[2];
+    if (x[1] === 'spring') return { from: y + '-03-01', to: y + '-05-31' };
+    if (x[1] === 'summer') return { from: y + '-06-01', to: y + '-08-31' };
+    if (x[1] === 'autumn') return { from: y + '-09-01', to: y + '-11-30' };
+    return { from: y + '-12-01', to: _spMonthEnd(y + 1, 2) };
+  }
+  return null;
+}
+function _spPeriodOk(code) { return !!_spPeriodRange(code); }
+
+/* A plays window → what to count. Shapes (rule.win):
+     { last: 30 }                    the last 30 days, today included
+     { last: 3, unit: 'month' }      the last 3 weeks / months / years
+     { from, to }                    between two days
+     { p: 'lastMonth' }              a named period (see above)
+     { p: 'monthPast' }              this calendar month in every earlier year
+     { first: 30 }                   a song's own first 30 days (worked out per
+                                     song in the plays field, not here)
+   Returns { from, to } or { id, test(dayString) }, or null for no window. */
 function _spWinRange(win) {
   if (!win) return null;
+  if (win.p === 'monthPast') {
+    const today = _spToday(), mm = today.slice(5, 7), yy = today.slice(0, 4);
+    return { id: 'mp:' + today.slice(0, 7), test: ds => ds.slice(5, 7) === mm && ds.slice(0, 4) < yy };
+  }
+  if (win.p) return _spPeriodRange(win.p);
   if (win.last > 0) {
-    const today = (typeof localDateStr === 'function' && typeof tzNow === 'function')
-      ? localDateStr(tzNow()) : new Date().toISOString().slice(0, 10);
-    // The last N days including today: today and the N-1 days before it
+    const today = _spToday();
     const d = new Date(today + 'T12:00:00');
-    d.setDate(d.getDate() - (win.last - 1));
-    const from = (typeof localDateStr === 'function') ? localDateStr(d) : d.toISOString().slice(0, 10);
-    return { from, to: today };
+    const u = win.unit;
+    // The last N units including today: from the day after "N units ago"
+    if (u === 'week') d.setDate(d.getDate() - win.last * 7 + 1);
+    else if (u === 'month') { d.setMonth(d.getMonth() - win.last); d.setDate(d.getDate() + 1); }
+    else if (u === 'year') { d.setFullYear(d.getFullYear() - win.last); d.setDate(d.getDate() + 1); }
+    else d.setDate(d.getDate() - (win.last - 1));   // days: today and the N-1 days before it
+    return { from: _spDs(d), to: today };
   }
   if (win.from || win.to) return { from: win.from || '0000-00-00', to: win.to || '9999-99-99' };
   return null;
+}
+
+// A song's plays in its own first N days (the day it was first played = day 1)
+function _spFirstDaysPlays(s, n) {
+  if (!s.dayMap) return 0;
+  const from = _spDayOf(s.first), to = _spShift(from, Math.max(1, n) - 1);
+  let c = 0;
+  for (const [ds, k] of s.dayMap) if (ds <= to) c += k;
+  return c;
 }
 
 // song key → plays inside the window (songs with none are missing)
 function _spWinCounts(win) {
   const r = _spWinRange(win);
   if (!r) return null;
-  const id = r.from + '~' + r.to;
+  const id = r.test ? r.id : r.from + '~' + r.to;
   let m = _spWinCache.get(id);
   if (m) return m;
   m = new Map();
   for (const p of (allPlays || [])) {
     const ds = _spDay(p);
-    if (ds < r.from || ds > r.to) continue;
+    if (r.test ? !r.test(ds) : (ds < r.from || ds > r.to)) continue;
     const k = _spKey(p);
     m.set(k, (m.get(k) || 0) + 1);
   }
@@ -244,7 +323,11 @@ const SP_FIELDS = {
   album:   { kind: 'text',   get: s => s.album },
   genre:   { kind: 'list',   get: s => spGenresOf(s), needs: 'genres' },
   release: { kind: 'enum',   get: s => s.release, values: RELEASE_TYPE_IDS_SAFE() },
-  plays:   { kind: 'number', get: (s, r) => r && r.win ? ((_spWinCounts(r.win) || new Map()).get(s.key) || 0) : s.plays, win: true },
+  plays:   { kind: 'number', win: true, get: (s, r) => {
+    if (!r || !r.win) return s.plays;
+    if (r.win.first > 0) return _spFirstDaysPlays(s, r.win.first);   // its own first N days
+    return (_spWinCounts(r.win) || new Map()).get(s.key) || 0;
+  } },
   days:    { kind: 'number', get: s => s.days },        // distinct days it was played
   maxDay:  { kind: 'number', get: s => s.maxDay },      // most plays in one day
   first:   { kind: 'date',   get: s => s.first },
@@ -283,7 +366,9 @@ const SP_OPS = {
     older:  (x, v) => x <  Date.now() - (+v) * SP_DAY_MS,   // more than v days ago
     after:  (x, v) => _spDayOf(x) >= String(v),             // on or after the day
     before: (x, v) => _spDayOf(x) <= String(v),             // on or before the day
-    between: (x, v) => Array.isArray(v) && _spDayOf(x) >= String(v[0]) && _spDayOf(x) <= String(v[1])
+    between: (x, v) => Array.isArray(v) && _spDayOf(x) >= String(v[0]) && _spDayOf(x) <= String(v[1]),
+    // During a named period: "first played last month", "last played in 2023"
+    in: (x, v) => { const r = _spPeriodRange(v); if (!r) return false; const d = _spDayOf(x); return d >= r.from && d <= r.to; }
   },
   text: {
     is:      (x, v) => _spNorm(x) === _spNorm(v),
@@ -1113,13 +1198,44 @@ function spFieldLabel(id, r) {
   if (!f) return id;
   if (id === 'otd') return t((r && +r.span === 0) ? 'sp_f_otd_day' : 'sp_f_otd_week');
   if (id === 'plays' && r && r.win) {
+    const w = r.win;
+    // Named periods: "plays last month", "plays in March 2025"
+    if (w.p === 'monthPast') return t('sp_f_plays_monthPast', { m: _spMonthName(_spToday().slice(0, 7), false) });
+    if (w.p) return t('sp_f_plays_when', { w: spPeriodWords(w.p) });
+    if (w.first > 0) return t('sp_f_plays_first', { n: w.first });
+    if (w.last > 0 && w.unit && w.unit !== 'day') return t('sp_f_plays_lastu_' + w.unit, { n: w.last });
     // A whole calendar year reads "plays in 2025"
-    const w = r.win, y = String(w.from || '').slice(0, 4);
+    const y = String(w.from || '').slice(0, 4);
     if (w.from === y + '-01-01' && w.to === y + '-12-31') return t('sp_f_plays_year', { y });
     if (r.win.last > 0) return t('sp_f_plays_last', { n: r.win.last });
     return t('sp_f_plays_range', { a: _spFmtDay(r.win.from), b: _spFmtDay(r.win.to) });
   }
   return t('sp_f_' + id, f.chart ? _spChWords(r) : undefined);
+}
+
+// 'YYYY-MM' → "March 2025" (or just "March"), in the site's language
+function _spMonthName(ym, withYear = true) {
+  try {
+    const d = new Date(+ym.slice(0, 4), +ym.slice(5, 7) - 1, 15);
+    return d.toLocaleDateString(currentLang || 'en', withYear ? { month: 'long', year: 'numeric' } : { month: 'long' });
+  } catch (e) { return ym; }
+}
+
+/* A period code in words, ready to follow "plays" or "first played":
+   "today", "last week", "in 2023", "in March 2025", "in summer 2025" */
+function spPeriodWords(code) {
+  code = String(code || '');
+  const ch = { today: 'now_day', yesterday: 'last_day', thisWeek: 'now_week', lastWeek: 'last_week',
+    thisMonth: 'now_month', lastMonth: 'last_month', thisYear: 'now_year', lastYear: 'last_year' }[code];
+  if (ch) return t('sp_when_' + ch);
+  let x;
+  if ((x = /^y:(\d{4})$/.exec(code))) return t('sp_per_in', { x: x[1] });
+  if ((x = /^m:(\d{4}-\d{2})$/.exec(code))) return t('sp_per_in', { x: _spMonthName(x[1]) });
+  if ((x = /^s:(\w+):(\d{4})$/.exec(code))) {
+    const y = +x[2];
+    return t('sp_per_in', { x: t('sp_season_y_' + x[1], { y, y2: String(y + 1).slice(-2) }) });
+  }
+  return code;
 }
 
 function _spFmtDay(ds) {
@@ -1170,7 +1286,8 @@ function _spDescRule(r) {
       cond = t('sp_o_n_' + r.op, Object.assign({ v: Array.isArray(v) ? '' : _spNum(r.f, v) }, pair));
     }
   } else if (f.kind === 'date') {
-    if (r.op === 'within' || r.op === 'older') cond = t('sp_o_d_' + r.op, { v: (+v).toLocaleString() });
+    if (r.op === 'in') cond = spPeriodWords(v);   // "first played last month"
+    else if (r.op === 'within' || r.op === 'older') cond = t('sp_o_d_' + r.op, { v: (+v).toLocaleString() });
     else if (r.op === 'between') cond = t('sp_o_d_between', { a: _spFmtDay(v && v[0]), b: _spFmtDay(v && v[1]) });
     else cond = t('sp_o_d_' + r.op, { v: _spFmtDay(v) });
   } else if (f.kind === 'text' || f.kind === 'list') {
@@ -1500,7 +1617,7 @@ function _spBGroupOf(id) {
 const SP_B_OPS = {
   number: ['gte', 'lte', 'gt', 'lt', 'eq', 'between'],
   rank:   ['lte', 'gte', 'eq', 'between'],            // lowFirst numbers: "in the top"
-  date:   ['within', 'older', 'after', 'before', 'between'],
+  date:   ['in', 'within', 'older', 'after', 'before', 'between'],   // 'in' = a named period (2026-11-16)
   text:   ['is', 'isNot', 'has', 'hasNot', 'starts'],
   list:   ['has', 'hasNot'],
   enum:   ['is', 'isNot'],
@@ -1561,6 +1678,7 @@ function _spBFixValue(r) {
   } else if (f.kind === 'date') {
     if (r.op === 'within' || r.op === 'older') { if (typeof r.v !== 'number') r.v = r.op === 'older' ? 180 : 30; }
     else if (r.op === 'between') { if (!Array.isArray(r.v)) r.v = [_spBDaysAgo(365), _spBToday()]; }
+    else if (r.op === 'in') { if (!_spPeriodOk(r.v)) r.v = 'lastMonth'; }
     else if (typeof r.v !== 'string' || !/^\d{4}-/.test(r.v)) r.v = _spBDaysAgo(r.op === 'after' ? 365 : 0);
   }
 }
@@ -1658,6 +1776,80 @@ function _spBPickerHtml() {
     `</div>`;
 }
 
+// ─── Periods in the builder (2026-11-16) ──────────────────────────────────
+
+// A period code's kind: one of SP_PERIODS, or 'year' / 'month' / 'season'
+function _spPerKind(code) {
+  code = String(code || '');
+  if (SP_PERIODS.includes(code)) return code;
+  if (code.startsWith('y:')) return 'year';
+  if (code.startsWith('m:')) return 'month';
+  if (code.startsWith('s:')) return 'season';
+  return '';
+}
+
+// A fresh code for a kind, keeping the year of the old code where it has one
+function _spPerFresh(kind, old) {
+  if (SP_PERIODS.includes(kind)) return kind;
+  const today = _spToday();
+  const r = _spPeriodRange(old);
+  const y = r ? r.from.slice(0, 4) : String(+today.slice(0, 4) - (kind === 'season' ? 1 : 0));
+  if (kind === 'year') return 'y:' + (r ? y : today.slice(0, 4));
+  if (kind === 'month') return 'm:' + (r ? r.from.slice(0, 7) : today.slice(0, 7));
+  // Summer of that year, or the year before when that summer hasn't started yet
+  return 's:summer:' + (_spPeriodRange('s:summer:' + y).from > today ? +y - 1 : y);
+}
+
+// The plays window's menu value
+function _spBWinMode(w) {
+  if (!w) return 'all';
+  if (w.p === 'monthPast') return 'monthPast';
+  if (w.p) return _spPerKind(w.p) || 'all';
+  if (w.first > 0) return 'first';
+  if (w.last > 0) return 'last';
+  return 'range';
+}
+
+// The years the library has plays in (newest first), plus this year
+function _spBYearList(cur) {
+  const ys = new Set(spYears().map(String));
+  ys.add(_spToday().slice(0, 4));
+  if (cur) ys.add(String(cur));
+  return [...ys].sort((a, b) => b - a);
+}
+
+/* The extra boxes for a year, month or season code: a year list, a month
+   box, or a season list + year list. k = 'win' (plays window) or 'per'
+   (a first / last played rule), which prefixes the boxes' data-k. */
+function _spBPerExtras(code, k) {
+  const kind = _spPerKind(code);
+  if (kind === 'year') {
+    const y = code.slice(2);
+    return `<select class="dc-input spb-small" data-k="${k}Y" aria-label="${esc(t('sp_win_year'))}">` +
+      _spBYearList(y).map(x => _spBOpt(x, x, x === y)).join('') + `</select>`;
+  }
+  if (kind === 'month') {
+    return `<input class="dc-input spb-date" type="month" data-k="${k}M" value="${esc(code.slice(2))}" max="${_spToday().slice(0, 7)}" aria-label="${esc(t('sp_win_month'))}">`;
+  }
+  if (kind === 'season') {
+    const [, s, y] = code.split(':');
+    return `<select class="dc-input spb-small" data-k="${k}S" aria-label="${esc(t('sp_win_season'))}">` +
+        SP_SEASONS.map(x => _spBOpt(x, t('sp_season_' + x), x === s)).join('') + `</select>` +
+      `<select class="dc-input spb-small" data-k="${k}SY" aria-label="${esc(t('sp_win_year'))}">` +
+        _spBYearList(y).map(x => _spBOpt(x, x, x === y)).join('') + `</select>`;
+  }
+  return '';
+}
+
+// The period list for a first / last played rule ("during last month")
+function _spBPerValueHtml(code) {
+  const kind = _spPerKind(code);
+  return `<select class="dc-input spb-small" data-k="perKind" aria-label="${esc(t('sp_b_value'))}">` +
+    SP_PERIODS.map(p => _spBOpt(p, t('sp_win_p_' + p), kind === p)).join('') +
+    ['year', 'month', 'season'].map(m => _spBOpt(m, t('sp_win_' + m), kind === m)).join('') +
+    `</select>` + _spBPerExtras(code, 'per');
+}
+
 /* Which chart a chart rule reads, as buttons right in the rule (it used to be
    a second dropdown that only showed up after a chart rule was picked, so the
    daily / monthly / yearly charts were easy to miss). Bubbling Under only
@@ -1683,11 +1875,23 @@ function _spBExtrasHtml(r) {
       _spBOpt('now', t('sp_when_now_' + ch), r.when !== 'last') + _spBOpt('last', t('sp_when_last_' + ch), r.when === 'last') + `</select>`;
   }
   if (r.f === 'plays') {
-    const mode = !r.win ? 'all' : r.win.last > 0 ? 'last' : 'range';
+    const mode = _spBWinMode(r.win);
+    // One list of every window, quick ones first (2026-11-16)
     html += `<select class="dc-input spb-small" data-k="winMode" aria-label="${esc(t('sp_b_when'))}">` +
-      _spBOpt('all', t('sp_win_all'), mode === 'all') + _spBOpt('last', t('sp_win_last'), mode === 'last') + _spBOpt('range', t('sp_win_range'), mode === 'range') +
+      _spBOpt('all', t('sp_win_all'), mode === 'all') +
+      `<optgroup label="${esc(t('sp_win_g_quick'))}">` + SP_PERIODS.map(p => _spBOpt(p, t('sp_win_p_' + p), mode === p)).join('') + `</optgroup>` +
+      `<optgroup label="${esc(t('sp_win_g_pick'))}">` +
+        ['last', 'year', 'month', 'season', 'range'].map(m => _spBOpt(m, t('sp_win_' + m), mode === m)).join('') + `</optgroup>` +
+      `<optgroup label="${esc(t('sp_win_g_more'))}">` +
+        _spBOpt('first', t('sp_win_first'), mode === 'first') + _spBOpt('monthPast', t('sp_win_monthPast'), mode === 'monthPast') + `</optgroup>` +
       `</select>`;
-    if (mode === 'last') html += `<input class="dc-input spb-num" type="number" min="1" max="3650" data-k="winN" value="${r.win.last}" aria-label="${esc(t('sp_win_last'))}"><span class="spb-unit">${esc(t('sp_b_days'))}</span>`;
+    if (mode === 'last') {
+      html += `<input class="dc-input spb-num" type="number" min="1" max="3650" data-k="winN" value="${r.win.last}" aria-label="${esc(t('sp_win_last'))}">` +
+        `<select class="dc-input spb-small" data-k="winUnit" aria-label="${esc(t('sp_win_last'))}">` +
+        ['day', 'week', 'month', 'year'].map(u => _spBOpt(u, t('sp_u_' + u), (r.win.unit || 'day') === u)).join('') + `</select>`;
+    }
+    if (mode === 'year' || mode === 'month' || mode === 'season') html += _spBPerExtras(r.win.p, 'win');
+    if (mode === 'first') html += `<input class="dc-input spb-num" type="number" min="1" max="3650" data-k="winFirst" value="${r.win.first}" aria-label="${esc(t('sp_win_first'))}"><span class="spb-unit">${esc(t('sp_b_days'))}</span>`;
     if (mode === 'range') html += `<input class="dc-input spb-date" type="date" data-k="winFrom" value="${esc(r.win.from || '')}" aria-label="${esc(t('sp_b_from'))}"><span class="spb-unit">–</span><input class="dc-input spb-date" type="date" data-k="winTo" value="${esc(r.win.to || '')}" aria-label="${esc(t('sp_b_to'))}">`;
   }
   if (r.f === 'otd') {
@@ -1723,6 +1927,7 @@ function _spBValueHtml(r) {
     return num('v', v) + pct;
   }
   if (f.kind === 'date') {
+    if (r.op === 'in') return _spBPerValueHtml(v);
     if (r.op === 'within' || r.op === 'older') return `<input class="dc-input spb-num" type="number" min="1" data-k="v" value="${esc(String(v))}" aria-label="${esc(t('sp_b_value'))}"><span class="spb-unit">${esc(t(r.op === 'older' ? 'sp_b_days_ago' : 'sp_b_days'))}</span>`;
     const date = (k, x) => `<input class="dc-input spb-date" type="date" data-k="${k}" value="${esc(String(x || ''))}" aria-label="${esc(t('sp_b_value'))}">`;
     if (r.op === 'between') return date('v0', v && v[0]) + `<span class="spb-unit">${esc(t('sp_b_and'))}</span>` + date('v1', v && v[1]);
@@ -1969,10 +2174,30 @@ function _spBSet(path, k, raw) {
   if (k === 'winMode') {
     if (raw === 'all') delete r.win;
     else if (raw === 'last') r.win = { last: 30 };
-    else r.win = { from: _spBDaysAgo(365), to: _spBToday() };
+    else if (raw === 'first') r.win = { first: 30 };
+    else if (raw === 'monthPast') r.win = { p: 'monthPast' };
+    else if (raw === 'range') r.win = { from: _spBDaysAgo(365), to: _spBToday() };
+    else r.win = { p: _spPerFresh(raw, r.win && r.win.p) };   // a named period, a year, a month, a season
     return true;
   }
-  if (k === 'winN') { r.win = { last: Math.max(1, +raw || 1) }; return false; }
+  if (k === 'winN') { r.win = Object.assign({ last: Math.max(1, +raw || 1) }, r.win && r.win.unit ? { unit: r.win.unit } : {}); return false; }
+  if (k === 'winUnit') { r.win = Object.assign({ last: (r.win && r.win.last) || 1 }, raw === 'day' ? {} : { unit: raw }); return false; }
+  if (k === 'winFirst') { r.win = { first: Math.max(1, +raw || 1) }; return false; }
+  // Year / month / season boxes, for the plays window (win…) and first / last played (per…)
+  const per = /^(win|per)(Kind|Y|M|S|SY)$/.exec(k);
+  if (per) {
+    const isWin = per[1] === 'win';
+    const old = isWin ? (r.win && r.win.p) : r.v;
+    let code = old;
+    if (per[2] === 'Kind') code = _spPerFresh(raw, old);
+    else if (per[2] === 'Y') code = 'y:' + raw;
+    else if (per[2] === 'M') { if (!/^\d{4}-\d{2}$/.test(raw)) return false; code = 'm:' + raw; }
+    else if (per[2] === 'S') code = 's:' + raw + ':' + String(old).split(':')[2];
+    else if (per[2] === 'SY') code = 's:' + String(old).split(':')[1] + ':' + raw;
+    if (!_spPeriodOk(code)) return false;
+    if (isWin) r.win = { p: code }; else r.v = code;
+    return per[2] === 'Kind';   // a new kind brings different boxes
+  }
   if (k === 'winFrom') { r.win = Object.assign({}, r.win, { from: raw }); delete r.win.last; return false; }
   if (k === 'winTo') { r.win = Object.assign({}, r.win, { to: raw }); delete r.win.last; return false; }
   return false;
@@ -2722,7 +2947,13 @@ function _spSafeRules(list, depth) {
     if (r.when === 'last') x.when = 'last';   // "around the chart" rules: the period before
     if (r.span === 0 || r.span === 3) x.span = r.span;
     if (r.win && typeof r.win === 'object') {
-      if (r.win.last > 0 && r.win.last <= 3650) x.win = { last: Math.round(r.win.last) };
+      if (r.win.last > 0 && r.win.last <= 3650) {
+        x.win = { last: Math.round(r.win.last) };
+        if (['week', 'month', 'year'].includes(r.win.unit)) x.win.unit = r.win.unit;
+      }
+      // Named periods, this month in earlier years, a song's first N days (2026-11-16)
+      else if (r.win.p === 'monthPast' || _spPeriodOk(r.win.p)) x.win = { p: String(r.win.p) };
+      else if (r.win.first > 0 && r.win.first <= 3650) x.win = { first: Math.round(r.win.first) };
       else if (/^\d{4}-\d{2}-\d{2}$/.test(r.win.from || '') && /^\d{4}-\d{2}-\d{2}$/.test(r.win.to || '')) x.win = { from: r.win.from, to: r.win.to };
     }
     out.push(x);

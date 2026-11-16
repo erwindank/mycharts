@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 495;
+const DC_CL_I18N_V = 496;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -419,6 +419,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-16', t: 'feature', a: 'playlists',
+    title: "Smart playlists can pick plays from yesterday, last month, a season and more",
+    detail: "Rules about plays now offer quick periods: today, yesterday, this week, last week, this month, last month, this year and last year. You can also pick one year, one month, a season, the last few weeks, months or years, this month in earlier years, or a song's first days after you found it. First played and Last played can use the same periods, for example first played last month." },
   { d: '2026-11-16', t: 'change', a: 'playlists',
     title: "Smart playlist rules are easier to pick, with Bubbling Under and more",
     detail: "Choosing a rule no longer means reading one long list. Tap a rule and pick from groups like Plays, Charts and When you listen, each choice with a short line saying what it does, or search for one. Chart rules show Daily, Weekly, Monthly and Yearly buttons right in the rule. New rules: on the chart now or last time, New entry, Re-entry, Off the Chart, and Bubbling Under (in it now, time spent there, best spot)." },
