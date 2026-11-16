@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 496;
+const DC_CL_I18N_V = 497;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -419,6 +419,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-16', t: 'feature', a: 'playlists',
+    title: "Chart rules in smart playlists can look further back",
+    detail: "On the chart, New entry, Re-entry, Off the Chart and In Bubbling Under used to look only at this week's or last week's chart. Now they can also look a few weeks back, at the same week last year, at any time, at any of the last few weeks, at every one of them, during a month, a year or a season, at one chart you pick by date, or between two dates. The same works on the daily, monthly and yearly charts." },
   { d: '2026-11-16', t: 'feature', a: 'playlists',
     title: "Smart playlists can pick plays from yesterday, last month, a season and more",
     detail: "Rules about plays now offer quick periods: today, yesterday, this week, last week, this month, last month, this year and last year. You can also pick one year, one month, a season, the last few weeks, months or years, this month in earlier years, or a song's first days after you found it. First played and Last played can use the same periods, for example first played last month." },

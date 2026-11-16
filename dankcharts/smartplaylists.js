@@ -693,29 +693,87 @@ spAddField('peakAt',   { kind: 'date',   chart: true, get: _spChartGet('peakAt')
                like the chart pages)
      buWks     periods spent in Bubbling Under, all time
      buPeak    best Bubbling Under spot (1 = just under the chart)
-   rule.when picks the period: 'now' = the running day / week / month / year
-   (what the chart pages open on), 'last' = the one before it, finished. */
+   rule.when picks which charts count (since 2026-11-16 more than two):
+     'now' (or none)  the running day / week / month / year (what the chart
+                      pages open on)
+     'last'           the one before it, finished
+     'ago'            r.n charts back ("3 weeks ago")
+     'yearAgo'        the chart for the same day one year ago
+     'ever'           any chart, all time
+     'lastN'          any of the last r.n charts (the running one included)
+     'allLastN'       every one of the last r.n charts (on the chart / in
+                      Bubbling Under only: "stayed on for 4 weeks running")
+     'period'         any chart in r.per, a period code (see SP_PERIODS):
+                      last month, a year, a month, a season…
+     'date'           the one chart that holds day r.d
+     'range'          any chart from day r.d to day r.d2
+   A chart counts for a period when it overlaps it (a week that starts in
+   October still counts for "during November" if it runs into it). */
 
 const SP_BU_CHARTS = ['day', 'week'];   // Bubbling Under only runs on these
+const SP_WHENS = ['now', 'last', 'ago', 'yearAgo', 'ever', 'lastN', 'allLastN', 'period', 'date', 'range'];
 
-// The running period's key for a chart, never the period the user is viewing
-function _spNowKey(ch) {
-  const now = (typeof tzNow === 'function') ? tzNow() : new Date();
-  const ds = d => (typeof localDateStr === 'function') ? localDateStr(d) : d.toISOString().slice(0, 10);
-  if (ch === 'day') return ds(now);
-  if (ch === 'week') {
-    const wsd = (typeof weekStartDay !== 'undefined') ? weekStartDay : 1;
-    const off = (now.getDay() - wsd + 7) % 7;
-    return ds(new Date(now.getFullYear(), now.getMonth(), now.getDate() - off));
-  }
-  if (ch === 'month') return now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
-  return String(now.getFullYear());
+// The chart key a day string falls in: the day, its week's first day, 'YYYY-MM', 'YYYY'
+function _spKeyOf(ch, ds) {
+  if (ch === 'day') return ds;
+  if (ch === 'month') return ds.slice(0, 7);
+  if (ch === 'year') return ds.slice(0, 4);
+  const d = new Date(ds + 'T12:00:00');
+  const wsd = (typeof weekStartDay !== 'undefined') ? weekStartDay : 1;
+  d.setDate(d.getDate() - (d.getDay() - wsd + 7) % 7);
+  return _spDs(d);
 }
 
-// The period a rule's "when" points at
-function _spWhenKey(r, ch) {
+// The running period's key for a chart, never the period the user is viewing
+function _spNowKey(ch) { return _spKeyOf(ch, _spToday()); }
+
+// The chart period after this one (the other way round from _spPrevKey)
+function _spNextKey(ch, key) {
+  if (ch === 'year') return String(+key + 1);
+  if (ch === 'month') {
+    let [y, m] = key.split('-').map(Number);
+    m++; if (m > 12) { m = 1; y++; }
+    return y + '-' + String(m).padStart(2, '0');
+  }
+  return _spShift(key, ch === 'week' ? 7 : 1);
+}
+
+/* Which charts a rule's "when" means, as { has(key), list, every }:
+   has    does this chart count
+   list   the charts, when there's a short fixed set of them
+   every  the song must be in every one of them, not just one
+   Keys never go past the running chart. Kept per rule and day. */
+let _spWhenCache = new Map();
+function _spWhenSet(r, ch) {
+  const w = (r && SP_WHENS.includes(r.when)) ? r.when : 'now';
+  const n = Math.max(1, Math.min(520, Math.round(+(r && r.n) || 1)));
   const now = _spNowKey(ch);
-  return r && r.when === 'last' ? _spPrevKey(ch, now) : now;
+  const id = [ch, w, n, r && r.per, r && r.d, r && r.d2, now].join('|');
+  let m = _spWhenCache.get(id);
+  if (m) return m;
+  const one = k => ({ has: x => x === k, list: [k], every: false });
+  const back = (k, steps) => { for (let i = 0; i < steps; i++) k = _spPrevKey(ch, k); return k; };
+  const span = (a, b) => ({ has: x => x >= a && x <= b && x <= now, list: null, every: false });
+  if (w === 'last') m = one(_spPrevKey(ch, now));
+  else if (w === 'ago') m = one(back(now, n));
+  else if (w === 'yearAgo') m = one(_spKeyOf(ch, (+_spToday().slice(0, 4) - 1) + _spToday().slice(4)));
+  else if (w === 'ever') m = span('0', now);
+  else if (w === 'lastN' || w === 'allLastN') {
+    const list = [now];
+    while (list.length < n) list.push(_spPrevKey(ch, list[list.length - 1]));
+    const set = new Set(list);
+    m = { has: x => set.has(x), list, every: w === 'allLastN' };
+  } else if (w === 'period') {
+    const p = _spPeriodRange(r.per);
+    m = p ? span(_spKeyOf(ch, p.from), _spKeyOf(ch, p.to)) : one('none');
+  } else if (w === 'date') m = /^\d{4}-\d{2}-\d{2}$/.test(r.d || '') ? one(_spKeyOf(ch, r.d)) : one('none');
+  else if (w === 'range') {
+    const a = /^\d{4}-\d{2}-\d{2}$/.test(r.d || '') ? r.d : '0000-00-00', b = /^\d{4}-\d{2}-\d{2}$/.test(r.d2 || '') ? r.d2 : _spToday();
+    m = span(_spKeyOf(ch, a <= b ? a : b), _spKeyOf(ch, a <= b ? b : a));
+  } else m = one(now);
+  if (_spWhenCache.size > 200) _spWhenCache.clear();
+  _spWhenCache.set(id, m);
+  return m;
 }
 
 // Where period `key` sits in a chronological entry list (-1 = not there).
@@ -729,21 +787,29 @@ function _spEntryAt(E, key) {
   return -1;
 }
 
-// A yes/no fact about one period of a song's chart run
+// A yes/no fact about a song's chart run in the charts the rule's "when" means
 function _spAroundGet(test) {
   return (s, r) => {
     const ch = _spCh(r);
     const f = spChartFacts(ch).get(s.key);
     if (!f) return false;   // never charted: not on it, not new, not dropped
-    const key = _spWhenKey(r, ch);
-    return test(f.E, _spEntryAt(f.E, key), key, ch);
+    return test(f.E, _spWhenSet(r, ch), ch);
   };
 }
 
-spAddField('onChart',  { kind: 'bool', chart: true, when: true, get: _spAroundGet((E, i) => i >= 0) });
-spAddField('newEntry', { kind: 'bool', chart: true, when: true, get: _spAroundGet((E, i) => i === 0) });
-spAddField('reEntry',  { kind: 'bool', chart: true, when: true, get: _spAroundGet((E, i, key, ch) => i > 0 && E[i - 1].periodKey !== _spPrevKey(ch, key)) });
-spAddField('offChart', { kind: 'bool', chart: true, when: true, get: _spAroundGet((E, i, key, ch) => i < 0 && _spEntryAt(E, _spPrevKey(ch, key)) >= 0) });
+// On the chart: in one of the charts (or every one of them, for "each of the last N")
+spAddField('onChart',  { kind: 'bool', chart: true, when: true, every: true, get: _spAroundGet((E, M) =>
+  M.every ? M.list.every(k => _spEntryAt(E, k) >= 0) : (M.list ? M.list.some(k => _spEntryAt(E, k) >= 0) : E.some(e => M.has(e.periodKey)))) });
+// New entry: its very first chart is one of them
+spAddField('newEntry', { kind: 'bool', chart: true, when: true, get: _spAroundGet((E, M) => M.has(E[0].periodKey)) });
+// Re-entry: it came back in one of them, after at least one chart away
+spAddField('reEntry',  { kind: 'bool', chart: true, when: true, get: _spAroundGet((E, M, ch) =>
+  E.some((e, i) => i > 0 && M.has(e.periodKey) && E[i - 1].periodKey !== _spPrevKey(ch, e.periodKey))) });
+// Off the Chart: one of them is the first chart it was missing from, after being on the one before
+spAddField('offChart', { kind: 'bool', chart: true, when: true, get: _spAroundGet((E, M, ch) => {
+  const now = _spNowKey(ch);
+  return E.some((e, i) => { const nk = _spNextKey(ch, e.periodKey); return nk <= now && M.has(nk) && (i + 1 >= E.length || E[i + 1].periodKey !== nk); });
+}) });
 
 /* Bubbling Under history for songs: songKey → { keys: Set of periods, wks, peak }.
    Daily reads the zones daily.js already stores; weekly runs the chart page's
@@ -786,9 +852,14 @@ function _spBuFacts(ch) {
 }
 
 function _spBuCh(r) { return r && r.ch === 'day' ? 'day' : 'week'; }
-spAddField('buNow',  { kind: 'bool',   chart: true, buOnly: true, when: true, get: (s, r) => {
+spAddField('buNow',  { kind: 'bool',   chart: true, buOnly: true, when: true, every: true, get: (s, r) => {
   const ch = _spBuCh(r), x = _spBuFacts(ch).get(s.key);
-  return !!x && x.keys.has(_spWhenKey(r, ch));
+  if (!x) return false;
+  const M = _spWhenSet(r, ch);
+  if (M.every) return M.list.every(k => x.keys.has(k));
+  if (M.list) return M.list.some(k => x.keys.has(k));
+  for (const k of x.keys) if (M.has(k)) return true;
+  return false;
 } });
 spAddField('buWks',  { kind: 'number', chart: true, buOnly: true, get: (s, r) => { const x = _spBuFacts(_spBuCh(r)).get(s.key); return x ? x.wks : 0; } });
 spAddField('buPeak', { kind: 'number', chart: true, buOnly: true, lowFirst: true, get: (s, r) => { const x = _spBuFacts(_spBuCh(r)).get(s.key); return x ? x.peak : null; } });
@@ -1189,7 +1260,30 @@ const SP_PCT_FIELDS = ['morning', 'afternoon', 'evening', 'night', 'lateNight', 
 // "around the chart" rules the period: "this week" / "last week"
 function _spChWords(r) {
   const ch = _spCh(r);
-  return { ch: t('sp_ch_' + ch), units: t('sp_u_' + ch), when: t('sp_when_' + (r && r.when === 'last' ? 'last' : 'now') + '_' + ch) };
+  return { ch: t('sp_ch_' + ch), units: t('sp_u_' + ch), when: _spWhenWords(r, ch) };
+}
+
+/* A rule's "when" in words, to follow "on the weekly chart":
+   "this week", "3 weeks ago", "at any time", "in the last 4 weeks",
+   "last month", "in 2023", "(Week of 3 Nov 2025)", "from … to …" */
+function _spWhenWords(r, ch) {
+  const w = r && r.when;
+  const n = Math.max(1, Math.round(+(r && r.n) || 1));
+  const units = t('sp_u_' + ch);
+  if (w === 'last') return t('sp_when_last_' + ch);
+  if (w === 'ago') return t('sp_whenw_ago', { n, units });
+  if (w === 'yearAgo') return t('sp_when_yearAgo_' + ch);
+  if (w === 'ever') return t('sp_whenw_ever');
+  if (w === 'lastN') return t('sp_whenw_lastN_' + ch, { n });
+  if (w === 'allLastN') return t('sp_whenw_allLastN_' + ch, { n });
+  if (w === 'period') return spPeriodWords(r.per);
+  if (w === 'date' && r.d) {
+    const key = _spKeyOf(ch, r.d);
+    const title = (typeof crPeriodTitle === 'function') ? crPeriodTitle(ch, key) : key;
+    return t('sp_whenw_date', { d: title });
+  }
+  if (w === 'range') return t('sp_whenw_range', { a: _spFmtDay(r.d), b: _spFmtDay(r.d2) });
+  return t('sp_when_now_' + ch);
 }
 
 // A field's name, with its chart or date window filled in
@@ -1233,7 +1327,7 @@ function spPeriodWords(code) {
   if ((x = /^m:(\d{4}-\d{2})$/.exec(code))) return t('sp_per_in', { x: _spMonthName(x[1]) });
   if ((x = /^s:(\w+):(\d{4})$/.exec(code))) {
     const y = +x[2];
-    return t('sp_per_in', { x: t('sp_season_y_' + x[1], { y, y2: String(y + 1).slice(-2) }) });
+    return t('sp_season_y_' + x[1], { y, y2: String(y + 1).slice(-2) });   // carries its own "in" (pt: "no verão")
   }
   return code;
 }
@@ -1685,13 +1779,21 @@ function _spBFixValue(r) {
 
 // ─── Opening and closing ──────────────────────────────────────────────────
 
-// New smart playlist (preset = a ready-made id to start from, optional)
-function spOpenBuilder(name, preset) {
+// New smart playlist (preset = a ready-made id to start from, optional).
+// copy = true opens a copy of smart playlist `name` instead: same rules,
+// a free name ("… (copy)"), both can be changed before it's saved as a new list
+function spOpenBuilder(name, preset, copy) {
   if (!spSignedIn()) { spSignInvite(); return; }
   const modal = document.getElementById('spBuilderModal');
   if (!modal) return;
   document.querySelectorAll('.ctrl-group.open').forEach(g => g.classList.remove('open'));
-  if (name && spIsSmart(name)) {
+  if (name && copy && spIsSmart(name)) {
+    const def = JSON.parse(JSON.stringify(spGet(name)));
+    // The copy is the user's own list: not the ready-made one it may have
+    // come from (so that one is still offered), and no change alerts
+    delete def.ready; delete def.readyOpt; delete def.readyEdited; delete def.notify;
+    _spB = { orig: null, copyOf: name, name: _spCopyName(name), def, mode: 'live', err: '' };
+  } else if (name && spIsSmart(name)) {
     const def = JSON.parse(JSON.stringify(spGet(name)));
     _spB = { orig: name, name, def, mode: 'live', err: '' };
   } else {
@@ -1699,11 +1801,23 @@ function spOpenBuilder(name, preset) {
     if (def) { delete def.ready; delete def.readyOpt; }
     _spB = { orig: null, name: preset ? t('sp_ready_' + preset) : '', def, mode: 'live', err: '', preset: preset || '' };
   }
-  document.getElementById('spBTitle').textContent = t(_spB.orig ? 'sp_b_title_edit' : 'sp_b_title_new');
+  document.getElementById('spBTitle').textContent = t(_spB.orig ? 'sp_b_title_edit' : _spB.copyOf ? 'sp_b_title_copy' : 'sp_b_title_new');
   _spBRender();
   modal.classList.add('open');
   if (typeof dcFillIcons === 'function') dcFillIcons(modal);
-  setTimeout(() => { const n = document.getElementById('spBName'); if (n && !_spB.orig) n.focus(); }, 60);
+  // A copy's name is picked whole, so typing replaces "… (copy)" straight away
+  setTimeout(() => { const n = document.getElementById('spBName'); if (n && !_spB.orig) { n.focus(); if (_spB.copyOf) n.select(); } }, 60);
+}
+
+// A free name for a copy: "Name (copy)", then "Name (copy 2)"… (40 letters max, like the name box)
+function _spCopyName(name) {
+  const taken = n => !!_ytPlaylists[n] || spIsSmart(n) || (typeof _ytIsFavName === 'function' && _ytIsFavName(n));
+  for (let i = 1; i < 100; i++) {
+    const tag = ' ' + t(i === 1 ? 'sp_b_copy_tag' : 'sp_b_copy_tag_n', { n: i });
+    const out = name.slice(0, 40 - tag.length).trim() + tag;
+    if (!taken(out)) return out;
+  }
+  return '';
 }
 
 function spCloseBuilder() {
@@ -1842,12 +1956,13 @@ function _spBPerExtras(code, k) {
 }
 
 // The period list for a first / last played rule ("during last month")
-function _spBPerValueHtml(code) {
+// (k = 'per' for first / last played, 'wp' for an "around the chart" rule's period)
+function _spBPerValueHtml(code, k = 'per') {
   const kind = _spPerKind(code);
-  return `<select class="dc-input spb-small" data-k="perKind" aria-label="${esc(t('sp_b_value'))}">` +
+  return `<select class="dc-input spb-small" data-k="${k}Kind" aria-label="${esc(t('sp_b_value'))}">` +
     SP_PERIODS.map(p => _spBOpt(p, t('sp_win_p_' + p), kind === p)).join('') +
     ['year', 'month', 'season'].map(m => _spBOpt(m, t('sp_win_' + m), kind === m)).join('') +
-    `</select>` + _spBPerExtras(code, 'per');
+    `</select>` + _spBPerExtras(code, k);
 }
 
 /* Which chart a chart rule reads, as buttons right in the rule (it used to be
@@ -1871,8 +1986,26 @@ function _spBExtrasHtml(r) {
   let html = '';
   if (f.when) {
     const ch = f.buOnly ? _spBuCh(r) : _spCh(r);
+    const w = SP_WHENS.includes(r.when) ? r.when : 'now';
+    const units = t('sp_u_' + ch);
+    // Which charts count: the two the chart pages show first, then the rest (2026-11-16)
+    const opt = m => {
+      if (m === 'now' || m === 'last') return _spBOpt(m, t('sp_when_' + m + '_' + ch), w === m);
+      if (m === 'yearAgo') return ch === 'year' ? '' : _spBOpt(m, t('sp_when_yearAgo_' + ch), w === m);
+      if (m === 'allLastN' && !f.every) return '';   // "every one of" only fits on the chart / in BU
+      return _spBOpt(m, t(m === 'lastN' || m === 'allLastN' ? 'sp_wo_' + m + '_' + ch : 'sp_wo_' + m, { units }), w === m);
+    };
     html += `<select class="dc-input spb-small" data-k="when" aria-label="${esc(t('sp_b_when'))}">` +
-      _spBOpt('now', t('sp_when_now_' + ch), r.when !== 'last') + _spBOpt('last', t('sp_when_last_' + ch), r.when === 'last') + `</select>`;
+      opt('now') + opt('last') +
+      `<optgroup label="${esc(t('sp_win_g_more'))}">` + SP_WHENS.slice(2).map(opt).join('') + `</optgroup>` +
+      `</select>`;
+    if (w === 'ago' || w === 'lastN' || w === 'allLastN') {
+      html += `<input class="dc-input spb-num" type="number" min="1" max="520" data-k="whenN" value="${esc(String(r.n || 1))}" aria-label="${esc(t('sp_b_value'))}"><span class="spb-unit">${esc(units)}</span>`;
+    }
+    if (w === 'period') html += _spBPerValueHtml(r.per, 'wp');
+    if (w === 'date') html += `<input class="dc-input spb-date" type="date" data-k="whenD" max="${_spToday()}" value="${esc(r.d || '')}" aria-label="${esc(t('sp_wo_date', { units }))}">`;
+    if (w === 'range') html += `<input class="dc-input spb-date" type="date" data-k="whenD" value="${esc(r.d || '')}" aria-label="${esc(t('sp_b_from'))}"><span class="spb-unit">–</span>` +
+      `<input class="dc-input spb-date" type="date" data-k="whenD2" value="${esc(r.d2 || '')}" aria-label="${esc(t('sp_b_to'))}">`;
   }
   if (r.f === 'plays') {
     const mode = _spBWinMode(r.win);
@@ -2042,8 +2175,9 @@ function _spBRender() {
   let html = `<div class="spb-top">` +
     `<label class="spb-name"><span class="spb-label">${esc(t('sp_b_name'))}</span>` +
     `<input id="spBName" class="dc-input" type="text" maxlength="40" value="${esc(_spB.name)}" placeholder="${esc(t('sp_b_name_ph'))}"></label>`;
-  // A new list can start from a ready-made one ("edit a copy")
-  if (!_spB.orig) {
+  // A new list can start from a ready-made one ("edit a copy"); a duplicate
+  // already has its rules, so it doesn't get the choice
+  if (!_spB.orig && !_spB.copyOf) {
     html += `<label class="spb-name"><span class="spb-label">${esc(t('sp_b_start'))}</span>` +
       `<select id="spBPreset" class="dc-input">` + _spBOpt('', t('sp_b_start_blank'), !_spB.preset) +
       SP_READY_IDS.map(id => _spBOpt(id, t('sp_ready_' + id), _spB.preset === id)).join('') + `</select></label>`;
@@ -2163,8 +2297,27 @@ function _spBSet(path, k, raw) {
     r.v[k === 'v0' ? 0 : 1] = f.kind === 'number' ? num(raw) : raw;
     return false;
   }
-  if (k === 'ch') { r.ch = raw; return true; }   // the labels name the chart
-  if (k === 'when') { if (raw === 'last') r.when = 'last'; else delete r.when; return false; }
+  if (k === 'ch') {
+    r.ch = raw;
+    // A yearly chart has no "same year last year": that's just last year
+    if (raw === 'year' && r.when === 'yearAgo') r.when = 'last';
+    return true;   // the labels name the chart
+  }
+  if (k === 'when') {
+    // Each choice brings its own boxes, with a sensible start
+    delete r.n; delete r.per; delete r.d; delete r.d2;
+    if (raw === 'now' || !SP_WHENS.includes(raw)) { delete r.when; return true; }
+    r.when = raw;
+    if (raw === 'ago') r.n = 2;
+    if (raw === 'lastN' || raw === 'allLastN') r.n = 4;
+    if (raw === 'period') r.per = 'lastMonth';
+    if (raw === 'date') r.d = _spBDaysAgo(30);
+    if (raw === 'range') { r.d = _spBDaysAgo(90); r.d2 = _spBToday(); }
+    return true;
+  }
+  if (k === 'whenN') { r.n = Math.max(1, Math.min(520, Math.round(+raw || 1))); return false; }
+  if (k === 'whenD') { if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) r.d = raw; return false; }
+  if (k === 'whenD2') { if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) r.d2 = raw; return false; }
   if (k === 'span') { r.span = +raw; return true; }
   if (k === 'dir') {
     const low = !!(SP_FIELDS[r.f] && SP_FIELDS[r.f].lowFirst);
@@ -2184,10 +2337,11 @@ function _spBSet(path, k, raw) {
   if (k === 'winUnit') { r.win = Object.assign({ last: (r.win && r.win.last) || 1 }, raw === 'day' ? {} : { unit: raw }); return false; }
   if (k === 'winFirst') { r.win = { first: Math.max(1, +raw || 1) }; return false; }
   // Year / month / season boxes, for the plays window (win…) and first / last played (per…)
-  const per = /^(win|per)(Kind|Y|M|S|SY)$/.exec(k);
+  // (wp = an "around the chart" rule's period, kept in r.per)
+  const per = /^(win|per|wp)(Kind|Y|M|S|SY)$/.exec(k);
   if (per) {
-    const isWin = per[1] === 'win';
-    const old = isWin ? (r.win && r.win.p) : r.v;
+    const isWin = per[1] === 'win', isWp = per[1] === 'wp';
+    const old = isWin ? (r.win && r.win.p) : isWp ? r.per : r.v;
     let code = old;
     if (per[2] === 'Kind') code = _spPerFresh(raw, old);
     else if (per[2] === 'Y') code = 'y:' + raw;
@@ -2195,7 +2349,7 @@ function _spBSet(path, k, raw) {
     else if (per[2] === 'S') code = 's:' + raw + ':' + String(old).split(':')[2];
     else if (per[2] === 'SY') code = 's:' + String(old).split(':')[1] + ':' + raw;
     if (!_spPeriodOk(code)) return false;
-    if (isWin) r.win = { p: code }; else r.v = code;
+    if (isWin) r.win = { p: code }; else if (isWp) r.per = code; else r.v = code;
     return per[2] === 'Kind';   // a new kind brings different boxes
   }
   if (k === 'winFrom') { r.win = Object.assign({}, r.win, { from: raw }); delete r.win.last; return false; }
@@ -2359,10 +2513,14 @@ function spNewCardHtml() {
     `</div>`;
 }
 
-// "Edit rules" on an open smart playlist
+// "Edit rules" on an open smart playlist, and "Duplicate" next to it
+// (opens the builder on a copy, to rename and change before saving)
 function spEditBtnHtml(name) {
-  return `<button type="button" class="dc-btn dc-btn-normal spb-edit-btn" onclick="spOpenBuilder(${esc(JSON.stringify(name))})">` +
-    `<span aria-hidden="true">✨</span><span>${esc(t('sp_b_edit'))}</span></button>`;
+  const nj = esc(JSON.stringify(name));
+  return `<button type="button" class="dc-btn dc-btn-normal spb-edit-btn" onclick="spOpenBuilder(${nj})">` +
+    `<span aria-hidden="true">✨</span><span>${esc(t('sp_b_edit'))}</span></button>` +
+    `<button type="button" class="dc-btn dc-btn-normal spb-edit-btn spb-dup-btn" onclick="spOpenBuilder(${nj},null,true)" title="${esc(t('sp_b_dup_hint'))}">` +
+    `<span aria-hidden="true">⧉</span><span>${esc(t('sp_b_dup'))}</span></button>`;
 }
 
 // The window's listeners, set once
@@ -2944,7 +3102,14 @@ function _spSafeRules(list, depth) {
     if (Array.isArray(r.v)) { if (r.v.length === 2 && r.v.every(okV)) x.v = r.v.slice(); else continue; }
     else if (okV(r.v)) x.v = r.v; else if (r.v != null) continue;
     if (SP_CHARTS.includes(r.ch)) x.ch = r.ch;
-    if (r.when === 'last') x.when = 'last';   // "around the chart" rules: the period before
+    // "Around the chart" rules: which charts count (see _spWhenSet)
+    if (SP_WHENS.includes(r.when) && r.when !== 'now') {
+      x.when = r.when;
+      if (r.n > 0 && r.n <= 520) x.n = Math.round(r.n);
+      if (_spPeriodOk(r.per)) x.per = String(r.per);
+      if (/^\d{4}-\d{2}-\d{2}$/.test(r.d || '')) x.d = r.d;
+      if (/^\d{4}-\d{2}-\d{2}$/.test(r.d2 || '')) x.d2 = r.d2;
+    }
     if (r.span === 0 || r.span === 3) x.span = r.span;
     if (r.win && typeof r.win === 'object') {
       if (r.win.last > 0 && r.win.last <= 3650) {

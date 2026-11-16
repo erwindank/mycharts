@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Chart rules in smart playlists can look further back":
+    ["Las reglas de listas en las listas inteligentes miran más atrás",
+     "En la lista, Nueva entrada, Reentrada, Fuera del Ranking y En Aspirantes antes solo miraban la lista de esta semana o la de la semana pasada. Ahora también pueden mirar unas semanas atrás, la misma semana del año pasado, cualquier momento, alguna de las últimas semanas, cada una de ellas, un mes, un año o una estación, una lista que elijas por fecha, o entre dos fechas. Funciona igual con las listas diaria, mensual y anual."],
   "Smart playlists can pick plays from yesterday, last month, a season and more":
     ["Las listas inteligentes pueden elegir reproducciones de ayer, el mes pasado, una estación y más",
      "Las reglas de reproducciones ahora tienen periodos rápidos: hoy, ayer, esta semana, la semana pasada, este mes, el mes pasado, este año y el año pasado. También puedes elegir un año, un mes, una estación, las últimas semanas, meses o años, este mes en años anteriores, o los primeros días de una canción desde que la descubriste. Primera escucha y Última escucha usan los mismos periodos, por ejemplo primera escucha el mes pasado."],

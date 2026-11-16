@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Chart rules in smart playlists can look further back":
+    ["As regras de tabela das playlists inteligentes olham mais para trás",
+     "Na tabela, Nova entrada, Reentrada, Fora do Top e Em Aspirantes antes só olhavam a tabela desta semana ou da semana passada. Agora também podem olhar algumas semanas atrás, a mesma semana do ano passado, qualquer momento, alguma das últimas semanas, cada uma delas, um mês, um ano ou uma estação, uma tabela escolhida pela data, ou entre duas datas. Funciona também nas tabelas diária, mensal e anual."],
   "Smart playlists can pick plays from yesterday, last month, a season and more":
     ["As playlists inteligentes podem usar reproduções de ontem, do mês passado, de uma estação e mais",
      "As regras de reproduções têm agora períodos rápidos: hoje, ontem, esta semana, semana passada, este mês, mês passado, este ano e ano passado. Também podes escolher um ano, um mês, uma estação, as últimas semanas, meses ou anos, este mês em anos anteriores, ou os primeiros dias de uma música desde que a descobriste. Primeira e Última reprodução usam os mesmos períodos, por exemplo primeira reprodução no mês passado."],
