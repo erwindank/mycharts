@@ -51,12 +51,12 @@ function _spDay(p) {
 // Lower case + trimmed, for text rules
 function _spNorm(s) { return String(s == null ? '' : s).toLowerCase().trim(); }
 
-// Text for "contains" / "starts with" rules. Punctuation that splits words
-// (dashes, brackets, commas, quotes…) counts as a space and runs of spaces
-// become one, so a space the user types matches any word edge. The title is
-// padded with a space each side, so a typed space also matches its start/end.
-// Apostrophes stay, so "don't" still matches "Don't".
-const _SP_WORD_GAP = /[\s\-–—()\[\]{},.!?"“”/&:;+]+/g;
+// Text for "contains" / "starts with" rules. Only real spaces count as
+// spaces (runs of them become one); punctuation — dashes, brackets, &, ?, !,
+// quotes — stays as it is, so it can be searched for. The title is padded
+// with a space each side, so a typed space also matches its start/end:
+// "cry " finds "Don't Wanna Cry" but not "Crystal Ball".
+const _SP_WORD_GAP = /\s+/g;
 function _spWords(s) {
   return ' ' + String(s == null ? '' : s).toLowerCase().replace(_SP_WORD_GAP, ' ').trim() + ' ';
 }
@@ -2157,7 +2157,27 @@ function _spBRuleHtml(r, path) {
     `<button type="button" class="dc-btn dc-btn-plain dc-btn-icon dc-btn-sm spb-del" data-act="del" title="${esc(t('sp_b_remove'))}" aria-label="${esc(t('sp_b_remove'))}">✕</button></div>` +
     `<div class="spb-rule-body">${_spBExtrasHtml(r)}${_spBOpHtml(r)}${_spBValueHtml(r)}</div>` +
     (missing ? `<p class="spb-rule-note">${esc(t('sp_skip_' + f.needs))}</p>` : '') +
+    // Text rules: a heads-up when the typed text starts/ends with a space
+    // (it counts in the search, so it may be there by mistake)
+    (f && f.kind === 'text' ? _spBSpaceNoteHtml(r.v) : '') +
     `</div>`;
+}
+
+// Which end(s) of the typed text have a space: '', 'start', 'end' or 'both'
+function _spBSpaceEnds(v) {
+  const s = String(v == null ? '' : v);
+  if (!s.trim()) return '';   // empty or only spaces: nothing to warn about
+  const a = /^\s/.test(s), b = /\s$/.test(s);
+  return a && b ? 'both' : a ? 'start' : b ? 'end' : '';
+}
+function _spBSpaceNoteText(v) {
+  const where = _spBSpaceEnds(v);
+  return where ? t('sp_b_space_' + where) : '';
+}
+// Always drawn (hidden when not needed) so typing can show/hide it in place
+function _spBSpaceNoteHtml(v) {
+  const msg = _spBSpaceNoteText(v);
+  return `<p class="spb-rule-note spb-space-note"${msg ? '' : ' hidden'}>${esc(msg)}</p>`;
 }
 
 function _spBMatchSeg(match, path) {
@@ -2512,6 +2532,11 @@ function _spBInput(e) {
   // Typing in a box only updates the preview; picking from a list may
   // change the row, which is redrawn on 'change'
   if (e.type === 'input' && el.tagName === 'SELECT') return;
+  // Text box: show/hide the "there's a space" heads-up while typing
+  if (k === 'v' && el.classList.contains('spb-text')) {
+    const note = row.querySelector(':scope > .spb-space-note');
+    if (note) { const msg = _spBSpaceNoteText(el.value); note.textContent = msg; note.hidden = !msg; }
+  }
   const redraw = _spBSet(row.dataset.path, k, el.value);
   if (redraw && e.type === 'change') _spBRender(); else _spBSoon();
 }
