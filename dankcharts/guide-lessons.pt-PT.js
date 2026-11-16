@@ -3035,7 +3035,7 @@ window.GL_TEXT['pt-PT'] = {
           start: ['{{t:sp_b_start}}', 'Em branco, ou uma cópia de uma playlist pronta para mudar.'],
           match: ['{{t:sp_b_match_all}} / {{t:sp_b_match_any}}', 'Todas as regras, ou só uma.'],
           rule: ['Uma regra', 'O que verificar, como e o valor.'],
-          field: ['{{t:sp_b_field}}', 'Reproduções, datas, tabelas, género, quando ouves, notas, tuas outras playlists…'],
+          field: ['{{t:sp_b_field}}', 'Toca para escolher de uma lista em que cada regra é explicada: reproduções, tabelas, Aspirantes, Novas Entradas, quando ouves, classificações, as tuas outras playlists…'],
           chart: ['{{t:sp_b_chart}}', 'Uma regra de tabela escolhe a tabela: diária, semanal, mensal ou anual.'],
           cond: ['{{t:sp_b_condition}}', 'Pelo menos, no top, nos últimos… dias, contém…'],
           value: ['{{t:sp_b_value}}', 'Um número, uma data ou um nome. Artista, álbum e género sugerem os seus.'],

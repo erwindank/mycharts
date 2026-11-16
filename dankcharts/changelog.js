@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 494;
+const DC_CL_I18N_V = 495;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -419,6 +419,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-16', t: 'change', a: 'playlists',
+    title: "Smart playlist rules are easier to pick, with Bubbling Under and more",
+    detail: "Choosing a rule no longer means reading one long list. Tap a rule and pick from groups like Plays, Charts and When you listen, each choice with a short line saying what it does, or search for one. Chart rules show Daily, Weekly, Monthly and Yearly buttons right in the rule. New rules: on the chart now or last time, New entry, Re-entry, Off the Chart, and Bubbling Under (in it now, time spent there, best spot)." },
   { d: '2026-11-15', t: 'feature', a: 'charts',
     title: "A countdown to the next Dank 100",
     detail: "The Dank 100 page now counts down the days, hours, minutes and seconds until the next chart is out. Press Notify me and you'll be told when it's ready: a pop-up while dankcharts is open, and a line in your Notifications if you're signed in." },

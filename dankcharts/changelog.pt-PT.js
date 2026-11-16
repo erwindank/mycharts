@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Smart playlist rules are easier to pick, with Bubbling Under and more":
+    ["As regras das playlists inteligentes estão mais fáceis de escolher, com Aspirantes e mais",
+     "Escolher uma regra já não é ler uma lista enorme. Toca numa regra e escolhe entre grupos como Reproduções, Tabelas e Quando ouves, cada opção com uma linha a explicar o que faz, ou procura-a. As regras de tabela mostram os botões Diária, Semanal, Mensal e Anual na própria regra. Regras novas: na tabela agora ou na última, Nova entrada, Reentrada, Fora do Top e Aspirantes (estar agora, tempo passado lá, melhor posição)."],
   "A countdown to the next Dank 100":
     ["Uma contagem decrescente para o próximo Dank 100",
      "A página do The Dank 100 agora conta os dias, horas, minutos e segundos até sair o próximo top. Carrega em Avisa-me e vamos avisar-te quando estiver pronto: um aviso enquanto o dankcharts estiver aberto, e uma linha nas tuas Notificações se tiveres sessão iniciada."],

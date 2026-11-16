@@ -3035,7 +3035,7 @@ window.GL_TEXT.es = {
           start: ['{{t:sp_b_start}}', 'En blanco, o una copia de una lista ya hecha para cambiarla.'],
           match: ['{{t:sp_b_match_all}} / {{t:sp_b_match_any}}', 'Todas las reglas, o solo una.'],
           rule: ['Una regla', 'Qué comprobar, cómo y el valor.'],
-          field: ['{{t:sp_b_field}}', 'Reproducciones, fechas, listas, género, cuándo escuchas, puntuaciones, tus otras listas…'],
+          field: ['{{t:sp_b_field}}', 'Tócalo para elegir de una lista en la que cada regla está explicada: reproducciones, listas, Aspirantes, Nuevas Entradas, cuándo escuchas, puntuaciones, tus otras listas…'],
           chart: ['{{t:sp_b_chart}}', 'Una regla de ranking elige su lista: diaria, semanal, mensual o anual.'],
           cond: ['{{t:sp_b_condition}}', 'Al menos, en el top, en los últimos… días, contiene…'],
           value: ['{{t:sp_b_value}}', 'Un número, una fecha o un nombre. Artista, álbum y género te sugieren los tuyos.'],

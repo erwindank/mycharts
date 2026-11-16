@@ -572,7 +572,9 @@ function spChartFacts(ch) {
       } else { runs++; cur = 1; }
       if (cur > longest) longest = cur;
     }
-    map.set(k, { peak, wks: E.length, at1, debut: E[0].rank, climb, runs, longest, toPeak, at1At, peakAt });
+    // E rides along for the "around the chart" rules (on the chart now, new
+    // entry, re-entry, dropped off), which look up one period in it
+    map.set(k, { peak, wks: E.length, at1, debut: E[0].rank, climb, runs, longest, toPeak, at1At, peakAt, E });
   }
   _spChartCache[ch] = { gen, map };
   return map;
@@ -595,6 +597,116 @@ spAddField('longest',  { kind: 'number', chart: true, get: _spChartGet('longest'
 spAddField('toPeak',   { kind: 'number', chart: true, get: _spChartGet('toPeak') });
 spAddField('at1At',    { kind: 'date',   chart: true, get: _spChartGet('at1At') });
 spAddField('peakAt',   { kind: 'date',   chart: true, get: _spChartGet('peakAt') });
+
+// ─── AROUND THE CHART ─────────────────────────────────────────────────────
+/* The lists that sit around each chart on the chart pages, as rules:
+     onChart   on that chart in the period
+     newEntry  first time ever on that chart (a New Entry)
+     reEntry   back on that chart after time off it
+     offChart  on the chart the period before, not in this one (Off the Chart)
+     buNow     in the Bubbling Under zone in the period (Daily / Weekly only,
+               like the chart pages)
+     buWks     periods spent in Bubbling Under, all time
+     buPeak    best Bubbling Under spot (1 = just under the chart)
+   rule.when picks the period: 'now' = the running day / week / month / year
+   (what the chart pages open on), 'last' = the one before it, finished. */
+
+const SP_BU_CHARTS = ['day', 'week'];   // Bubbling Under only runs on these
+
+// The running period's key for a chart, never the period the user is viewing
+function _spNowKey(ch) {
+  const now = (typeof tzNow === 'function') ? tzNow() : new Date();
+  const ds = d => (typeof localDateStr === 'function') ? localDateStr(d) : d.toISOString().slice(0, 10);
+  if (ch === 'day') return ds(now);
+  if (ch === 'week') {
+    const wsd = (typeof weekStartDay !== 'undefined') ? weekStartDay : 1;
+    const off = (now.getDay() - wsd + 7) % 7;
+    return ds(new Date(now.getFullYear(), now.getMonth(), now.getDate() - off));
+  }
+  if (ch === 'month') return now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+  return String(now.getFullYear());
+}
+
+// The period a rule's "when" points at
+function _spWhenKey(r, ch) {
+  const now = _spNowKey(ch);
+  return r && r.when === 'last' ? _spPrevKey(ch, now) : now;
+}
+
+// Where period `key` sits in a chronological entry list (-1 = not there).
+// Walks back from the end, since rules almost always ask about recent periods.
+function _spEntryAt(E, key) {
+  for (let i = E.length - 1; i >= 0; i--) {
+    const pk = E[i].periodKey;
+    if (pk === key) return i;
+    if (pk < key) return -1;
+  }
+  return -1;
+}
+
+// A yes/no fact about one period of a song's chart run
+function _spAroundGet(test) {
+  return (s, r) => {
+    const ch = _spCh(r);
+    const f = spChartFacts(ch).get(s.key);
+    if (!f) return false;   // never charted: not on it, not new, not dropped
+    const key = _spWhenKey(r, ch);
+    return test(f.E, _spEntryAt(f.E, key), key, ch);
+  };
+}
+
+spAddField('onChart',  { kind: 'bool', chart: true, when: true, get: _spAroundGet((E, i) => i >= 0) });
+spAddField('newEntry', { kind: 'bool', chart: true, when: true, get: _spAroundGet((E, i) => i === 0) });
+spAddField('reEntry',  { kind: 'bool', chart: true, when: true, get: _spAroundGet((E, i, key, ch) => i > 0 && E[i - 1].periodKey !== _spPrevKey(ch, key)) });
+spAddField('offChart', { kind: 'bool', chart: true, when: true, get: _spAroundGet((E, i, key, ch) => i < 0 && _spEntryAt(E, _spPrevKey(ch, key)) >= 0) });
+
+/* Bubbling Under history for songs: songKey → { keys: Set of periods, wks, peak }.
+   Daily reads the zones daily.js already stores; weekly runs the chart page's
+   own BU builder, with the weekly chart sizes in place (the builder reads the
+   sizes of whatever chart is on screen). */
+let _spBuCache = {};
+function _spBuFacts(ch) {
+  ch = ch === 'day' ? 'day' : 'week';
+  let gen = '', zones = null;
+  try {
+    if (ch === 'day') {
+      if (typeof dyHistory !== 'function') return new Map();
+      const h = dyHistory();
+      gen = 'd|' + h.gen;
+      if (_spBuCache[ch] && _spBuCache[ch].gen === gen) return _spBuCache[ch].map;
+      zones = [];
+      for (const day of h.days) for (const z of (h.bu.songs[day] || [])) zones.push([z.k, day, z.buRank]);
+    } else {
+      if (typeof _buildBuChartRunFull !== 'function') return new Map();
+      gen = 'w|' + _crGeneration();
+      if (_spBuCache[ch] && _spBuCache[ch].gen === gen) return _spBuCache[ch].map;
+      const keep = [chartSizeSongs, chartSizeArtists, chartSizeAlbums];
+      let run;
+      try {
+        chartSizeSongs = chartSizeSongsW; chartSizeArtists = chartSizeArtistsW; chartSizeAlbums = chartSizeAlbumsW;
+        run = _buildBuChartRunFull();
+      } finally { [chartSizeSongs, chartSizeArtists, chartSizeAlbums] = keep; }
+      zones = [];
+      for (const k in run.result.songs) for (const e of run.result.songs[k].entries) zones.push([k, e.periodKey, e.buRank]);
+    }
+  } catch (e) { return new Map(); }
+  const map = new Map();
+  for (const [k, pk, rank] of zones) {
+    const x = map.get(k) || { keys: new Set(), wks: 0, peak: Infinity };
+    x.keys.add(pk); x.wks++; if (rank < x.peak) x.peak = rank;
+    map.set(k, x);
+  }
+  _spBuCache[ch] = { gen, map };
+  return map;
+}
+
+function _spBuCh(r) { return r && r.ch === 'day' ? 'day' : 'week'; }
+spAddField('buNow',  { kind: 'bool',   chart: true, buOnly: true, when: true, get: (s, r) => {
+  const ch = _spBuCh(r), x = _spBuFacts(ch).get(s.key);
+  return !!x && x.keys.has(_spWhenKey(r, ch));
+} });
+spAddField('buWks',  { kind: 'number', chart: true, buOnly: true, get: (s, r) => { const x = _spBuFacts(_spBuCh(r)).get(s.key); return x ? x.wks : 0; } });
+spAddField('buPeak', { kind: 'number', chart: true, buOnly: true, lowFirst: true, get: (s, r) => { const x = _spBuFacts(_spBuCh(r)).get(s.key); return x ? x.peak : null; } });
 
 // ─── LISTENING HABITS ─────────────────────────────────────────────────────
 /* When in the day and week a song gets played. Needs real play times: a
@@ -988,10 +1100,11 @@ function spMerge(remote) {
 // Percentages get a % sign in the sentence
 const SP_PCT_FIELDS = ['morning', 'afternoon', 'evening', 'night', 'lateNight', 'weekend', 'artistShare', 'topPct'];
 
-// The words for a rule's chart: "weekly" and its unit, "weeks"
+// The words for a rule's chart: "weekly" and its unit, "weeks", and for the
+// "around the chart" rules the period: "this week" / "last week"
 function _spChWords(r) {
   const ch = _spCh(r);
-  return { ch: t('sp_ch_' + ch), units: t('sp_u_' + ch) };
+  return { ch: t('sp_ch_' + ch), units: t('sp_u_' + ch), when: t('sp_when_' + (r && r.when === 'last' ? 'last' : 'now') + '_' + ch) };
 }
 
 // A field's name, with its chart or date window filled in
@@ -1366,11 +1479,22 @@ const SP_B_GROUPS = [
   ['song',     ['title', 'artist', 'album', 'genre', 'release']],
   ['plays',    ['plays', 'days', 'maxDay', 'first', 'last', 'otd']],
   ['charts',   ['charted', 'peak', 'wks', 'at1', 'debut', 'climb', 'runs', 'longest', 'toPeak', 'at1At', 'peakAt']],
+  // On the chart now, New Entries, Off the Chart, Bubbling Under (2026-11-16)
+  ['around',   ['onChart', 'newEntry', 'reEntry', 'offChart', 'buNow', 'buWks', 'buPeak']],
   ['habits',   ['topPart', 'morning', 'afternoon', 'evening', 'night', 'lateNight', 'weekend', 'topHour', 'topDay']],
   ['compared', ['rankAll', 'topPct', 'artistBest', 'artistShare', 'artistPlays', 'artistSongs', 'albumPlays', 'albumRank', 'albumTop']],
   ['ratings',  ['rating', 'aboveAvg', 'cert']],
   ['lists',    ['inList']]
 ];
+
+// One emoji per group, shown on the picker's tabs and cards and on each rule
+const SP_B_ICONS = { song: '🎵', plays: '🔁', charts: '📈', around: '🫧', habits: '🕒', compared: '⚖️', ratings: '⭐', lists: '📂' };
+
+// The group a field sits in ('song' when it's in none)
+function _spBGroupOf(id) {
+  for (const [g, ids] of SP_B_GROUPS) if (ids.includes(id)) return g;
+  return 'song';
+}
 
 // The conditions each kind of field offers, in order
 const SP_B_OPS = {
@@ -1385,7 +1509,9 @@ const SP_B_OPS = {
   pl:     ['in', 'notIn']
 };
 
-let _spB = null;   // { orig: name being edited or null, name, def, mode: 'live'|'once', err }
+/* _spB = { orig: name being edited or null, name, def, mode: 'live'|'once', err,
+            pick: null or { path, cat, q, scroll } while the rule picker is open } */
+let _spB = null;
 let _spBTimer = null;
 
 function _spBToday() {
@@ -1473,33 +1599,88 @@ function _spBOpt(value, label, selected, disabled) {
   return `<option value="${esc(String(value))}"${selected ? ' selected' : ''}${disabled ? ' disabled' : ''}>${esc(label)}</option>`;
 }
 
-// The field picker; fields the library can't use are greyed with what they need
-function _spBFieldSelect(cur, r, forSort) {
-  let html = `<select class="dc-input spb-field" data-k="f" aria-label="${esc(t('sp_b_field'))}">`;
-  if (forSort) html += _spBOpt('random', t('sp_b_random'), cur === 'random');
-  for (const [g, ids] of SP_B_GROUPS) {
-    html += `<optgroup label="${esc(t('sp_g_' + g))}">`;
-    for (const id of ids) {
-      const f = SP_FIELDS[id];
-      if (!f || (forSort && f.kind === 'bool')) continue;
-      const missing = f.needs && !spDataHas(f.needs);
-      const label = spFieldLabel(id, f.chart ? { ch: (r && r.ch) || 'week' } : (id === 'otd' ? r : null)) +
-        (missing ? ' ' + t('sp_b_needs_' + f.needs) : '');
-      html += _spBOpt(id, label.charAt(0).toUpperCase() + label.slice(1), id === cur, missing && id !== cur);
-    }
-    html += `</optgroup>`;
-  }
-  return html + `</select>`;
+/* The field button at the top of a rule (2026-11-16). It used to be one long
+   dropdown of ~45 terse names; now it shows the rule's plain name and opens
+   the picker (_spBPickerHtml), where every choice has a short explanation. */
+function _spBFieldBtn(cur, forSort) {
+  const name = cur === 'random' ? t('sp_p_random') : t('sp_p_' + cur);
+  const icon = cur === 'random' ? '🎲' : SP_B_ICONS[_spBGroupOf(cur)];
+  return `<button type="button" class="spb-pick" data-act="pick" aria-haspopup="dialog" aria-label="${esc(t(forSort ? 'sp_b_sort' : 'sp_b_field') + ': ' + name)}">` +
+    `<span class="spb-pick-ico" aria-hidden="true">${icon}</span>` +
+    `<span class="spb-pick-name">${esc(name)}</span>` +
+    `<span class="spb-pick-change">${esc(t('sp_b_change'))}</span></button>`;
 }
 
-// The extras between field and condition: which chart, the plays window, day / week
+/* The rule picker: replaces the window's body until a choice is made.
+   Tabs per group (or a search across all of them), and one card per choice
+   with its name and a one-line explanation. Choices the library can't use
+   yet stay visible, greyed, saying what they need. In sort mode (path
+   'sort') yes/no choices are left out and "Random" leads. */
+function _spBPickerHtml() {
+  const p = _spB.pick;
+  const forSort = p.path === 'sort';
+  const cur = _spBAt(p.path).node;
+  const curF = cur ? cur.f : '';
+  const q = _spNorm(p.q || '');
+  const card = (id, icon) => {
+    const f = SP_FIELDS[id];
+    const missing = !!(f && f.needs && !spDataHas(f.needs));
+    return `<button type="button" class="spb-pcard${id === curF ? ' is-cur' : ''}" data-act="pickField" data-v="${esc(id)}"${missing ? ' disabled' : ''}>` +
+      `<span class="spb-pcard-ico" aria-hidden="true">${icon}</span>` +
+      `<span class="spb-pcard-txt"><span class="spb-pcard-name">${esc(t('sp_p_' + id))}</span>` +
+      `<span class="spb-pcard-hint">${esc(missing ? t('sp_skip_' + f.needs) : t('sp_h_' + id))}</span></span></button>`;
+  };
+  let cards = '';
+  if (forSort && !q) cards += card('random', '🎲');   // on every tab
+  for (const [g, ids] of SP_B_GROUPS) {
+    if (!q && g !== p.cat) continue;
+    for (const id of ids) {
+      const f = SP_FIELDS[id];
+      if (!f || (forSort && (f.kind === 'bool' || f.kind === 'pl'))) continue;
+      if (q && !_spNorm(t('sp_p_' + id) + ' ' + t('sp_h_' + id) + ' ' + t('sp_g_' + g)).includes(q)) continue;
+      cards += card(id, SP_B_ICONS[g]);
+    }
+  }
+  if (!cards) cards = `<p class="spb-none">${esc(t('sp_b_pick_none'))}</p>`;
+  const tabs = SP_B_GROUPS.filter(([g]) => !(forSort && g === 'lists')).map(([g]) =>
+    `<button type="button" class="spb-ptab" data-act="pickCat" data-v="${g}" aria-pressed="${!q && g === p.cat}">` +
+    `<span aria-hidden="true">${SP_B_ICONS[g]}</span> ${esc(t('sp_g_' + g))}</button>`).join('');
+  return `<div class="spb-picker" role="dialog" aria-label="${esc(t(forSort ? 'sp_b_pick_sort' : 'sp_b_pick_title'))}">` +
+    `<div class="spb-picker-head">` +
+      // aria-expanded="true" also tells popups.js a picker is open inside the
+      // window, so Escape is left to us (back to the rules) instead of closing it
+      `<button type="button" class="dc-btn dc-btn-plain dc-btn-sm" data-act="pickClose" aria-expanded="true">← ${esc(t('sp_b_pick_back'))}</button>` +
+      `<h4 class="spb-h">${esc(t(forSort ? 'sp_b_pick_sort' : 'sp_b_pick_title'))}</h4>` +
+    `</div>` +
+    `<input id="spBPickQ" class="dc-input spb-pick-q" type="search" value="${esc(p.q || '')}" placeholder="${esc(t('sp_b_pick_search'))}" aria-label="${esc(t('sp_b_pick_search'))}">` +
+    `<div class="spb-ptabs" role="group">${tabs}</div>` +
+    `<div class="spb-pcards" id="spBPickCards">${cards}</div>` +
+    `</div>`;
+}
+
+/* Which chart a chart rule reads, as buttons right in the rule (it used to be
+   a second dropdown that only showed up after a chart rule was picked, so the
+   daily / monthly / yearly charts were easy to miss). Bubbling Under only
+   exists on the daily and weekly charts. */
+function _spBChartSeg(r) {
+  const f = SP_FIELDS[r.f];
+  const chs = f.buOnly ? SP_BU_CHARTS : SP_CHARTS;
+  const cur = f.buOnly ? _spBuCh(r) : _spCh(r);
+  return `<div class="dc-seg spb-chseg" role="group" aria-label="${esc(t('sp_b_chart'))}">` +
+    chs.map(c => `<button type="button" data-act="ch" data-v="${c}" aria-pressed="${c === cur}">${esc(t('sp_b_chs_' + c))}</button>`).join('') +
+    `</div>`;
+}
+
+// The extras between field and condition: the plays window, day / week, and
+// for the "around the chart" rules this period or the one before
 function _spBExtrasHtml(r) {
   const f = SP_FIELDS[r.f];
   if (!f) return '';
   let html = '';
-  if (f.chart) {
-    html += `<select class="dc-input spb-small" data-k="ch" aria-label="${esc(t('sp_b_chart'))}">` +
-      SP_CHARTS.map(c => _spBOpt(c, t('sp_b_ch_' + c), _spCh(r) === c)).join('') + `</select>`;
+  if (f.when) {
+    const ch = f.buOnly ? _spBuCh(r) : _spCh(r);
+    html += `<select class="dc-input spb-small" data-k="when" aria-label="${esc(t('sp_b_when'))}">` +
+      _spBOpt('now', t('sp_when_now_' + ch), r.when !== 'last') + _spBOpt('last', t('sp_when_last_' + ch), r.when === 'last') + `</select>`;
   }
   if (r.f === 'plays') {
     const mode = !r.win ? 'all' : r.win.last > 0 ? 'last' : 'range';
@@ -1587,9 +1768,11 @@ function _spBOpHtml(r) {
 function _spBRuleHtml(r, path) {
   const f = SP_FIELDS[r.f];
   const missing = f && f.needs && !spDataHas(f.needs);
+  // Two lines: what the rule looks at (and which chart), then the condition
   return `<div class="spb-rule${missing ? ' spb-rule-off' : ''}" data-path="${path}">` +
-    _spBFieldSelect(r.f, r, false) + _spBExtrasHtml(r) + _spBOpHtml(r) + _spBValueHtml(r) +
-    `<button type="button" class="dc-btn dc-btn-plain dc-btn-icon dc-btn-sm spb-del" data-act="del" title="${esc(t('sp_b_remove'))}" aria-label="${esc(t('sp_b_remove'))}">✕</button>` +
+    `<div class="spb-rule-head">${_spBFieldBtn(r.f, false)}${f && f.chart ? _spBChartSeg(r) : ''}` +
+    `<button type="button" class="dc-btn dc-btn-plain dc-btn-icon dc-btn-sm spb-del" data-act="del" title="${esc(t('sp_b_remove'))}" aria-label="${esc(t('sp_b_remove'))}">✕</button></div>` +
+    `<div class="spb-rule-body">${_spBExtrasHtml(r)}${_spBOpHtml(r)}${_spBValueHtml(r)}</div>` +
     (missing ? `<p class="spb-rule-note">${esc(t('sp_skip_' + f.needs))}</p>` : '') +
     `</div>`;
 }
@@ -1629,7 +1812,7 @@ function _spBSettingsHtml() {
   const flipped = !!sort.dir && sf && ((sort.dir === 'asc') !== !!sf.lowFirst);
   return `<div class="spb-settings">` +
     `<div class="spb-set spb-rule" data-path="sort"><span class="spb-label">${esc(t('sp_b_sort'))}</span>` +
-      _spBFieldSelect(sort.f, sort, true) + (sort.f === 'random' ? '' : _spBExtrasHtml(sort)) +
+      _spBFieldBtn(sort.f, true) + (sf && sf.chart ? _spBChartSeg(sort) : '') + (sort.f === 'random' ? '' : _spBExtrasHtml(sort)) +
       (sort.f === 'random' ? '' : `<select class="dc-input spb-small" data-k="dir" aria-label="${esc(t('sp_b_order'))}">` +
         _spBOpt('best', t('sp_b_dir_best'), !flipped) + _spBOpt('rev', t('sp_b_dir_rev'), flipped) + `</select>`) +
     `</div>` +
@@ -1643,6 +1826,13 @@ function _spBSettingsHtml() {
 function _spBRender() {
   const body = document.getElementById('spBBody');
   if (!body || !_spB) return;
+  // The rule picker takes the whole body while it's open
+  if (_spB.pick) {
+    body.innerHTML = _spBPickerHtml();
+    const scroller = body.closest('.dc-frame-body') || body;
+    scroller.scrollTop = 0;
+    return;
+  }
   const def = _spB.def;
   let html = `<div class="spb-top">` +
     `<label class="spb-name"><span class="spb-label">${esc(t('sp_b_name'))}</span>` +
@@ -1665,6 +1855,34 @@ function _spBRender() {
   html += _spBDatalists();
   body.innerHTML = html;
   _spBPreview();
+}
+
+// Opens the rule picker for one rule (or the sort), on the rule's own group
+function _spBOpenPick(path) {
+  const node = _spBAt(path).node;
+  const scroller = document.getElementById('spBBody')?.closest('.dc-frame-body');
+  _spB.pick = { path, cat: node && node.f !== 'random' ? _spBGroupOf(node.f) : 'song', q: '', scroll: scroller ? scroller.scrollTop : 0, isNew: false };
+  _spBRender();
+  setTimeout(() => document.getElementById('spBPickQ')?.focus({ preventScroll: true }), 30);
+}
+
+// Back to the rules, where the window was scrolled to
+function _spBClosePick() {
+  const p = _spB.pick;
+  _spB.pick = null;
+  _spBRender();
+  const scroller = document.getElementById('spBBody')?.closest('.dc-frame-body');
+  if (scroller && p) scroller.scrollTop = p.scroll;
+}
+
+// Typing in the picker's search box redraws the cards only (keeps the focus)
+function _spBPickSearch(q) {
+  _spB.pick.q = q;
+  const box = document.createElement('div');
+  box.innerHTML = _spBPickerHtml();
+  const cards = document.getElementById('spBPickCards');
+  if (cards) cards.innerHTML = box.querySelector('#spBPickCards').innerHTML;
+  document.querySelectorAll('#spBBody .spb-ptab').forEach(b => b.setAttribute('aria-pressed', String(!q && b.dataset.v === _spB.pick.cat)));
 }
 
 // The live part: how many songs match, the rules in words, the first songs
@@ -1719,6 +1937,8 @@ function _spBSet(path, k, raw) {
       _spB.def.sort = keep;
     } else {
       const fresh = _spBNewRule(raw);
+      // Going from one chart rule to another keeps the chart the user picked
+      if (fresh.ch && r.ch) fresh.ch = SP_FIELDS[raw].buOnly && !SP_BU_CHARTS.includes(r.ch) ? 'week' : r.ch;
       Object.keys(r).forEach(x => delete r[x]);
       Object.assign(r, fresh);
     }
@@ -1739,6 +1959,7 @@ function _spBSet(path, k, raw) {
     return false;
   }
   if (k === 'ch') { r.ch = raw; return true; }   // the labels name the chart
+  if (k === 'when') { if (raw === 'last') r.when = 'last'; else delete r.when; return false; }
   if (k === 'span') { r.span = +raw; return true; }
   if (k === 'dir') {
     const low = !!(SP_FIELDS[r.f] && SP_FIELDS[r.f].lowFirst);
@@ -1764,6 +1985,31 @@ function _spBClick(e) {
   const row = btn.closest('[data-path]');
   const path = btn.dataset.path != null ? btn.dataset.path : (row ? row.dataset.path : '');
   const def = _spB.def;
+  // ── The rule picker ──
+  if (act === 'pick') { _spBOpenPick(path); return; }
+  if (act === 'pickCat') { _spB.pick.cat = btn.dataset.v; _spB.pick.q = ''; _spBRender(); return; }
+  if (act === 'pickClose') {
+    // Backing out of a rule that was only just added drops it again
+    const p = _spB.pick;
+    if (p && p.isNew) {
+      const at = _spBAt(p.path);
+      if (at.list) at.list.splice(at.i, 1);
+      if (at.group && !at.group.rules.length) def.rules.splice(at.gi, 1);
+    }
+    _spBClosePick();
+    return;
+  }
+  if (act === 'pickField') {
+    const p = _spB.pick;
+    if (btn.dataset.v !== _spBAt(p.path).node.f || p.isNew) _spBSet(p.path, 'f', btn.dataset.v);
+    _spBClosePick();
+    return;
+  }
+  if (act === 'ch') {
+    _spBSet(path, 'ch', btn.dataset.v);
+    _spBRender();
+    return;
+  }
   if (act === 'match') {
     const seg = btn.closest('.spb-match');
     const target = _spBAt(seg.dataset.path).node;
@@ -1771,8 +2017,16 @@ function _spBClick(e) {
   } else if (act === 'mode') {
     _spB.mode = btn.dataset.v;
   } else if (act === 'addRule') {
-    const list = path !== '' && def.rules[+path] && def.rules[+path].rules ? def.rules[+path].rules : def.rules;
+    // A new rule goes straight to the picker, so the first thing the user
+    // sees is the list of choices rather than a ready-filled "plays" row
+    const inGroup = path !== '' && def.rules[+path] && def.rules[+path].rules;
+    const list = inGroup ? def.rules[+path].rules : def.rules;
     list.push(_spBNewRule('plays'));
+    _spBOpenPick(inGroup ? path + '.' + (list.length - 1) : String(list.length - 1));
+    _spB.pick.isNew = true;
+    _spB.pick.cat = 'song';
+    _spBRender();
+    return;
   } else if (act === 'addGroup') {
     def.rules.push({ match: 'any', rules: [_spBNewRule('genre'), _spBNewRule('genre')] });
   } else if (act === 'del') {
@@ -1789,6 +2043,7 @@ function _spBClick(e) {
 function _spBInput(e) {
   if (!_spB) return;
   const el = e.target;
+  if (el.id === 'spBPickQ') { if (e.type === 'input') _spBPickSearch(el.value); return; }
   if (el.id === 'spBName') { _spB.name = el.value; _spB.err = ''; return; }
   if (el.id === 'spBLimit') { _spB.def.limit = Math.min(SP_MAX_SONGS, Math.max(0, +el.value || 0)); _spBSoon(); return; }
   if (el.id === 'spBPer') { _spB.def.perArtist = Math.max(0, +el.value || 0); _spBSoon(); return; }
@@ -1894,6 +2149,14 @@ function spEditBtnHtml(name) {
     body.addEventListener('click', _spBClick);
     body.addEventListener('input', _spBInput);
     body.addEventListener('change', e => { if (e.target.id === 'spBPreset') _spBPreset(e); else _spBInput(e); });
+    // Escape in the rule picker goes back to the rules, not out of the window.
+    // On window in the capture phase, so it runs before the site's own
+    // document-level Escape handlers that close the open window.
+    window.addEventListener('keydown', e => {
+      if (e.key !== 'Escape' || !_spB || !_spB.pick) return;
+      e.preventDefault(); e.stopImmediatePropagation();
+      document.querySelector('#spBBody [data-act="pickClose"]')?.click();
+    }, true);
   };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire); else wire();
 })();
@@ -2456,6 +2719,7 @@ function _spSafeRules(list, depth) {
     if (Array.isArray(r.v)) { if (r.v.length === 2 && r.v.every(okV)) x.v = r.v.slice(); else continue; }
     else if (okV(r.v)) x.v = r.v; else if (r.v != null) continue;
     if (SP_CHARTS.includes(r.ch)) x.ch = r.ch;
+    if (r.when === 'last') x.when = 'last';   // "around the chart" rules: the period before
     if (r.span === 0 || r.span === 3) x.span = r.span;
     if (r.win && typeof r.win === 'object') {
       if (r.win.last > 0 && r.win.last <= 3650) x.win = { last: Math.round(r.win.last) };

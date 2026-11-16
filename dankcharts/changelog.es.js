@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Smart playlist rules are easier to pick, with Bubbling Under and more":
+    ["Las reglas de las listas inteligentes son más fáciles de elegir, con Aspirantes y más",
+     "Elegir una regla ya no es leer una lista larguísima. Toca una regla y elige entre grupos como Reproducciones, Listas y Cuándo escuchas, cada opción con una línea que explica lo que hace, o búscala. Las reglas de listas muestran los botones Diario, Semanal, Mensual y Anual en la propia regla. Reglas nuevas: en la lista ahora o la última vez, Nueva entrada, Reentrada, Fuera del Ranking y Aspirantes (estar ahora, tiempo pasado ahí, mejor puesto)."],
   "A countdown to the next Dank 100":
     ["Una cuenta atrás para la próxima Dank 100",
      "La página de The Dank 100 ahora cuenta los días, horas, minutos y segundos que faltan para la próxima lista. Pulsa Avísame y te avisaremos cuando esté lista: un aviso mientras dankcharts esté abierto, y una línea en tus Notificaciones si has iniciado sesión."],

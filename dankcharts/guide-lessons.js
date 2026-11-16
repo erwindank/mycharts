@@ -4172,7 +4172,7 @@ window.GL_TEXT.en = {
           start: ['{{t:sp_b_start}}', 'Blank, or a copy of a ready-made list to change.'],
           match: ['{{t:sp_b_match_all}} / {{t:sp_b_match_any}}', 'Every rule must be true, or just one.'],
           rule: ['A rule', 'What to check, how, and the value.'],
-          field: ['{{t:sp_b_field}}', 'Plays, dates, charts, genre, when you listen, ratings, your other playlists…'],
+          field: ['{{t:sp_b_field}}', 'Tap it to choose from a list where each rule is explained: plays, charts, Bubbling Under, New Entries, when you listen, ratings, your other playlists…'],
           chart: ['{{t:sp_b_chart}}', 'A chart rule picks its chart: daily, weekly, monthly or yearly.'],
           cond: ['{{t:sp_b_condition}}', 'At least, in the top, in the last… days, contains…'],
           value: ['{{t:sp_b_value}}', 'A number, a date or a name. Artist, album and genre suggest your own.'],

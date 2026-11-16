@@ -425,6 +425,13 @@ async function plUnfake(pg) {
 async function spView(pg, { open = null } = {}) {
   await pg.evaluate(() => { if (typeof spCloseBuilder === 'function') spCloseBuilder(); if (typeof spCloseMix === 'function') spCloseMix(); });
   await plView(pg);
+  // Smart playlists need an account since 2026-11-09: act signed in, then seed
+  // the ready-made lists (seeding only runs for signed-in users)
+  await pg.evaluate(() => {
+    if (!window._gdSpSigned) { window._gdSpSigned = 1; window._gdSpSignOrig = dcIsSignedIn; }
+    dcIsSignedIn = () => true;
+    if (typeof spSeedReady === 'function') spSeedReady();
+  });
   await pg.waitForFunction(() => typeof spNames === 'function' && spNames().length >= 4, null, { timeout: 60000 });
   await pg.evaluate(open => {
     const byId = id => spNames().find(n => spGet(n).ready === id);
@@ -1643,8 +1650,8 @@ const SHOTS = [
     clip: { from: '#spBuilderModal .dc-modal', to: '#spBuilderModal .dc-modal', pad: 10, narrow: true },
     spots: { name: '#spBName', start: '#spBPreset', match: '#spBBody .spb-section-head .spb-match',
       rule: { js: "document.querySelectorAll('#spBBody .spb-rules > .spb-rule')[1]" },
-      field: { js: "document.querySelectorAll('#spBBody .spb-rules > .spb-rule')[1].querySelector('.spb-field')" },
-      chart: { js: "document.querySelectorAll('#spBBody .spb-rules > .spb-rule')[1].querySelector('[data-k=\"ch\"]')" },
+      field: { js: "document.querySelectorAll('#spBBody .spb-rules > .spb-rule')[1].querySelector('.spb-pick')" },
+      chart: { js: "document.querySelectorAll('#spBBody .spb-rules > .spb-rule')[1].querySelector('.spb-chseg')" },
       cond: { js: "document.querySelectorAll('#spBBody .spb-rules > .spb-rule')[1].querySelector('[data-k=\"op\"]')" },
       value: { js: "document.querySelectorAll('#spBBody .spb-rules > .spb-rule')[1].querySelector('[data-k=\"v\"]')" },
       group: '#spBBody .spb-group', add: '#spBBody .spb-adds', sort: '#spBBody .spb-rule[data-path="sort"]', size: '#spBLimit', per: '#spBPer',
