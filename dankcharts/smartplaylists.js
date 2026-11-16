@@ -1771,7 +1771,9 @@ function _spBNewRule(id) {
     if (id === 'plays') r.v = 10;
     if (id === 'otd') r.span = 3;
   } else if (f.kind === 'date') { r.op = 'within'; r.v = 30; }
-  else if (f.kind === 'text') { r.op = 'is'; r.v = ''; }
+  // Song title starts on "contains" (people look for a word, not a whole
+  // title); artist and album stay on "is"
+  else if (f.kind === 'text') { r.op = id === 'title' ? 'has' : 'is'; r.v = ''; }
   else if (f.kind === 'list') { r.op = 'has'; r.v = ''; }
   else if (f.kind === 'enum') { r.op = f.ordered ? 'gte' : 'is'; r.v = f.values[f.ordered ? 1 : 0]; }
   else if (f.kind === 'bool') { r.op = 'is'; r.v = true; }
