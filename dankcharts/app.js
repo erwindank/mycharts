@@ -25644,9 +25644,22 @@ function closeExportModal() {
 
 let _calCreatePlTracks = null; // tracks staged for the create-playlist modal
 
+let _calCreatePlStartName = ''; // the name the window opened with (2026-11-16)
+
 function closeCalCreatePlModal() {
   document.getElementById('calCreatePlModal').classList.remove('open');
   _calCreatePlTracks = null;
+}
+
+/* Cancel, ✕, Escape and the backdrop come here (2026-11-16): if the name
+   was changed from the one the window opened with, the site's warning window
+   asks before throwing it away. Creating the playlist still closes straight. */
+function requestCloseCalCreatePlModal() {
+  if (document.querySelector('.bd-confirm-layer')) return; // warning already up
+  const nameInput = document.getElementById('calCreatePlName');
+  const changed = nameInput && nameInput.value.trim() !== _calCreatePlStartName.trim();
+  if (!changed || typeof window.dcConfirmBox !== 'function') { closeCalCreatePlModal(); return; }
+  window.dcConfirmBox(t('sp_b_discard_title'), t('pl_create_discard_text'), t('sp_b_discard'), closeCalCreatePlModal);
 }
 
 function _calCreatePlConfirm() {
@@ -45298,6 +45311,7 @@ function skAtRiskSavePl() {
   if (subEl) subEl.textContent = tCount('songs', songs.length) + ' · ' + t('sk_pl_at_risk_today');
   const nameInput = document.getElementById('calCreatePlName');
   if (nameInput) nameInput.value = t('sk_pl_at_risk_name', { date: dateLabel });
+  _calCreatePlStartName = nameInput ? nameInput.value : '';
   const modal = document.getElementById('calCreatePlModal');
   if (modal) { modal.classList.add('open'); setTimeout(() => nameInput && nameInput.select(), 80); }
 }
@@ -45675,6 +45689,7 @@ function _skHmPlay(mode) {
     if (subEl) subEl.textContent = tCount('songs', songs.length) + ' · ' + name;
     const nameInput = document.getElementById('calCreatePlName');
     if (nameInput) nameInput.value = name;
+    _calCreatePlStartName = nameInput ? nameInput.value : '';
     const modal = document.getElementById('calCreatePlModal');
     if (modal) { modal.classList.add('open'); setTimeout(() => nameInput && nameInput.select(), 80); }
     return;

@@ -324,8 +324,12 @@
       // A click on the backdrop itself: what most windows close on
       o.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
     }
-    // Last resort for a window with neither
-    if (isOpen(o) && o.matches(CLASS_OPEN)) o.classList.remove('open');
+    // Last resort for a window with neither. Not when its ✕ just opened a
+    // warning window instead ("Discard your changes?", 2026-11-16): the
+    // window stays until the user answers
+    var asked = false, warns = document.querySelectorAll('.awards-picker-confirm');
+    for (var w = 0; w < warns.length; w++) if (warns[w] !== o && !o.contains(warns[w])) asked = true;
+    if (!asked && isOpen(o) && o.matches(CLASS_OPEN)) o.classList.remove('open');
   }
   window.dcPopClose = requestClose;
 

@@ -5021,6 +5021,13 @@ const TRANSLATIONS = {
     sp_b_no_rules: 'No rules: every song you’ve played matches.',
     sp_b_remove: 'Remove rule',
     sp_b_remove_group: 'Remove group',
+    // Unsaved-changes warning on Cancel / ✕, and the group ✕ warning (2026-11-16)
+    sp_b_discard_title: 'Discard your changes?',
+    sp_b_discard_text: 'You changed this playlist but haven’t saved it. Close anyway and lose the changes?',
+    sp_b_discard: 'Discard changes',
+    sp_b_group_del_title: 'Remove this group?',
+    sp_b_group_del_text: 'Its {{n}} rules go with it.',
+    pl_create_discard_text: 'You changed the name but haven’t created the playlist yet. Close anyway?',
     sp_b_field: 'What to check',
     sp_b_condition: 'Condition',
     sp_b_value: 'Value',

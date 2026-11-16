@@ -1873,6 +1873,9 @@ function spOpenBuilder(name, preset, copy) {
   }
   document.getElementById('spBTitle').textContent = t(_spB.orig ? 'sp_b_title_edit' : _spB.copyOf ? 'sp_b_title_copy' : 'sp_b_title_new');
   _spBRender();
+  // How the window looked when it opened, taken after the first draw (which
+  // may tidy a value or two), so Cancel / ✕ can tell if anything changed
+  _spB.start = _spBSnapshot();
   modal.classList.add('open');
   if (typeof dcFillIcons === 'function') dcFillIcons(modal);
   // A copy's name is picked whole, so typing replaces "… (copy)" straight away
@@ -1893,6 +1896,25 @@ function _spCopyName(name) {
 function spCloseBuilder() {
   document.getElementById('spBuilderModal')?.classList.remove('open');
   _spB = null;
+}
+
+/* Unsaved-changes warning (2026-11-16). Cancel, ✕, Escape and a click on the
+   backdrop all come here (Save and the sign-in invite still close straight
+   away with spCloseBuilder). Nothing changed → closes; otherwise the site's
+   warning window asks first, so a slip of the mouse doesn't lose the rules. */
+function _spBSnapshot() {
+  if (!_spB) return '';
+  return JSON.stringify({ n: (_spB.name || '').trim(), d: _spB.def, m: _spB.mode });
+}
+function _spBDirty() {
+  return !!_spB && _spB.start != null && _spBSnapshot() !== _spB.start;
+}
+function spRequestCloseBuilder() {
+  if (!_spB) { spCloseBuilder(); return; }
+  // The warning is already up (a second ✕ / Escape): leave it to answer
+  if (document.querySelector('.bd-confirm-layer')) return;
+  if (!_spBDirty() || typeof window.dcConfirmBox !== 'function') { spCloseBuilder(); return; }
+  window.dcConfirmBox(t('sp_b_discard_title'), t('sp_b_discard_text'), t('sp_b_discard'), spCloseBuilder);
 }
 
 // ─── Drawing ──────────────────────────────────────────────────────────────
@@ -2545,6 +2567,19 @@ function _spBClick(e) {
     def.rules.push({ match: 'any', rules: [_spBNewRule('genre'), _spBNewRule('genre')] });
   } else if (act === 'del') {
     const at = _spBAt(path);
+    // The ✕ on a whole "any of these" group asks first: it takes every rule
+    // inside with it (2026-11-16)
+    if (at.node && Array.isArray(at.node.rules) && !at.group && typeof window.dcConfirmBox === 'function') {
+      const group = at.node;
+      window.dcConfirmBox(t('sp_b_group_del_title'), t('sp_b_group_del_text', { n: group.rules.length }), t('sp_b_remove_group'), () => {
+        // Window closed or redrawn meanwhile: find the group again by itself
+        if (!_spB || _spB.def !== def) return;
+        const gi = def.rules.indexOf(group);
+        if (gi >= 0) def.rules.splice(gi, 1);
+        _spBRender();
+      });
+      return;
+    }
     if (at.list) {
       at.list.splice(at.i, 1);
       // A group left empty goes too
