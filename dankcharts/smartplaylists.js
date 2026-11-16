@@ -2158,8 +2158,9 @@ function _spBRuleHtml(r, path) {
     `<div class="spb-rule-body">${_spBExtrasHtml(r)}${_spBOpHtml(r)}${_spBValueHtml(r)}</div>` +
     (missing ? `<p class="spb-rule-note">${esc(t('sp_skip_' + f.needs))}</p>` : '') +
     // Text rules: a heads-up when the typed text starts/ends with a space
-    // (it counts in the search, so it may be there by mistake)
-    (f && f.kind === 'text' ? _spBSpaceNoteHtml(r.v) : '') +
+    // (it counts in the search, so it may be there by mistake). Only for
+    // contains / doesn't contain / starts with — "is" ignores end spaces
+    (f && f.kind === 'text' && ['has', 'hasNot', 'starts'].includes(r.op) ? _spBSpaceNoteHtml(r.v) : '') +
     `</div>`;
 }
 
