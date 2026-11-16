@@ -233,6 +233,13 @@ function _spWinRange(win) {
     return { id: 'mp:' + today.slice(0, 7), test: ds => ds.slice(5, 7) === mm && ds.slice(0, 4) < yy };
   }
   if (win.p) return _spPeriodRange(win.p);
+  // One single day, N days back (1 = yesterday, 2 = the day before) — moves on every day (2026-11-16)
+  if (win.ago > 0) {
+    const d = new Date(_spToday() + 'T12:00:00');
+    d.setDate(d.getDate() - win.ago);
+    const ds = _spDs(d);
+    return { from: ds, to: ds };
+  }
   if (win.last > 0) {
     const today = _spToday();
     const d = new Date(today + 'T12:00:00');
@@ -1363,6 +1370,8 @@ function spFieldLabel(id, r) {
     if (w.p === 'monthPast') return t('sp_f_plays_monthPast', { m: _spMonthName(_spToday().slice(0, 7), false) });
     if (w.p) return t('sp_f_plays_when', { w: spPeriodWords(w.p) });
     if (w.first > 0) return t('sp_f_plays_first', { n: w.first });
+    // "plays yesterday" for 1, "plays 2 days ago" for more
+    if (w.ago > 0) return w.ago === 1 ? t('sp_f_plays_when', { w: spPeriodWords('yesterday') }) : t('sp_f_plays_ago', { n: w.ago });
     if (w.last > 0 && w.unit && w.unit !== 'day') return t('sp_f_plays_lastu_' + w.unit, { n: w.last });
     // A whole calendar year reads "plays in 2025"
     const y = String(w.from || '').slice(0, 4);
@@ -2012,6 +2021,7 @@ function _spBWinMode(w) {
   if (w.p === 'monthPast') return 'monthPast';
   if (w.p) return _spPerKind(w.p) || 'all';
   if (w.first > 0) return 'first';
+  if (w.ago > 0) return 'ago';
   if (w.last > 0) return 'last';
   return 'range';
 }
@@ -2106,7 +2116,7 @@ function _spBExtrasHtml(r) {
       _spBOpt('all', t('sp_win_all'), mode === 'all') +
       `<optgroup label="${esc(t('sp_win_g_quick'))}">` + SP_PERIODS.map(p => _spBOpt(p, t('sp_win_p_' + p), mode === p)).join('') + `</optgroup>` +
       `<optgroup label="${esc(t('sp_win_g_pick'))}">` +
-        ['last', 'year', 'month', 'season', 'range'].map(m => _spBOpt(m, t('sp_win_' + m), mode === m)).join('') + `</optgroup>` +
+        ['last', 'ago', 'year', 'month', 'season', 'range'].map(m => _spBOpt(m, t('sp_win_' + m), mode === m)).join('') + `</optgroup>` +
       `<optgroup label="${esc(t('sp_win_g_more'))}">` +
         _spBOpt('first', t('sp_win_first'), mode === 'first') + _spBOpt('monthPast', t('sp_win_monthPast'), mode === 'monthPast') + `</optgroup>` +
       `</select>`;
@@ -2116,6 +2126,8 @@ function _spBExtrasHtml(r) {
         ['day', 'week', 'month', 'year'].map(u => _spBOpt(u, t('sp_u_' + u), (r.win.unit || 'day') === u)).join('') + `</select>`;
     }
     if (mode === 'year' || mode === 'month' || mode === 'season') html += _spBPerExtras(r.win.p, 'win');
+    // Days ago: one day, counted back from today
+    if (mode === 'ago') html += `<input class="dc-input spb-num" type="number" min="1" max="3650" data-k="winAgo" value="${r.win.ago}" aria-label="${esc(t('sp_win_ago'))}"><span class="spb-unit">${esc(t('sp_b_days_ago'))}</span>`;
     if (mode === 'first') html += `<input class="dc-input spb-num" type="number" min="1" max="3650" data-k="winFirst" value="${r.win.first}" aria-label="${esc(t('sp_win_first'))}"><span class="spb-unit">${esc(t('sp_b_days'))}</span>`;
     if (mode === 'range') html += `<input class="dc-input spb-date" type="date" data-k="winFrom" value="${esc(r.win.from || '')}" aria-label="${esc(t('sp_b_from'))}"><span class="spb-unit">–</span><input class="dc-input spb-date" type="date" data-k="winTo" value="${esc(r.win.to || '')}" aria-label="${esc(t('sp_b_to'))}">`;
   }
@@ -2485,6 +2497,7 @@ function _spBSet(path, k, raw) {
     if (raw === 'all') delete r.win;
     else if (raw === 'last') r.win = { last: 30 };
     else if (raw === 'first') r.win = { first: 30 };
+    else if (raw === 'ago') r.win = { ago: 2 };
     else if (raw === 'monthPast') r.win = { p: 'monthPast' };
     else if (raw === 'range') r.win = { from: _spBDaysAgo(365), to: _spBToday() };
     else r.win = { p: _spPerFresh(raw, r.win && r.win.p) };   // a named period, a year, a month, a season
@@ -2493,6 +2506,7 @@ function _spBSet(path, k, raw) {
   if (k === 'winN') { r.win = Object.assign({ last: Math.max(1, +raw || 1) }, r.win && r.win.unit ? { unit: r.win.unit } : {}); return false; }
   if (k === 'winUnit') { r.win = Object.assign({ last: (r.win && r.win.last) || 1 }, raw === 'day' ? {} : { unit: raw }); return false; }
   if (k === 'winFirst') { r.win = { first: Math.max(1, +raw || 1) }; return false; }
+  if (k === 'winAgo') { r.win = { ago: Math.max(1, Math.min(3650, Math.round(+raw) || 1)) }; return false; }
   // Year / month / season boxes, for the plays window (win…) and first / last played (per…)
   // (wp = an "around the chart" rule's period, kept in r.per)
   const per = /^(win|per|wp)(Kind|Y|M|S|SY)$/.exec(k);
@@ -3294,6 +3308,7 @@ function _spSafeRules(list, depth) {
       // Named periods, this month in earlier years, a song's first N days (2026-11-16)
       else if (r.win.p === 'monthPast' || _spPeriodOk(r.win.p)) x.win = { p: String(r.win.p) };
       else if (r.win.first > 0 && r.win.first <= 3650) x.win = { first: Math.round(r.win.first) };
+      else if (r.win.ago > 0 && r.win.ago <= 3650) x.win = { ago: Math.round(r.win.ago) };
       else if (/^\d{4}-\d{2}-\d{2}$/.test(r.win.from || '') && /^\d{4}-\d{2}-\d{2}$/.test(r.win.to || '')) x.win = { from: r.win.from, to: r.win.to };
     }
     out.push(x);
