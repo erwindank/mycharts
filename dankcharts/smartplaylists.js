@@ -51,6 +51,20 @@ function _spDay(p) {
 // Lower case + trimmed, for text rules
 function _spNorm(s) { return String(s == null ? '' : s).toLowerCase().trim(); }
 
+// Text for "contains" / "starts with" rules. Punctuation that splits words
+// (dashes, brackets, commas, quotes…) counts as a space and runs of spaces
+// become one, so a space the user types matches any word edge. The title is
+// padded with a space each side, so a typed space also matches its start/end.
+// Apostrophes stay, so "don't" still matches "Don't".
+const _SP_WORD_GAP = /[\s\-–—()\[\]{},.!?"“”/&:;+]+/g;
+function _spWords(s) {
+  return ' ' + String(s == null ? '' : s).toLowerCase().replace(_SP_WORD_GAP, ' ').trim() + ' ';
+}
+// The typed text: same clean-up, but the spaces at its ends are kept
+function _spWordsNeedle(s) {
+  return String(s == null ? '' : s).toLowerCase().replace(_SP_WORD_GAP, ' ');
+}
+
 // Anything that changes the facts has to change this string. The play data,
 // the time zone / week start / autocorrect (_stampEpoch) and release marks.
 function _spGeneration() {
@@ -373,9 +387,11 @@ const SP_OPS = {
   text: {
     is:      (x, v) => _spNorm(x) === _spNorm(v),
     isNot:   (x, v) => _spNorm(x) !== _spNorm(v),
-    has:     (x, v) => _spNorm(x).includes(_spNorm(v)),
-    hasNot:  (x, v) => !_spNorm(x).includes(_spNorm(v)),
-    starts:  (x, v) => _spNorm(x).startsWith(_spNorm(v))
+    // contains / starts with keep the spaces the user typed, so "cry " finds
+    // "Cry Me a River" and "Don't Wanna Cry" but not "Crystal Ball"
+    has:     (x, v) => _spWords(x).includes(_spWordsNeedle(v)),
+    hasNot:  (x, v) => !_spWords(x).includes(_spWordsNeedle(v)),
+    starts:  (x, v) => _spWords(x).startsWith(' ' + _spWordsNeedle(v).replace(/^ /, ''))
   },
   list: {
     has:    (x, v) => _spGenreHas(x, v),
