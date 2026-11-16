@@ -875,7 +875,9 @@ spAddField('buPeak', { kind: 'number', chart: true, buOnly: true, lowFirst: true
      evening    % of plays from 17:30 to 19:59
      night      % of plays from 20:00 to 00:59
      lateNight  % of plays from 01:00 to 03:59
-     topPart    the part of the day it's played most (morning … late night)
+     topPart    the part of the day it's played most (morning … late night),
+                or, with rule.v 'hours', whether the hour it's played most
+                falls in the user's own hours r.h1 to r.h2 (2026-11-16)
      weekend    % of plays on Saturday or Sunday
      topHour    the hour (0–23) it's played most
      topDay     the weekday ('0' = Sunday … '6' = Saturday) it's played most
@@ -940,7 +942,21 @@ spAddField('afternoon', { kind: 'number', needs: 'times', get: _spHabitGet('afte
 spAddField('evening',   { kind: 'number', needs: 'times', get: _spHabitGet('evening') });
 spAddField('night',     { kind: 'number', needs: 'times', get: _spHabitGet('night') });
 spAddField('lateNight', { kind: 'number', needs: 'times', get: _spHabitGet('lateNight') });
-spAddField('topPart',   { kind: 'enum',   needs: 'times', get: _spHabitGet('topPart'), values: SP_PART_IDS });
+/* "Hours I pick": the song's most-played hour is from r.h1:00 up to r.h2:00
+   (the end hour itself not included, like the parts of the day). It wraps
+   past midnight when h1 > h2 (22 → 2 = 22:00–01:59); h1 = h2 is the whole day.
+   The getter then answers 'hours' or 'other', so is / is not still work. */
+function _spInHours(h, h1, h2) {
+  h1 = ((+h1 || 0) % 24 + 24) % 24; h2 = ((+h2 || 0) % 24 + 24) % 24;
+  if (h1 === h2) return true;
+  return h1 < h2 ? (h >= h1 && h < h2) : (h >= h1 || h < h2);
+}
+spAddField('topPart',   { kind: 'enum',   needs: 'times', values: SP_PART_IDS, get: (s, r) => {
+  const h = spHabitFacts().map.get(s.key);
+  if (!h) return null;
+  if (r && r.v === 'hours') return _spInHours(h.topHour, r.h1, r.h2) ? 'hours' : 'other';
+  return h.topPart;
+} });
 spAddField('weekend', { kind: 'number', needs: 'times', get: _spHabitGet('weekend') });
 spAddField('topHour', { kind: 'number', needs: 'times', get: _spHabitGet('topHour') });
 spAddField('topDay',  { kind: 'enum',   needs: 'times', get: _spHabitGet('topDay'), values: ['0', '1', '2', '3', '4', '5', '6'] });
@@ -1387,7 +1403,9 @@ function _spDescRule(r) {
   } else if (f.kind === 'text' || f.kind === 'list') {
     cond = t('sp_o_' + (f.kind === 'list' ? 'l_' : 't_') + r.op, { v: String(v == null ? '' : v) });
   } else if (f.kind === 'enum') {
-    const vals = (Array.isArray(v) ? v : [v]).map(x => _spEnumWord(r.f, x)).join(t('sp_d_or'));
+    const vals = (Array.isArray(v) ? v : [v]).map(x => (r.f === 'topPart' && x === 'hours')
+      ? t('sp_v_topPart_hours_d', { a: _spNum('topHour', +r.h1 || 0), b: _spNum('topHour', +r.h2 || 0) })   // "between 22:00 and 02:00"
+      : _spEnumWord(r.f, x)).join(t('sp_d_or'));
     cond = t('sp_o_e_' + r.op, { v: vals });
   }
   return t('sp_d_rule', { f: label, o: cond });
@@ -2071,8 +2089,17 @@ function _spBValueHtml(r) {
     return `<input class="dc-input spb-text" type="text" data-k="v" value="${esc(String(v || ''))}"${dl ? ` list="${dl}"` : ''} maxlength="120" aria-label="${esc(t('sp_b_value'))}">`;
   }
   if (f.kind === 'enum') {
-    return `<select class="dc-input spb-small" data-k="v" aria-label="${esc(t('sp_b_value'))}">` +
-      f.values.map(x => _spBOpt(x, _spEnumWord(r.f, x), String(x) === String(v))).join('') + `</select>`;
+    let html = `<select class="dc-input spb-small" data-k="v" aria-label="${esc(t('sp_b_value'))}">` +
+      f.values.map(x => _spBOpt(x, _spEnumWord(r.f, x), String(x) === String(v))).join('') +
+      // Time of day: the user's own hours, after the five parts of the day
+      (r.f === 'topPart' ? _spBOpt('hours', t('sp_v_topPart_hours'), v === 'hours') : '') + `</select>`;
+    if (r.f === 'topPart' && v === 'hours') {
+      const hourSel = (k, cur) => `<select class="dc-input spb-small" data-k="${k}" aria-label="${esc(t(k === 'h1' ? 'sp_b_from' : 'sp_b_to'))}">` +
+        Array.from({ length: 24 }, (_, h) => _spBOpt(h, _spNum('topHour', h), +cur === h)).join('') + `</select>`;
+      // 22:00 – 02:00, like the date ranges
+      html += hourSel('h1', r.h1) + `<span class="spb-unit">–</span>` + hourSel('h2', r.h2);
+    }
+    return html;
   }
   if (f.kind === 'pl') {
     // The user's other playlists; a smart one is marked ✨. A playlist that
@@ -2290,8 +2317,16 @@ function _spBSet(path, k, raw) {
   if (k === 'v') {
     if (f.kind === 'number' || (f.kind === 'date' && (r.op === 'within' || r.op === 'older'))) r.v = num(raw);
     else r.v = raw;
+    // Time of day → "hours I pick" brings two hour boxes (starting on 22:00–02:00)
+    if (r.f === 'topPart') {
+      if (raw === 'hours') { if (r.h1 == null) r.h1 = 22; if (r.h2 == null) r.h2 = 2; }
+      else { delete r.h1; delete r.h2; }
+      return true;
+    }
     return false;
   }
+  // Time of day's own hours (0–23)
+  if (k === 'h1' || k === 'h2') { r[k] = Math.max(0, Math.min(23, Math.round(+raw || 0))); return false; }
   if (k === 'v0' || k === 'v1') {
     if (!Array.isArray(r.v)) r.v = ['', ''];
     r.v[k === 'v0' ? 0 : 1] = f.kind === 'number' ? num(raw) : raw;
