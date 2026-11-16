@@ -2191,13 +2191,25 @@ function _spBSettingsHtml() {
     `</div>`;
 }
 
-// True when every song is already its artist's most-played one: an
-// "artist's most-played song: yes" rule at the top level of a match-every-rule
-// playlist. Rules inside an "any of these" group, or a match-any playlist,
-// don't count — other songs can still get in there.
+// True when a rule already allows at most one song per artist, at the top
+// level of a match-every-rule playlist:
+//   - "artist's most-played song: yes" (one winner per artist, ties included)
+//   - "songs you play by the artist" exactly / at most 1, or less than 2
+//   - "share of the artist's plays" more than 50 / at least 51 (only one
+//     song can hold over half; the share is rounded, so exactly 50 isn't enough)
+// Rules inside an "any of these" group, or a match-any playlist, don't
+// count — other songs can still get in there.
 function _spBOnePerArtist(def) {
   if (!def || def.match === 'any') return false;
-  return (def.rules || []).some(r => r && r.f === 'artistBest' && (r.v === true || r.v === 'true'));
+  return (def.rules || []).some(r => {
+    if (!r || r.rules) return false;
+    const v = +r.v;
+    if (r.f === 'artistBest') return r.v === true || r.v === 'true';
+    if (r.v === '' || r.v == null || !isFinite(v)) return false;
+    if (r.f === 'artistSongs') return ((r.op === 'eq' || r.op === 'lte') && v <= 1) || (r.op === 'lt' && v <= 2);
+    if (r.f === 'artistShare') return (r.op === 'gt' && v >= 50) || (r.op === 'gte' && v >= 51);
+    return false;
+  });
 }
 
 function _spBRender() {
@@ -2336,7 +2348,9 @@ function _spBSet(path, k, raw) {
       else { delete r.h1; delete r.h2; }
       return true;
     }
-    return false;
+    // These two can make the per-artist box pointless (see _spBOnePerArtist),
+    // so a new number redraws to show/hide it
+    return r.f === 'artistSongs' || r.f === 'artistShare';
   }
   // Time of day's own hours (0–23)
   if (k === 'h1' || k === 'h2') { r[k] = Math.max(0, Math.min(23, Math.round(+raw || 0))); return false; }
