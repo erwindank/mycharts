@@ -48089,11 +48089,19 @@ html.lsx-open { overflow: hidden; }
 /* ── Smart playlists (smartplaylists.js) ──
    The label on a library card's cover, the kicker and the rules sentence on
    an open smart playlist. Its songs can't be dragged, so the number stays put. */
-.plx-smart-tag {
+/* The cover's labels sit together top-left: "📌 Preset" (presets only) + "✨ Smart playlist" */
+.plx-smart-tags {
   position: absolute;
   top: var(--sp-2);
   left: var(--sp-2);
+  right: var(--sp-2);
   z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  pointer-events: none;
+}
+.plx-smart-tag {
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -48127,9 +48135,11 @@ html.lsx-open { overflow: hidden; }
 }
 .plx-track-smart:hover .plx-num-n { opacity: 1; }
 /* The ready-made lists not in the library yet: one button each */
-.sp-ready-list { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
-.sp-ready-btn { gap: 6px; }
-.sp-ready-btn > span { color: var(--accent); font-weight: 700; }
+/* Presets: one switch row each, two columns on wide screens */
+.sp-ready-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: var(--sp-2); }
+.sp-ready-row { margin: 0; padding: 8px 12px; border-radius: var(--r-md); background: color-mix(in srgb, var(--bg3) 50%, transparent); }
+.sp-ready-row .set-switch-note { display: block; margin-top: 2px; font-size: var(--fs-xs); color: var(--text3); line-height: 1.4; font-weight: 400; }
+.sp-ready-row-empty { cursor: default; opacity: 0.6; }
 /* A ready-made list's own setting on its page: the year, or day / week */
 .sp-pick {
   display: inline-flex;
@@ -48142,19 +48152,21 @@ html.lsx-open { overflow: hidden; }
 }
 .sp-pick-select { width: auto; min-width: 92px; height: 32px; padding: 0 var(--sp-2); }
 .sp-pick-seg { margin: 0 0 var(--sp-2); }
-/* Ready-made tag on the cover: accent star so it reads apart from own smart lists */
-.plx-smart-tag-ready > span { color: var(--accent); }
-/* A changed ready-made list: where it came from + "Back to the ready-made version" */
-.sp-restore {
+/* Editing a preset: the warning that changing it makes "… (my version)" */
+.spb-mine-note {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
   gap: var(--sp-2);
-  margin: 0 0 var(--sp-2);
+  align-items: flex-start;
+  margin: var(--sp-2) 0 0;
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--r-md);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
   font-size: var(--fs-xs);
+  line-height: 1.45;
   color: var(--text2);
+  grid-column: 1 / -1;
 }
-.sp-restore-btn { gap: 6px; }
 
 /* What changed since the list was last opened (smartplaylists.js step 7):
    a line on the library card, a box on the open list, NEW on rows that came in */

@@ -3016,8 +3016,8 @@ window.GL_TEXT.es = {
           card: ['Una lista inteligente', 'Está con tus otras listas y se actualiza sola.'],
           tag: ['{{t:sp_tag}}', 'Esta etiqueta marca las que se llenan solas.'],
           change: ['Qué cambió', 'Canciones nuevas y las que salieron desde la última vez que la abriste.'],
-          ready: ['{{t:sp_ready_title}}', 'Las predefinidas que no tienes, para añadirlas de nuevo.'],
-          readybtn: ['Una lista predefinida', 'Un clic la añade a tus listas.']
+          ready: ['{{t:sp_ready_title}}', 'Todas las predefinidas, con un interruptor.'],
+          readybtn: ['El interruptor de una predefinida', 'Activado la añade a tus listas; desactivado la quita.']
         } },
         open: { title: 'Una lista inteligente', spots: {
           kicker: ['{{t:sp_tag}}', 'Se llena sola con sus reglas.'],
@@ -3080,7 +3080,7 @@ window.GL_TEXT.es = {
           'Abre una para ver sus reglas.',
           'Algunas tienen un ajuste, como el año.',
           '¿Borraste una? Añádela de nuevo en {{t:sp_ready_title}}.',
-          '¿La cambiaste? {{t:sp_restore_btn}} lo deshace.'
+          '¿La cambiaste? Pasa a ser tuya. Vuelve a activar la predefinida aquí.'
         ] },
         changes: { title: 'Mira qué cambió', slides: [
           'La tarjeta muestra las canciones nuevas y las que salieron.',

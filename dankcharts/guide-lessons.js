@@ -4153,8 +4153,8 @@ window.GL_TEXT.en = {
           card: ['A smart playlist', 'It sits with your other playlists and updates by itself.'],
           tag: ['{{t:sp_tag}}', 'This label marks the ones that fill themselves.'],
           change: ['What changed', 'New songs and songs that dropped out since you last opened it.'],
-          ready: ['{{t:sp_ready_title}}', 'Presets you don’t have, to add back.'],
-          readybtn: ['A preset', 'One click adds it to your playlists.']
+          ready: ['{{t:sp_ready_title}}', 'Every preset, with an on/off switch.'],
+          readybtn: ['A preset’s switch', 'On adds it to your playlists, off takes it out.']
         } },
         open: { title: 'One smart playlist', spots: {
           kicker: ['{{t:sp_tag}}', 'It fills itself from its rules.'],
@@ -4217,7 +4217,7 @@ window.GL_TEXT.en = {
           'Open one to see its rules.',
           'Some have a setting, like the year.',
           'Deleted one? Add it back under {{t:sp_ready_title}}.',
-          'Changed one? {{t:sp_restore_btn}} undoes it.'
+          'Changed one? It becomes your own list. Switch the preset back on here.'
         ] },
         changes: { title: 'See what changed', slides: [
           'The card shows new and dropped songs.',

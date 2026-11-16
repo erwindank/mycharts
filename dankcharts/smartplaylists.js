@@ -1228,6 +1228,7 @@ function spRefresh(name, save) {
 let _spRefreshTok = 0;
 function spRefreshAll() {
   if (!allPlays || !allPlays.length || !spSignedIn()) return;
+  _spSplitEdited();
   _spFixReadyNames();
   if (!_spStore.seeded) spSeedReady();
   // One list per tick: the first chart rule on a huge library can take a
@@ -1502,63 +1503,36 @@ function spDescribe(def) {
 
 // ─── PIECES app.js PUTS ON THE PAGE ───────────────────────────────────────
 
-// Is this still an untouched ready-made list? (one changed in the builder
-// isn't — it's the user's own smart playlist until they bring it back)
+// Is this a preset? (2026-11-16: a changed preset becomes the user's own
+// list — see spSaveBuilder — so only untouched presets still carry the id)
 function spIsReadyMade(name) {
   const def = spGet(name);
   return !!(def && def.ready && SP_READY[def.ready] && !def.readyEdited);
 }
 
-// The label on a library card's cover: "Ready-made" or "Smart playlist"
+// The labels on a library card's cover: "✨ Smart playlist", plus "📌 Preset"
+// on the presets
 function spCardTagHtml(name) {
   const ready = name != null && spIsReadyMade(name);
-  return `<span class="plx-smart-tag${ready ? ' plx-smart-tag-ready' : ''}"><span aria-hidden="true">✨</span>${esc(t(ready ? 'sp_tag_ready' : 'sp_tag'))}</span>`;
+  return `<span class="plx-smart-tags">` +
+    (ready ? `<span class="plx-smart-tag plx-smart-tag-ready"><span aria-hidden="true">📌</span>${esc(t('sp_tag_ready'))}</span>` : '') +
+    `<span class="plx-smart-tag"><span aria-hidden="true">✨</span>${esc(t('sp_tag'))}</span>` +
+    `</span>`;
 }
 
-// The small line above an open smart playlist's name
+// The small line above an open smart playlist's name ("✨ Smart playlist · 📌 Preset")
 function spKickerHtml(name) {
   const ready = name != null && spIsReadyMade(name);
-  return `<span class="plx-kicker plx-kicker-smart"><span aria-hidden="true">✨ </span>${esc(t(ready ? 'sp_kicker_ready' : 'sp_tag'))}</span>`;
-}
-
-/* A ready-made list that was changed: one line saying which one it came from,
-   with a button that puts its ready-made rules back (2026-11-16) */
-function spRestoreReadyHtml(name) {
-  const def = spGet(name);
-  if (!def || !def.ready || !def.readyEdited || !SP_READY[def.ready]) return '';
-  return `<p class="sp-restore">${esc(t('sp_restore_from', { name: t('sp_ready_' + def.ready) }))} ` +
-    `<button type="button" class="dc-btn dc-btn-normal dc-btn-sm sp-restore-btn" onclick="spAskRestoreReady(${esc(JSON.stringify(name))})">` +
-    `<span aria-hidden="true">↺</span>${esc(t('sp_restore_btn'))}</button></p>`;
-}
-
-// Asks first in the site's own warning window: the changed rules are lost
-function spAskRestoreReady(name) {
-  const def = spGet(name);
-  if (!def || !def.ready) return;
-  const go = () => spRestoreReady(name);
-  if (typeof window.dcConfirmBox === 'function') {
-    window.dcConfirmBox(t('sp_restore_title'), t('sp_restore_text', { name: t('sp_ready_' + def.ready) }), t('sp_restore_btn'), go);
-  } else go();
-}
-
-// Back to the ready-made rules. Keeps the name and the notification switch.
-function spRestoreReady(name) {
-  const def = spGet(name);
-  if (!def || !def.ready || !SP_READY[def.ready]) return;
-  const next = spReadyDef(def.ready);
-  if (def.notify) next.notify = true;
-  _spStore.lists[name] = _spClean(next);
-  _spStore.modified[name] = Date.now();
-  _spSave();
-  spRefresh(name, true);
-  if (typeof dcRenderPlaylistsView === 'function') dcRenderPlaylistsView();
+  return `<span class="plx-kicker plx-kicker-smart"><span aria-hidden="true">✨ </span>${esc(t('sp_tag'))}` +
+    (ready ? `<span class="plx-kicker-sep" aria-hidden="true"> · </span><span aria-hidden="true">📌 </span>${esc(t('sp_tag_ready'))}` : '') +
+    `</span>`;
 }
 
 // Under the name: the rules in words, plus what was skipped or why it's empty
 function spRulesLineHtml(name) {
   const def = spGet(name);
   if (!def) return '';
-  let html = `<p class="plx-smart-rules">${esc(spDescribe(def))}</p>` + spReadyPickerHtml(name) + spRestoreReadyHtml(name) + spNotifySwitchHtml(name);
+  let html = `<p class="plx-smart-rules">${esc(spDescribe(def))}</p>` + spReadyPickerHtml(name) + spNotifySwitchHtml(name);
   const res = (allPlays && allPlays.length) ? spRun(_spCapped(def)) : null;
   if (res && res.skipped.length) {
     html += `<p class="plx-smart-note">${esc(res.skipped.map(n => t('sp_skip_' + n)).join(' '))}</p>`;
@@ -1649,7 +1623,7 @@ function spReadyFits(id) {
 // The ready-made ids already in the user's playlists
 function _spReadyInUse() {
   const ids = new Set();
-  for (const n of spNames()) if (_spStore.lists[n].ready) ids.add(_spStore.lists[n].ready);
+  for (const n of spNames()) if (_spStore.lists[n].ready && !_spStore.lists[n].readyEdited) ids.add(_spStore.lists[n].ready);
   return ids;
 }
 
@@ -1730,31 +1704,57 @@ spAddField('otd', { kind: 'number', get: (s, r) => _spOtdCounts(r && r.span != n
 
 // ─── ON THE PAGE ──────────────────────────────────────────────────────────
 
-/* Under the library grid: the ready-made lists that aren't in the user's
-   playlists (deleted, or not added because they were empty then) and that
-   this library can fill now. Each button adds one. */
+/* Under the library grid: every preset with an on/off switch (2026-11-16,
+   was a row of add-back buttons). On = it's in the playlists, off = it isn't.
+   A preset the library can't fill yet can't be switched on. Switching one
+   off loses nothing: its rules are fixed, so it comes back the same. */
 function spReadyRowHtml() {
   if (!allPlays || !allPlays.length) return '';
-  const used = _spReadyInUse();
-  const ids = SP_READY_IDS.filter(id => !used.has(id) && spReadyFits(id));
-  if (!ids.length) return '';
+  const where = _spReadyWhere();
   // Same heading look as the Automatic playlists section under it
   return `<div class="dc-pl-part sp-ready" id="spReady">` +
-    `<div class="dc-pl-part-head"><h3 class="dc-pl-part-title"><span aria-hidden="true">✨ </span>${esc(t('sp_ready_title'))}</h3></div>` +
+    `<div class="dc-pl-part-head"><h3 class="dc-pl-part-title"><span aria-hidden="true">📌 </span>${esc(t('sp_ready_title'))}</h3></div>` +
     `<p class="dc-pl-part-sub">${esc(t('sp_ready_sub'))}</p>` +
     `<div class="sp-ready-list">` +
-    ids.map(id => `<button type="button" class="dc-btn dc-btn-normal dc-btn-sm sp-ready-btn" onclick="spAddReadyFromRow('${id}')" title="${esc(spDescribe(spReadyDef(id)))}">` +
-      `<span aria-hidden="true">＋</span>${esc(t('sp_ready_' + id))}</button>`).join('') +
+    SP_READY_IDS.map(id => {
+      const on = where.has(id);
+      const fits = on || spReadyFits(id);
+      return `<label class="src-switch-row sp-ready-row${fits ? '' : ' sp-ready-row-empty'}" data-ready="${id}">` +
+        `<span class="src-switch-label">${esc(t('sp_ready_' + id))}` +
+        `<span class="set-switch-note">${esc(fits ? spDescribe(spReadyDef(id)) : t('sp_ready_empty'))}</span></span>` +
+        `<span class="src-switch"><input type="checkbox"${on ? ' checked' : ''}${fits ? '' : ' disabled'} onchange="spSetReadyOn('${id}', this.checked)"><span class="src-switch-slider"></span></span>` +
+        `</label>`;
+    }).join('') +
     `</div></div>`;
 }
 
-function spAddReadyFromRow(id) {
-  if (!spSignedIn()) { spSignInvite(); return; }
-  const name = spAddReady(id);
-  if (!name) return;
-  if (typeof dcPlToast === 'function') dcPlToast(t('sp_ready_added', { name }));
+// preset id → the name of the playlist that is that preset
+function _spReadyWhere() {
+  const m = new Map();
+  for (const n of spNames()) { const d = _spStore.lists[n]; if (d.ready && !d.readyEdited) m.set(d.ready, n); }
+  return m;
+}
+
+// A preset's switch was flipped
+function spSetReadyOn(id, on) {
+  if (!spSignedIn()) { spSignInvite(); if (typeof dcRenderPlaylistsView === 'function') dcRenderPlaylistsView(); return; }
+  if (on) {
+    const name = spAddReady(id);
+    if (name && typeof dcPlToast === 'function') dcPlToast(t('sp_ready_added', { name }));
+  } else {
+    const name = _spReadyWhere().get(id);
+    if (name && typeof _ytMarkPlaylistDeleted === 'function') {
+      _ytMarkPlaylistDeleted(name);   // drops the rules too (spOnDelete)
+      if (typeof _dcPlExpandedName !== 'undefined' && _dcPlExpandedName === name) _dcPlExpandedName = null;
+      if (typeof _ytSavePlaylists === 'function') _ytSavePlaylists();
+      if (typeof dcPlToast === 'function') dcPlToast(t('sp_ready_removed', { name }));
+    }
+  }
   if (typeof dcRenderPlaylistsView === 'function') dcRenderPlaylistsView();
 }
+
+// Old name kept for anything still calling it (the guide's challenges)
+function spAddReadyFromRow(id) { spSetReadyOn(id, true); }
 
 /* On an open ready-made list with a setting: the year picker for "Your year
    in 50", day / week for "On this day". Empty for the others. */
@@ -1942,6 +1942,26 @@ function _spCopyName(name) {
     if (!taken(out)) return out;
   }
   return '';
+}
+
+// A changed preset's name: "Name (my version)", then "Name (my version 2)"… (2026-11-16)
+function _spMineName(name) {
+  const taken = n => !!_ytPlaylists[n] || spIsSmart(n) || (typeof _ytIsFavName === 'function' && _ytIsFavName(n));
+  for (let i = 1; i < 100; i++) {
+    const tag = ' ' + t(i === 1 ? 'sp_b_mine_tag' : 'sp_b_mine_tag_n', { n: i });
+    const out = name.slice(0, 40 - tag.length).trim() + tag;
+    if (!taken(out)) return out;
+  }
+  return '';
+}
+
+// Editing a preset: the warning under the name box. Says what the list will
+// be called once its rules change, and invites picking a name of its own.
+function _spBMineNoteText() {
+  if (!_spB || !_spB.orig || !spIsReadyMade(_spB.orig)) return '';
+  const typed = String(_spB.name || '').trim();
+  const name = (!typed || typed === _spB.orig) ? _spMineName(_spB.orig) : typed;
+  return t('sp_b_mine_note', { name });
 }
 
 function spCloseBuilder() {
@@ -2375,6 +2395,9 @@ function _spBRender() {
   let html = `<div class="spb-top">` +
     `<label class="spb-name"><span class="spb-label">${esc(t('sp_b_name'))}</span>` +
     `<input id="spBName" class="dc-input" type="text" maxlength="40" value="${esc(_spB.name)}" placeholder="${esc(t('sp_b_name_ph'))}"></label>`;
+  // Editing a preset: changing it makes a list of the user's own
+  const mine = _spBMineNoteText();
+  if (mine) html += `<p class="spb-mine-note" id="spBMineNote" role="note"><span aria-hidden="true">📌</span><span>${esc(mine)}</span></p>`;
   // A new list can start from a ready-made one ("edit a copy"); a duplicate
   // already has its rules, so it doesn't get the choice
   if (!_spB.orig && !_spB.copyOf) {
@@ -2649,7 +2672,12 @@ function _spBInput(e) {
   if (!_spB) return;
   const el = e.target;
   if (el.id === 'spBPickQ') { if (e.type === 'input') _spBPickSearch(el.value); return; }
-  if (el.id === 'spBName') { _spB.name = el.value; _spB.err = ''; return; }
+  if (el.id === 'spBName') {
+    _spB.name = el.value; _spB.err = '';
+    const note = document.querySelector('#spBMineNote > span:last-child');
+    if (note) note.textContent = _spBMineNoteText();
+    return;
+  }
   if (el.id === 'spBLimit') { _spB.def.limit = Math.min(SP_MAX_SONGS, Math.max(0, +el.value || 0)); _spBSoon(); return; }
   if (el.id === 'spBPer') { _spB.def.perArtist = Math.max(0, +el.value || 0); _spBSoon(); return; }
   const k = el.dataset.k;
@@ -2696,16 +2724,35 @@ function spSaveBuilder() {
   // again) but loses its picker, which would rebuild the old rules
   if (_spB.orig) {
     const old = spGet(_spB.orig);
-    if (old && old.ready) {
-      // Saved with the very same rules: it stays ready-made (keeps its tag + picker)
-      const bare = d => { const c = Object.assign({}, _spClean(d)); delete c.ready; delete c.readyOpt; delete c.readyEdited; delete c.notify; return JSON.stringify(c); };
-      const same = !old.readyEdited && bare(def) === bare(old);
-      def.ready = old.ready;
-      if (same) { if (old.readyOpt) def.readyOpt = old.readyOpt; }
-      else { def.readyEdited = true; delete def.readyOpt; }
-    }
     if (old && old.notify) def.notify = true;   // step 9
+    if (old && old.ready && !old.readyEdited) {
+      const bare = d => { const c = Object.assign({}, _spClean(d)); delete c.ready; delete c.readyOpt; delete c.readyEdited; delete c.notify; return JSON.stringify(c); };
+      if (bare(def) === bare(old) && _spB.mode === 'live') {
+        // Saved with the very same rules: still the preset (keeps its tag + picker)
+        def.ready = old.ready;
+        if (old.readyOpt) def.readyOpt = old.readyOpt;
+      } else {
+        /* Changed (2026-11-16): it becomes the user's own list — "Name (my
+           version)" unless they picked a name — and the preset is switched
+           off, ready to be switched on again under Presets */
+        const target = name === _spB.orig ? _spMineName(_spB.orig) : name;
+        if (!target) return fail('sp_b_err_taken');
+        delete def.ready; delete def.readyOpt; delete def.readyEdited;
+        if (typeof _ytMarkPlaylistDeleted === 'function') _ytMarkPlaylistDeleted(_spB.orig);
+        if (typeof _dcPlExpandedName !== 'undefined' && _dcPlExpandedName === _spB.orig) _dcPlExpandedName = target;
+        _spB.orig = null;
+        _spB.name = target;
+        return _spBSaveAs(target, def);
+      }
+    }
   }
+  return _spBSaveAs(name, def);
+}
+
+// The second half of saving: write the list under `name` (Save once = a
+// normal playlist with today's songs and no rules)
+function _spBSaveAs(name, def) {
+  const fail = key => { _spB.err = t(key); const el = document.getElementById('spBErr'); if (el) el.textContent = _spB.err; };
 
   if (_spB.mode === 'once') {
     // Save once: a normal playlist with today's songs and no rules
@@ -2799,6 +2846,27 @@ const SP_OLD_READY_NAMES = new Set(["A fuego lento", "Almost #1", "Casi n.º 1",
 // Have the ready-made names loaded? (t() hands back the key when a word is missing)
 function _spWordsReady() {
   return typeof t === 'function' && t('sp_ready_heavy') !== 'sp_ready_heavy';
+}
+
+/* Presets changed before 2026-11-16 kept the preset's id with readyEdited.
+   They're the user's own lists now: the id goes (so the preset counts as
+   switched off), and one still called by the preset's name gets "(my version)". */
+function _spSplitEdited() {
+  if (!_spWordsReady()) return;
+  let changed = false;
+  for (const name of spNames()) {
+    const def = _spStore.lists[name];
+    if (!def || !def.ready || !def.readyEdited) continue;
+    const presetName = t('sp_ready_' + def.ready);
+    delete def.ready; delete def.readyOpt; delete def.readyEdited;
+    _spStore.modified[name] = Date.now();
+    changed = true;
+    if (name.replace(/ \d+$/, '') === presetName && typeof _dcPlDoRename === 'function') {
+      const target = _spMineName(presetName);
+      if (target) _dcPlDoRename(name, target);
+    }
+  }
+  if (changed) _spSave();
 }
 
 function _spFixReadyNames() {

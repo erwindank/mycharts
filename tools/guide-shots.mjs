@@ -1628,7 +1628,7 @@ const SHOTS = [
     clip: { from: '#dcPlMain .plx-grid', to: '#spReady', pad: 14, maxH: 1750 },
     spots: { new: '#dcPlMain .plx-new-smart', create: '#dcPlMain .plx-new-smart .dc-btn-main', mix: '#dcPlMain .plx-new-smart [onclick="spOpenMix()"]',
       card: { js: "document.querySelector('#dcPlMain .plx-smart-tag').closest('.plx-card')" }, tag: '#dcPlMain .plx-smart-tag',
-      change: '#dcPlMain .sp-cg-card', ready: '#spReady .dc-pl-part-head', readybtn: '#spReady .sp-ready-btn' } },
+      change: '#dcPlMain .sp-cg-card', ready: '#spReady .dc-pl-part-head', readybtn: '#spReady .sp-ready-row' } },
   { id: 'sp-open', lesson: 'smart', phone: true,
     setup: async pg => { await spView(pg, { open: 'year50' }); },
     clip: { from: '#dcPlMain .plx-back', to: { js: "document.querySelectorAll('#dcPlMain .plx-track')[3]" }, pad: 14 },

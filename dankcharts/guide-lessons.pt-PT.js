@@ -3016,8 +3016,8 @@ window.GL_TEXT['pt-PT'] = {
           card: ['Uma playlist inteligente', 'Fica com tuas outras playlists e se atualiza sozinha.'],
           tag: ['{{t:sp_tag}}', 'Essa etiqueta marca as que se enchem sozinhas.'],
           change: ['O que mudou', 'Músicas novas e as que saíram desde a última vez que abriste.'],
-          ready: ['{{t:sp_ready_title}}', 'As predefinidas que não tens, para adicionar de volta.'],
-          readybtn: ['Uma playlist predefinida', 'Um clique adiciona-a às tuas playlists.']
+          ready: ['{{t:sp_ready_title}}', 'Todas as predefinidas, com um botão de ligar e desligar.'],
+          readybtn: ['O botão de uma predefinida', 'Ligado adiciona-a às tuas playlists; desligado tira-a.']
         } },
         open: { title: 'Uma playlist inteligente', spots: {
           kicker: ['{{t:sp_tag}}', 'Enche-se sozinha com as regras.'],
@@ -3080,7 +3080,7 @@ window.GL_TEXT['pt-PT'] = {
           'Abre uma para ver as regras.',
           'Algumas têm um ajuste, como o ano.',
           'Apagaste uma? Adiciona de volta em {{t:sp_ready_title}}.',
-          'Mudaste uma? {{t:sp_restore_btn}} desfaz.'
+          'Mudaste uma? Passa a ser tua. Ativa a predefinida de novo aqui.'
         ] },
         changes: { title: 'Vê o que mudou', slides: [
           'O cartão mostra as músicas novas e as que saíram.',
