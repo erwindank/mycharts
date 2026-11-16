@@ -2183,9 +2183,21 @@ function _spBSettingsHtml() {
     `</div>` +
     `<label class="spb-set"><span class="spb-label">${esc(t('sp_b_limit'))}</span>` +
       `<input class="dc-input spb-num" type="number" min="1" max="${SP_MAX_SONGS}" id="spBLimit" value="${def.limit > 0 ? def.limit : ''}" placeholder="${SP_MAX_SONGS}"><span class="spb-unit">${esc(t('sp_b_songs'))}</span></label>` +
+    // "Most songs per artist" is pointless when a must-match rule already
+    // keeps just each artist's most-played song (never more than one each)
+    (_spBOnePerArtist(def) ? '' :
     `<label class="spb-set"><span class="spb-label">${esc(t('sp_b_per_artist'))}</span>` +
-      `<input class="dc-input spb-num" type="number" min="1" max="50" id="spBPer" value="${def.perArtist > 0 ? def.perArtist : ''}" placeholder="–"></label>` +
+      `<input class="dc-input spb-num" type="number" min="1" max="50" id="spBPer" value="${def.perArtist > 0 ? def.perArtist : ''}" placeholder="–"></label>`) +
     `</div>`;
+}
+
+// True when every song is already its artist's most-played one: an
+// "artist's most-played song: yes" rule at the top level of a match-every-rule
+// playlist. Rules inside an "any of these" group, or a match-any playlist,
+// don't count — other songs can still get in there.
+function _spBOnePerArtist(def) {
+  if (!def || def.match === 'any') return false;
+  return (def.rules || []).some(r => r && r.f === 'artistBest' && (r.v === true || r.v === 'true'));
 }
 
 function _spBRender() {
@@ -2311,7 +2323,8 @@ function _spBSet(path, k, raw) {
     return true;
   }
   if (k === 'op') {
-    if (f.kind === 'bool') { r.op = 'is'; r.v = raw === 'yes'; return false; }
+    // Flipping "artist's most-played song" redraws, so the per-artist box can show/hide
+    if (f.kind === 'bool') { r.op = 'is'; r.v = raw === 'yes'; return r.f === 'artistBest'; }
     r.op = raw; _spBFixValue(r); return true;
   }
   if (k === 'v') {
