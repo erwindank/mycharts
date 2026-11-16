@@ -4870,6 +4870,12 @@ const TRANSLATIONS = {
     pl_x_updated: 'updated {{when}}',
     // Smart playlists (smartplaylists.js): label, notes and the rules in plain words
     sp_tag: 'Smart playlist',
+    sp_tag_ready: 'Ready-made',
+    sp_kicker_ready: 'Ready-made smart playlist',
+    sp_restore_from: 'Changed from the ready-made “{{name}}”.',
+    sp_restore_btn: 'Back to the ready-made version',
+    sp_restore_title: 'Go back to the ready-made version?',
+    sp_restore_text: 'Your changes to the rules are lost and “{{name}}” comes back as it was. The name and notifications stay.',
     sp_locked: 'This is a smart playlist: its rules pick the songs, so they can’t be added, removed or moved by hand.',
     sp_empty: 'No songs match these rules yet.',
     sp_skip_genres: 'Rules about genres are skipped: your library has no genres yet.',

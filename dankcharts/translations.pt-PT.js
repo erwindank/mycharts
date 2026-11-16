@@ -4711,6 +4711,12 @@ TRANSLATIONS['pt-PT'] = Object.assign({
     pl_x_updated: 'atualizada {{when}}',
     // Smart playlists (smartplaylists.js): label, notes and the rules in plain words
     sp_tag: 'Playlist inteligente',
+    sp_tag_ready: 'Pronta',
+    sp_kicker_ready: 'Playlist inteligente pronta',
+    sp_restore_from: 'Alterada a partir da playlist pronta “{{name}}”.',
+    sp_restore_btn: 'Voltar à versão pronta',
+    sp_restore_title: 'Voltar à versão pronta?',
+    sp_restore_text: 'As tuas alterações às regras perdem-se e “{{name}}” volta como era. O nome e as notificações mantêm-se.',
     sp_locked: 'Esta é uma playlist inteligente: as regras escolhem as músicas, por isso não é possível adicionar, remover ou mover músicas à mão.',
     sp_empty: 'Ainda nenhuma música cumpre estas regras.',
     sp_skip_genres: 'As regras de género foram ignoradas: a tua biblioteca ainda não tem géneros.',

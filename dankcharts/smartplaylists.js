@@ -1502,21 +1502,63 @@ function spDescribe(def) {
 
 // ─── PIECES app.js PUTS ON THE PAGE ───────────────────────────────────────
 
-// The label on a library card's cover
-function spCardTagHtml() {
-  return `<span class="plx-smart-tag"><span aria-hidden="true">✨</span>${esc(t('sp_tag'))}</span>`;
+// Is this still an untouched ready-made list? (one changed in the builder
+// isn't — it's the user's own smart playlist until they bring it back)
+function spIsReadyMade(name) {
+  const def = spGet(name);
+  return !!(def && def.ready && SP_READY[def.ready] && !def.readyEdited);
+}
+
+// The label on a library card's cover: "Ready-made" or "Smart playlist"
+function spCardTagHtml(name) {
+  const ready = name != null && spIsReadyMade(name);
+  return `<span class="plx-smart-tag${ready ? ' plx-smart-tag-ready' : ''}"><span aria-hidden="true">✨</span>${esc(t(ready ? 'sp_tag_ready' : 'sp_tag'))}</span>`;
 }
 
 // The small line above an open smart playlist's name
-function spKickerHtml() {
-  return `<span class="plx-kicker plx-kicker-smart"><span aria-hidden="true">✨ </span>${esc(t('sp_tag'))}</span>`;
+function spKickerHtml(name) {
+  const ready = name != null && spIsReadyMade(name);
+  return `<span class="plx-kicker plx-kicker-smart"><span aria-hidden="true">✨ </span>${esc(t(ready ? 'sp_kicker_ready' : 'sp_tag'))}</span>`;
+}
+
+/* A ready-made list that was changed: one line saying which one it came from,
+   with a button that puts its ready-made rules back (2026-11-16) */
+function spRestoreReadyHtml(name) {
+  const def = spGet(name);
+  if (!def || !def.ready || !def.readyEdited || !SP_READY[def.ready]) return '';
+  return `<p class="sp-restore">${esc(t('sp_restore_from', { name: t('sp_ready_' + def.ready) }))} ` +
+    `<button type="button" class="dc-btn dc-btn-normal dc-btn-sm sp-restore-btn" onclick="spAskRestoreReady(${esc(JSON.stringify(name))})">` +
+    `<span aria-hidden="true">↺</span>${esc(t('sp_restore_btn'))}</button></p>`;
+}
+
+// Asks first in the site's own warning window: the changed rules are lost
+function spAskRestoreReady(name) {
+  const def = spGet(name);
+  if (!def || !def.ready) return;
+  const go = () => spRestoreReady(name);
+  if (typeof window.dcConfirmBox === 'function') {
+    window.dcConfirmBox(t('sp_restore_title'), t('sp_restore_text', { name: t('sp_ready_' + def.ready) }), t('sp_restore_btn'), go);
+  } else go();
+}
+
+// Back to the ready-made rules. Keeps the name and the notification switch.
+function spRestoreReady(name) {
+  const def = spGet(name);
+  if (!def || !def.ready || !SP_READY[def.ready]) return;
+  const next = spReadyDef(def.ready);
+  if (def.notify) next.notify = true;
+  _spStore.lists[name] = _spClean(next);
+  _spStore.modified[name] = Date.now();
+  _spSave();
+  spRefresh(name, true);
+  if (typeof dcRenderPlaylistsView === 'function') dcRenderPlaylistsView();
 }
 
 // Under the name: the rules in words, plus what was skipped or why it's empty
 function spRulesLineHtml(name) {
   const def = spGet(name);
   if (!def) return '';
-  let html = `<p class="plx-smart-rules">${esc(spDescribe(def))}</p>` + spReadyPickerHtml(name) + spNotifySwitchHtml(name);
+  let html = `<p class="plx-smart-rules">${esc(spDescribe(def))}</p>` + spReadyPickerHtml(name) + spRestoreReadyHtml(name) + spNotifySwitchHtml(name);
   const res = (allPlays && allPlays.length) ? spRun(_spCapped(def)) : null;
   if (res && res.skipped.length) {
     html += `<p class="plx-smart-note">${esc(res.skipped.map(n => t('sp_skip_' + n)).join(' '))}</p>`;
@@ -2654,7 +2696,14 @@ function spSaveBuilder() {
   // again) but loses its picker, which would rebuild the old rules
   if (_spB.orig) {
     const old = spGet(_spB.orig);
-    if (old && old.ready) { def.ready = old.ready; def.readyEdited = true; delete def.readyOpt; }
+    if (old && old.ready) {
+      // Saved with the very same rules: it stays ready-made (keeps its tag + picker)
+      const bare = d => { const c = Object.assign({}, _spClean(d)); delete c.ready; delete c.readyOpt; delete c.readyEdited; delete c.notify; return JSON.stringify(c); };
+      const same = !old.readyEdited && bare(def) === bare(old);
+      def.ready = old.ready;
+      if (same) { if (old.readyOpt) def.readyOpt = old.readyOpt; }
+      else { def.readyEdited = true; delete def.readyOpt; }
+    }
     if (old && old.notify) def.notify = true;   // step 9
   }
 

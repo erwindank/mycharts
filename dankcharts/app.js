@@ -41332,7 +41332,7 @@ function _dcPlLibraryHtml() {
       `onclick="dcPlToggleExpand(${nameJson})" onkeydown="if(event.target===this&&(event.key==='Enter'||event.key===' ')){event.preventDefault();dcPlToggleExpand(${nameJson})}">` +
       `<div class="plx-cover">` + dcPlCollageHtml(tracks) +
       // Smart playlists carry their label on the cover (smartplaylists.js)
-      (typeof spIsSmart === 'function' && spIsSmart(name) ? spCardTagHtml() : '') +
+      (typeof spIsSmart === 'function' && spIsSmart(name) ? spCardTagHtml(name) : '') +
       `<button type="button" class="plx-cover-play" onclick="event.stopPropagation();dcPlPlayFromStart(${nameJson})" title="${esc(t('pl_view_play'))}" aria-label="${esc(t('pl_view_play'))}">${_DC_PL_SVG.play}</button>` +
       `</div>` +
       `<div class="plx-card-name">${esc(name)}</div>` +
@@ -41377,7 +41377,7 @@ function _dcPlDetailHtml(name) {
     dcPlArtHtml(tracks[0] || {}, 'plx-hero-bg') +
     `<div class="plx-hero-cover">${dcPlCollageHtml(tracks)}</div>` +
     `<div class="plx-hero-info">` +
-    (smart ? spKickerHtml() : `<span class="plx-kicker">${esc(t('pl_x_kicker'))}</span>`) +
+    (smart ? spKickerHtml(name) : `<span class="plx-kicker">${esc(t('pl_x_kicker'))}</span>`) +
     // .dc-pl-name: dcPlStartRename swaps it for a text box
     `<h2 class="plx-hero-name"><span class="dc-pl-name">${esc(name)}</span></h2>` +
     (smart ? spRulesLineHtml(name) : '') +
