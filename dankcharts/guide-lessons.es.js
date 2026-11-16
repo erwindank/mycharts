@@ -3016,13 +3016,13 @@ window.GL_TEXT.es = {
           card: ['Una lista inteligente', 'Está con tus otras listas y se actualiza sola.'],
           tag: ['{{t:sp_tag}}', 'Esta etiqueta marca las que se llenan solas.'],
           change: ['Qué cambió', 'Canciones nuevas y las que salieron desde la última vez que la abriste.'],
-          ready: ['{{t:sp_ready_title}}', 'Las listas ya hechas que no tienes, para añadirlas de nuevo.'],
-          readybtn: ['Una lista ya hecha', 'Un clic la añade a tus listas.']
+          ready: ['{{t:sp_ready_title}}', 'Las predefinidas que no tienes, para añadirlas de nuevo.'],
+          readybtn: ['Una lista predefinida', 'Un clic la añade a tus listas.']
         } },
         open: { title: 'Una lista inteligente', spots: {
           kicker: ['{{t:sp_tag}}', 'Se llena sola con sus reglas.'],
           rules: ['Las reglas', 'Qué elige, en palabras sencillas.'],
-          pick: ['{{t:sp_pick_year}}', 'Algunas listas ya hechas tienen su propio ajuste, como el año.'],
+          pick: ['{{t:sp_pick_year}}', 'Algunas listas predefinidas tienen su propio ajuste, como el año.'],
           bell: ['{{t:sp_nt_switch}}', 'Una notificación cuando entran varias canciones nuevas (con sesión iniciada).'],
           edit: ['{{t:sp_b_edit}}', 'Cambia las reglas.'],
           copy: ['{{t:sp_copy}}', 'Guarda las canciones de hoy en una lista que no cambia.'],
@@ -3032,7 +3032,7 @@ window.GL_TEXT.es = {
         } },
         build: { title: '{{t:sp_b_title_new}}', spots: {
           name: ['{{t:sp_b_name}}', 'Cómo llamarla.'],
-          start: ['{{t:sp_b_start}}', 'En blanco, o una copia de una lista ya hecha para cambiarla.'],
+          start: ['{{t:sp_b_start}}', 'En blanco, o una copia de una lista predefinida para cambiarla.'],
           match: ['{{t:sp_b_match_all}} / {{t:sp_b_match_any}}', 'Todas las reglas, o solo una.'],
           rule: ['Una regla', 'Qué comprobar, cómo y el valor.'],
           field: ['{{t:sp_b_field}}', 'Tócalo para elegir de una lista en la que cada regla está explicada: reproducciones, listas, Aspirantes, Nuevas Entradas, cuándo escuchas, puntuaciones, tus otras listas…'],
@@ -3069,17 +3069,18 @@ window.GL_TEXT.es = {
       howto: {
         make: { title: 'Crea una lista inteligente', slides: [
           'Pulsa {{t:sp_b_card_btn}} en la tarjeta {{t:sp_b_card_title}}.',
-          'Empieza en blanco o desde una lista ya hecha.',
+          'Empieza en blanco o desde una lista predefinida.',
           'Elige qué comprobar, la condición y el valor.',
           'Añade un grupo para “esto o aquello”.',
           'Mira cuántas canciones cumplen.',
           'Elige {{t:sp_b_mode_live}} y pulsa {{t:sp_b_save}}.'
         ] },
-        ready: { title: 'Usa una lista ya hecha', slides: [
-          'Llevan la etiqueta {{t:sp_tag}}.',
+        ready: { title: 'Usa una lista predefinida', slides: [
+          'Llevan la etiqueta {{t:sp_tag_ready}}.',
           'Abre una para ver sus reglas.',
           'Algunas tienen un ajuste, como el año.',
-          '¿Borraste una? Añádela de nuevo en {{t:sp_ready_title}}.'
+          '¿Borraste una? Añádela de nuevo en {{t:sp_ready_title}}.',
+          '¿La cambiaste? {{t:sp_restore_btn}} lo deshace.'
         ] },
         changes: { title: 'Mira qué cambió', slides: [
           'La tarjeta muestra las canciones nuevas y las que salieron.',

@@ -3016,13 +3016,13 @@ window.GL_TEXT['pt-BR'] = {
           card: ['Uma playlist inteligente', 'Fica com suas outras playlists e se atualiza sozinha.'],
           tag: ['{{t:sp_tag}}', 'Essa etiqueta marca as que se enchem sozinhas.'],
           change: ['O que mudou', 'Músicas novas e as que saíram desde a última vez que você abriu.'],
-          ready: ['{{t:sp_ready_title}}', 'As prontas que você não tem, para adicionar de volta.'],
-          readybtn: ['Uma playlist pronta', 'Um clique adiciona às suas playlists.']
+          ready: ['{{t:sp_ready_title}}', 'As predefinidas que você não tem, para adicionar de volta.'],
+          readybtn: ['Uma playlist predefinida', 'Um clique adiciona às suas playlists.']
         } },
         open: { title: 'Uma playlist inteligente', spots: {
           kicker: ['{{t:sp_tag}}', 'Ela se enche sozinha com as regras.'],
           rules: ['As regras', 'O que ela escolhe, em palavras simples.'],
-          pick: ['{{t:sp_pick_year}}', 'Algumas playlists prontas têm um ajuste próprio, como o ano.'],
+          pick: ['{{t:sp_pick_year}}', 'Algumas playlists predefinidas têm um ajuste próprio, como o ano.'],
           bell: ['{{t:sp_nt_switch}}', 'Uma notificação quando várias músicas novas entram (com login).'],
           edit: ['{{t:sp_b_edit}}', 'Mude as regras.'],
           copy: ['{{t:sp_copy}}', 'Guarda as músicas de hoje numa playlist que não muda.'],
@@ -3032,7 +3032,7 @@ window.GL_TEXT['pt-BR'] = {
         } },
         build: { title: '{{t:sp_b_title_new}}', spots: {
           name: ['{{t:sp_b_name}}', 'Como chamá-la.'],
-          start: ['{{t:sp_b_start}}', 'Em branco, ou uma cópia de uma playlist pronta para mudar.'],
+          start: ['{{t:sp_b_start}}', 'Em branco, ou uma cópia de uma playlist predefinida para mudar.'],
           match: ['{{t:sp_b_match_all}} / {{t:sp_b_match_any}}', 'Todas as regras, ou só uma.'],
           rule: ['Uma regra', 'O que verificar, como e o valor.'],
           field: ['{{t:sp_b_field}}', 'Toque para escolher de uma lista em que cada regra é explicada: reproduções, paradas, Aspirantes, Novas Entradas, quando você ouve, notas, suas outras playlists…'],
@@ -3069,17 +3069,18 @@ window.GL_TEXT['pt-BR'] = {
       howto: {
         make: { title: 'Crie uma playlist inteligente', slides: [
           'Toque em {{t:sp_b_card_btn}} no cartão {{t:sp_b_card_title}}.',
-          'Comece em branco ou de uma playlist pronta.',
+          'Comece em branco ou de uma playlist predefinida.',
           'Escolha o que verificar, a condição e o valor.',
           'Adicione um grupo para “isto ou aquilo”.',
           'Veja quantas músicas atendem.',
           'Escolha {{t:sp_b_mode_live}} e toque em {{t:sp_b_save}}.'
         ] },
-        ready: { title: 'Use uma playlist pronta', slides: [
-          'Elas têm a etiqueta {{t:sp_tag}}.',
+        ready: { title: 'Use uma playlist predefinida', slides: [
+          'Elas têm a etiqueta {{t:sp_tag_ready}}.',
           'Abra uma para ver as regras.',
           'Algumas têm um ajuste, como o ano.',
-          'Apagou uma? Adicione de volta em {{t:sp_ready_title}}.'
+          'Apagou uma? Adicione de volta em {{t:sp_ready_title}}.',
+          'Mudou uma? {{t:sp_restore_btn}} desfaz.'
         ] },
         changes: { title: 'Veja o que mudou', slides: [
           'O cartão mostra as músicas novas e as que saíram.',

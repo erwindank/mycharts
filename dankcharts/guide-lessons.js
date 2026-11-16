@@ -4153,13 +4153,13 @@ window.GL_TEXT.en = {
           card: ['A smart playlist', 'It sits with your other playlists and updates by itself.'],
           tag: ['{{t:sp_tag}}', 'This label marks the ones that fill themselves.'],
           change: ['What changed', 'New songs and songs that dropped out since you last opened it.'],
-          ready: ['{{t:sp_ready_title}}', 'Ready-made ones you don’t have, to add back.'],
-          readybtn: ['A ready-made list', 'One click adds it to your playlists.']
+          ready: ['{{t:sp_ready_title}}', 'Presets you don’t have, to add back.'],
+          readybtn: ['A preset', 'One click adds it to your playlists.']
         } },
         open: { title: 'One smart playlist', spots: {
           kicker: ['{{t:sp_tag}}', 'It fills itself from its rules.'],
           rules: ['The rules', 'What it picks, in plain words.'],
-          pick: ['{{t:sp_pick_year}}', 'Some ready-made lists have a setting of their own, like the year.'],
+          pick: ['{{t:sp_pick_year}}', 'Some presets have a setting of their own, like the year.'],
           bell: ['{{t:sp_nt_switch}}', 'A notification when several new songs come in (signed in).'],
           edit: ['{{t:sp_b_edit}}', 'Change the rules.'],
           copy: ['{{t:sp_copy}}', 'Keeps today’s songs as a playlist that won’t change.'],
@@ -4169,7 +4169,7 @@ window.GL_TEXT.en = {
         } },
         build: { title: '{{t:sp_b_title_new}}', spots: {
           name: ['{{t:sp_b_name}}', 'What to call it.'],
-          start: ['{{t:sp_b_start}}', 'Blank, or a copy of a ready-made list to change.'],
+          start: ['{{t:sp_b_start}}', 'Blank, or a copy of a preset to change.'],
           match: ['{{t:sp_b_match_all}} / {{t:sp_b_match_any}}', 'Every rule must be true, or just one.'],
           rule: ['A rule', 'What to check, how, and the value.'],
           field: ['{{t:sp_b_field}}', 'Tap it to choose from a list where each rule is explained: plays, charts, Bubbling Under, New Entries, when you listen, ratings, your other playlists…'],
@@ -4206,17 +4206,18 @@ window.GL_TEXT.en = {
       howto: {
         make: { title: 'Make a smart playlist', slides: [
           'Press {{t:sp_b_card_btn}} on the {{t:sp_b_card_title}} card.',
-          'Start blank, or from a ready-made list.',
+          'Start blank, or from a preset.',
           'Pick what to check, the condition and the value.',
           'Add a group for “this or that”.',
           'Watch how many songs match.',
           'Choose {{t:sp_b_mode_live}}, then {{t:sp_b_save}}.'
         ] },
-        ready: { title: 'Use a ready-made one', slides: [
-          'They carry the {{t:sp_tag}} label.',
+        ready: { title: 'Use a preset', slides: [
+          'They carry the {{t:sp_tag_ready}} label.',
           'Open one to see its rules.',
           'Some have a setting, like the year.',
-          'Deleted one? Add it back under {{t:sp_ready_title}}.'
+          'Deleted one? Add it back under {{t:sp_ready_title}}.',
+          'Changed one? {{t:sp_restore_btn}} undoes it.'
         ] },
         changes: { title: 'See what changed', slides: [
           'The card shows new and dropped songs.',
