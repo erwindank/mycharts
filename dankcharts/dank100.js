@@ -421,6 +421,8 @@
   // until sending closes). While last week is still open it now says when the
   // next chart comes out instead, with no live dot. The day is in the user's
   // own clock: Monday 00:00 UTC is Sunday afternoon/evening in the Americas.
+  // Once the chart is out it says "Last week · Live" (2026-11-16): the chart
+  // on screen is last week's finished one, not the week running now.
   function stickerHTML(weeks) {
     if (weeks.length > 1) {
       var prev = weekBounds(weeks[weeks.length - 1]);
@@ -428,7 +430,7 @@
       return '<span class="dc-hstk dc-hstk--d100">' + esc(tr('d100_stk_next', { day: day })) + '</span>';
     }
     return '<span class="dc-hstk dc-hstk--d100"><span class="dc-hstk-live" aria-hidden="true"></span>' +
-      esc(tr('d100_week_this')) + ' · ' + esc(tr('gk_stk_live')) + '</span>';
+      esc(tr('d100_week_last')) + ' · ' + esc(tr('gk_stk_live')) + '</span>';
   }
 
   // ── Countdown + "Notify me" (2026-11-15) ──
