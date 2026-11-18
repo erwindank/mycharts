@@ -169,7 +169,27 @@
       card_save: "Save image",
       card_share: "Share",
       card_rank: "My #{n} genre",
-      card_cta: "What’s your #1 genre? Find out on dankcharts.fm"
+      card_cta: "What’s your #1 genre? Find out on dankcharts.fm",
+      td_title: "Tidy up",
+      td_sub: "Things that look off, each fixed in one go.",
+      td_free_t: "{n} songs and albums only have tags that aren’t genres",
+      td_free_t1: "1 song or album only has tags that aren’t genres",
+      td_free: "Tags like “female vocalists” or “2015” from your sheet ({s} songs, {a} albums). Their artists have real genres they can use.",
+      td_free_btn: "Fix all {n}",
+      td_free_confirm: "Each one gets its artist’s genres as your pick. Your sheet isn’t changed, and you can change any of them later.",
+      td_free_ok: "Fix them",
+      td_free_done: "Done: {n} now use their artist’s genres",
+      td_none_t: "{n} artists have no genre yet",
+      td_none_t1: "1 artist has no genre yet",
+      td_none: "Go through them one card at a time.",
+      td_none_btn: "Open Quick Fix",
+      td_guess_t: "{n} of your top artists only have guessed genres",
+      td_guess_t1: "1 of your top artists only has guessed genres",
+      td_guess: "They came from online tags, not from votes. Check them one by one.",
+      td_guess_btn: "Check {n}",
+      td_mixed_t: "{name}’s songs say {n} different things",
+      td_mixed: "Your sheet gives their songs {list}. Pick what the artist is; songs keep their own.",
+      td_mixed_btn: "Choose for {name}"
     },
     es: {
       title: 'Biblioteca de géneros',
@@ -311,7 +331,27 @@
       card_save: "Guardar imagen",
       card_share: "Compartir",
       card_rank: "Mi género n.º {n}",
-      card_cta: "¿Cuál es tu género n.º 1? Descúbrelo en dankcharts.fm"
+      card_cta: "¿Cuál es tu género n.º 1? Descúbrelo en dankcharts.fm",
+      td_title: "Ordenar",
+      td_sub: "Cosas que no cuadran, cada una se arregla de una vez.",
+      td_free_t: "{n} canciones y álbumes solo tienen etiquetas que no son géneros",
+      td_free_t1: "1 canción o álbum solo tiene etiquetas que no son géneros",
+      td_free: "Etiquetas como «female vocalists» o «2015» de tu hoja ({s} canciones, {a} álbumes). Sus artistas tienen géneros de verdad que pueden usar.",
+      td_free_btn: "Arreglar los {n}",
+      td_free_confirm: "Cada uno recibe los géneros de su artista como elección tuya. Tu hoja no cambia y puedes cambiar cualquiera después.",
+      td_free_ok: "Arreglarlos",
+      td_free_done: "Hecho: {n} usan ahora los géneros de su artista",
+      td_none_t: "{n} artistas aún no tienen género",
+      td_none_t1: "1 artista aún no tiene género",
+      td_none: "Revísalos uno a uno, tarjeta a tarjeta.",
+      td_none_btn: "Abrir Arreglo rápido",
+      td_guess_t: "{n} de tus artistas principales solo tienen géneros adivinados",
+      td_guess_t1: "1 de tus artistas principales solo tiene géneros adivinados",
+      td_guess: "Salen de etiquetas en línea, no de votos. Revísalos uno a uno.",
+      td_guess_btn: "Revisar {n}",
+      td_mixed_t: "Las canciones de {name} dicen {n} cosas distintas",
+      td_mixed: "Tu hoja les da {list}. Elige qué es el artista; las canciones conservan lo suyo.",
+      td_mixed_btn: "Elegir para {name}"
     },
     'pt-BR': {
       title: 'Biblioteca de gêneros',
@@ -453,7 +493,27 @@
       card_save: "Salvar imagem",
       card_share: "Compartilhar",
       card_rank: "Meu gênero nº {n}",
-      card_cta: "Qual é o seu gênero nº 1? Descubra no dankcharts.fm"
+      card_cta: "Qual é o seu gênero nº 1? Descubra no dankcharts.fm",
+      td_title: "Arrumar",
+      td_sub: "Coisas que parecem erradas, cada uma resolvida de uma vez.",
+      td_free_t: "{n} músicas e álbuns só têm tags que não são gêneros",
+      td_free_t1: "1 música ou álbum só tem tags que não são gêneros",
+      td_free: "Tags como “female vocalists” ou “2015” da sua planilha ({s} músicas, {a} álbuns). Os artistas deles têm gêneros de verdade que eles podem usar.",
+      td_free_btn: "Corrigir os {n}",
+      td_free_confirm: "Cada um recebe os gêneros do seu artista como escolha sua. Sua planilha não muda, e você pode mudar qualquer um depois.",
+      td_free_ok: "Corrigir",
+      td_free_done: "Pronto: {n} agora usam os gêneros do artista",
+      td_none_t: "{n} artistas ainda não têm gênero",
+      td_none_t1: "1 artista ainda não tem gênero",
+      td_none: "Veja um por um, cartão por cartão.",
+      td_none_btn: "Abrir Ajuste rápido",
+      td_guess_t: "{n} dos seus principais artistas só têm gêneros adivinhados",
+      td_guess_t1: "1 dos seus principais artistas só tem gêneros adivinhados",
+      td_guess: "Vieram de tags online, não de votos. Confira um por um.",
+      td_guess_btn: "Conferir {n}",
+      td_mixed_t: "As músicas de {name} dizem {n} coisas diferentes",
+      td_mixed: "Sua planilha dá a elas {list}. Escolha o que o artista é; as músicas mantêm o delas.",
+      td_mixed_btn: "Escolher para {name}"
     },
     'pt-PT': {
       title: 'Biblioteca de géneros',
@@ -595,7 +655,27 @@
       card_save: "Guardar imagem",
       card_share: "Partilhar",
       card_rank: "O meu género n.º {n}",
-      card_cta: "Qual é o teu género n.º 1? Descobre no dankcharts.fm"
+      card_cta: "Qual é o teu género n.º 1? Descobre no dankcharts.fm",
+      td_title: "Arrumar",
+      td_sub: "Coisas que parecem erradas, cada uma resolvida de uma vez.",
+      td_free_t: "{n} músicas e álbuns só têm etiquetas que não são géneros",
+      td_free_t1: "1 música ou álbum só tem etiquetas que não são géneros",
+      td_free: "Etiquetas como “female vocalists” ou “2015” da tua folha ({s} músicas, {a} álbuns). Os artistas deles têm géneros a sério que podem usar.",
+      td_free_btn: "Corrigir os {n}",
+      td_free_confirm: "Cada um recebe os géneros do seu artista como escolha tua. A tua folha não muda, e podes mudar qualquer um depois.",
+      td_free_ok: "Corrigir",
+      td_free_done: "Feito: {n} usam agora os géneros do artista",
+      td_none_t: "{n} artistas ainda não têm género",
+      td_none_t1: "1 artista ainda não tem género",
+      td_none: "Vê-os um a um, cartão a cartão.",
+      td_none_btn: "Abrir Correção rápida",
+      td_guess_t: "{n} dos teus principais artistas só têm géneros adivinhados",
+      td_guess_t1: "1 dos teus principais artistas só tem géneros adivinhados",
+      td_guess: "Vieram de etiquetas online, não de votos. Confirma-os um a um.",
+      td_guess_btn: "Confirmar {n}",
+      td_mixed_t: "As músicas de {name} dizem {n} coisas diferentes",
+      td_mixed: "A tua folha dá-lhes {list}. Escolhe o que o artista é; as músicas mantêm o delas.",
+      td_mixed_btn: "Escolher para {name}"
     }
   };
   function tx(k, vars) {
@@ -605,6 +685,8 @@
     return s;
   }
   const num = n => Number(n || 0).toLocaleString();
+  // A count sentence: key + '1' when there is one and that wording exists
+  const txn = (k, n, vars) => tx(n === 1 && TXT.en[k + '1'] ? k + '1' : k, Object.assign({ n: num(n) }, vars || {}));
   const plays = n => tx(n === 1 ? 'play_one' : 'play_other', { n: num(n) });
   // HTML-safe, including ' (app.js's esc() leaves that one alone)
   const H = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -1295,6 +1377,7 @@
     let h = '';
     h += soundHtml();
     h += qfHtml();
+    h += tidyHtml();
     h += shelfHtml();
     return h;
   }
@@ -1380,7 +1463,7 @@
     const b = ev.target.closest('[data-gll]');
     if (!b) return;
     const a = b.dataset.gll, v = b.dataset.v;
-    if (qfClick(a, b) || gpClick(a, b) || sndClick(a, b)) return;
+    if (qfClick(a, b) || gpClick(a, b) || sndClick(a, b) || tidyClick(a)) return;
     if (a === 'sh-all') { SH.all = !SH.all; renderPage(); if (!SH.all) scrollToSec('glShelf'); return; }
     if (a === 'tab') { S.tab = v; S.shown = PAGE; S.genre = ''; savePrefs(); renderPage(); return; }
     if (a === 'filter') { S.filter = v; S.shown = PAGE; savePrefs(); renderPage(); return; }
@@ -2542,6 +2625,103 @@
         });
       }, 'image/png');
     });
+  }
+
+  /* ── 13. Tidy up (step 5) ──────────────────────────────────────────────
+     What the library can already tell looks off, each with one button that
+     fixes many items at once:
+       free   songs / albums whose own (sheet) tags aren't genres while
+              their artist has real ones → give them the artist's genres
+       guess  top artists whose genres were only guessed online → check them
+              in the Quick Fix deck (review mode)
+       none   artists with no genre at all → Quick Fix
+       mixed  an artist whose songs say 3+ different main genres in the
+              sheet → choose for the artist (left out once you have) */
+  function tidyFinds() {
+    const all = items(), out = { free: [], guess: 0, none: 0, mixed: null };
+    if (!G.list.length) return out;
+    const artistReal = new Map();
+    const artistIds = p => {
+      const k = _pk(p);
+      if (!artistReal.has(k)) {
+        const info = genreInfo('artist', p), ids = [];
+        for (const tg of info.g) { const e = entryOfTag(tg); if (e && !ids.includes(e.id)) ids.push(e.id); }
+        artistReal.set(k, ids);
+      }
+      return artistReal.get(k);
+    };
+    for (const kind of ['song', 'album']) {
+      for (const r of all[kind]) {
+        const info = genreInfo(kind, r.p);
+        if (info.src !== 'sheet' || !info.g.length || realInfo(info)) continue;
+        const ids = artistIds(r.p);
+        if (ids.length) out.free.push([kind, r.p, ids.slice(0, MAX), r.n]);
+      }
+    }
+    for (const r of all.artist.slice(0, 100)) {
+      const info = genreInfo('artist', r.p);
+      if (info.src === 'web' && realInfo(info)) out.guess++;
+    }
+    out.none = deck().filter(x => x.r.kind === 'artist').length;
+    // Songs that disagree, for the most played artists without a pick
+    const per = new Map();
+    for (const r of all.song.slice(0, 4000)) {
+      if (_genreSongOwn(r.p) === undefined) continue;
+      const id = mainOf({ g: _genreSongOwn(r.p) });
+      if (!id) continue;
+      const k = _pk(r.p);
+      const m = per.get(k) || { name: _pa(r.p), p: r.p, n: 0, ids: new Map() };
+      m.n += r.n; m.ids.set(id, (m.ids.get(id) || 0) + r.n); per.set(k, m);
+    }
+    const mixed = [...per.values()].filter(m => m.ids.size >= 3 && !(typeof genreEditGet === 'function' && genreEditGet('artist', m.p)))
+      .sort((a, b) => b.n - a.n)[0];
+    if (mixed) out.mixed = { name: mixed.name, p: mixed.p, ids: [...mixed.ids].sort((a, b) => b[1] - a[1]).map(x => x[0]) };
+    return out;
+  }
+  // A song's own sheet genres (undefined when the sheet has none for it)
+  function _genreSongOwn(p) {
+    return typeof _awardsSheetGenres === 'function' ? _awardsSheetGenres().songs.get(_sk(p)) : undefined;
+  }
+  let _tidy = null;
+  function tidyHtml() {
+    const f = tidyFinds();
+    _tidy = f;
+    const rows = [];
+    const row = (ic, title, text, btn, act) => `<li class="gl-tidy-row"><span class="gl-tidy-ic" aria-hidden="true">${ic}</span>` +
+      `<div class="gl-tidy-txt"><strong>${H(title)}</strong><span>${H(text)}</span></div>` +
+      `<button type="button" class="dc-btn dc-btn-normal dc-btn-sm" data-gll="${act}">${H(btn)}</button></li>`;
+    if (f.free.length) {
+      const songs = f.free.filter(x => x[0] === 'song').length, albums = f.free.length - songs;
+      rows.push(row('🏷️', txn('td_free_t', f.free.length), tx('td_free', { s: num(songs), a: num(albums) }), tx('td_free_btn', { n: num(f.free.length) }), 'td-free'));
+    }
+    if (f.none && QF.mode !== 'review') rows.push(row('🔍', txn('td_none_t', f.none), tx('td_none'), tx('td_none_btn'), 'td-none'));
+    if (f.guess) rows.push(row('🤔', txn('td_guess_t', f.guess), tx('td_guess'), tx('td_guess_btn', { n: num(f.guess) }), 'td-guess'));
+    if (f.mixed) rows.push(row('🔀', tx('td_mixed_t', { name: f.mixed.name, n: num(f.mixed.ids.length) }),
+      tx('td_mixed', { list: f.mixed.ids.slice(0, 4).map(nameOf).join(', ') }), tx('td_mixed_btn', { name: f.mixed.name }), 'td-mixed'));
+    if (!rows.length) return '';
+    return `<section class="gl-sec gl-tidy" id="glTidy" aria-labelledby="glTidyH">
+      <div class="gl-sec-head"><div><h3 class="gl-sec-title" id="glTidyH">${H(tx('td_title'))}</h3>
+        <p class="gl-sec-sub">${H(tx('td_sub'))}</p></div></div>
+      <ul class="gl-tidy-list">${rows.join('')}</ul>
+    </section>`;
+  }
+  function tidyClick(a) {
+    if (a === 'td-free' && _tidy && _tidy.free.length) {
+      const list = _tidy.free.map(x => [x[0], x[1], x[2]]);
+      const go = () => {
+        if (typeof genreEditSetMany === 'function') genreEditSetMany(list);
+        else for (const x of list) genreEditSet(x[0], x[1], x[2]);
+        toast(tx('td_free_done', { n: num(list.length) }));
+        checkBadges();
+      };
+      if (typeof window.dcConfirmBox === 'function') window.dcConfirmBox(txn('td_free_t', list.length), tx('td_free_confirm'), tx('td_free_ok'), go);
+      else go();
+      return true;
+    }
+    if (a === 'td-none') { QF.mode = 'fix'; QF.key = ''; renderPage(); scrollToSec('glQf'); return true; }
+    if (a === 'td-guess') { QF.mode = 'review'; QF.key = ''; QF.sel = null; renderPage(); scrollToSec('glQf'); return true; }
+    if (a === 'td-mixed' && _tidy && _tidy.mixed) { open('artist', _tidy.mixed.p); return true; }
+    return false;
   }
 
   /* ── Keeping things in step ──────────────────────────────────────────── */

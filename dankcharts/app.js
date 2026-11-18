@@ -49816,6 +49816,24 @@ function genreEditSet(kind, p, list) {
   }
   _genreEditsChanged();
 }
+// Many picks at once (the Genre Library's Tidy up, bulk edits): one save,
+// one sync and one redraw. items = [[kind, p, list], …], list as above.
+function genreEditSetMany(items) {
+  const now = Date.now();
+  for (const [kind, p, list] of items) {
+    const k = genreEditKey(kind, p);
+    if (list == null) {
+      if (!_genreEdits[k]) continue;
+      delete _genreEdits[k];
+      _genreEditResets[k] = now;
+    } else {
+      const g = [...new Set(list.map(x => String(x).toLowerCase()).filter(Boolean))].slice(0, GENRE_EDIT_MAX);
+      _genreEdits[k] = { g, at: now };
+      delete _genreEditResets[k];
+    }
+  }
+  if (items.length) _genreEditsChanged();
+}
 function _genreEditsSaveLocal() {
   try { localStorage.setItem(GENRE_EDITS_LS, JSON.stringify({ e: _genreEdits, r: _genreEditResets })); } catch (e) {}
 }
