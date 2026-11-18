@@ -141,7 +141,23 @@
       gp_peak: "Your biggest month: {m}, {n} plays",
       gp_next: "Next to it",
       gp_new: "new",
-      gp_second: "{name} is never the main genre of a song you play, but {n} songs have it as another genre ({p})."
+      gp_second: "{name} is never the main genre of a song you play, but {n} songs have it as another genre ({p}).",
+      snd_title: "Your sound",
+      snd_head: "You’re {pct} {fam}",
+      snd_tail_second: ", with a {pct} {fam} streak.",
+      snd_tail_spread: ", spread over {n} families.",
+      snd_other: "Everything else",
+      snd_bar: "Your genre families by share of plays",
+      snd_heard: "genres heard",
+      snd_riser: "fastest riser",
+      snd_rarest: "rarest one",
+      snd_span_all: "All time",
+      snd_span_365: "Last 12 months",
+      snd_span_30: "Last 30 days",
+      snd_span_label: "Time span",
+      snd_all_fams: "All families",
+      snd_hint: "Tap a family to open it, then a genre for its page.",
+      snd_map: "Bubble map of your genres"
     },
     es: {
       title: 'Biblioteca de géneros',
@@ -255,7 +271,23 @@
       gp_peak: "Tu mejor mes: {m}, {n} reproducciones",
       gp_next: "Parecidos",
       gp_new: "nuevo",
-      gp_second: "{name} nunca es el género principal de una canción que escuchas, pero {n} canciones lo tienen como otro género ({p})."
+      gp_second: "{name} nunca es el género principal de una canción que escuchas, pero {n} canciones lo tienen como otro género ({p}).",
+      snd_title: "Tu sonido",
+      snd_head: "Tu música es un {pct} {fam}",
+      snd_tail_second: ", y un {pct} {fam}.",
+      snd_tail_spread: ", repartida entre {n} familias.",
+      snd_other: "Todo lo demás",
+      snd_bar: "Tus familias de géneros según sus reproducciones",
+      snd_heard: "géneros escuchados",
+      snd_riser: "el que más sube",
+      snd_rarest: "el más raro",
+      snd_span_all: "Siempre",
+      snd_span_365: "Últimos 12 meses",
+      snd_span_30: "Últimos 30 días",
+      snd_span_label: "Periodo",
+      snd_all_fams: "Todas las familias",
+      snd_hint: "Toca una familia para abrirla y luego un género para ver su página.",
+      snd_map: "Mapa de burbujas de tus géneros"
     },
     'pt-BR': {
       title: 'Biblioteca de gêneros',
@@ -369,7 +401,23 @@
       gp_peak: "Seu maior mês: {m}, {n} plays",
       gp_next: "Parecidos",
       gp_new: "novo",
-      gp_second: "{name} nunca é o gênero principal de uma música que você ouve, mas {n} músicas têm ele como outro gênero ({p})."
+      gp_second: "{name} nunca é o gênero principal de uma música que você ouve, mas {n} músicas têm ele como outro gênero ({p}).",
+      snd_title: "Seu som",
+      snd_head: "Seu som é {pct} {fam}",
+      snd_tail_second: ", e {pct} {fam}.",
+      snd_tail_spread: ", espalhado por {n} famílias.",
+      snd_other: "Todo o resto",
+      snd_bar: "Suas famílias de gêneros pela parte dos plays",
+      snd_heard: "gêneros ouvidos",
+      snd_riser: "o que mais cresce",
+      snd_rarest: "o mais raro",
+      snd_span_all: "Desde sempre",
+      snd_span_365: "Últimos 12 meses",
+      snd_span_30: "Últimos 30 dias",
+      snd_span_label: "Período",
+      snd_all_fams: "Todas as famílias",
+      snd_hint: "Toque numa família para abrir e depois num gênero para ver a página dele.",
+      snd_map: "Mapa de bolhas dos seus gêneros"
     },
     'pt-PT': {
       title: 'Biblioteca de géneros',
@@ -483,7 +531,23 @@
       gp_peak: "O teu maior mês: {m}, {n} reproduções",
       gp_next: "Parecidos",
       gp_new: "novo",
-      gp_second: "{name} nunca é o género principal de uma música que ouves, mas {n} músicas têm-no como outro género ({p})."
+      gp_second: "{name} nunca é o género principal de uma música que ouves, mas {n} músicas têm-no como outro género ({p}).",
+      snd_title: "O teu som",
+      snd_head: "O teu som é {pct} {fam}",
+      snd_tail_second: ", e {pct} {fam}.",
+      snd_tail_spread: ", espalhado por {n} famílias.",
+      snd_other: "Todo o resto",
+      snd_bar: "As tuas famílias de géneros pela parte das reproduções",
+      snd_heard: "géneros ouvidos",
+      snd_riser: "o que mais cresce",
+      snd_rarest: "o mais raro",
+      snd_span_all: "Desde sempre",
+      snd_span_365: "Últimos 12 meses",
+      snd_span_30: "Últimos 30 dias",
+      snd_span_label: "Período",
+      snd_all_fams: "Todas as famílias",
+      snd_hint: "Toca numa família para a abrir e depois num género para ver a página dele.",
+      snd_map: "Mapa de bolhas dos teus géneros"
     }
   };
   function tx(k, vars) {
@@ -1041,7 +1105,7 @@
   const PKEY = 'dc_genrelib_prefs';
   const S = { tab: 'artists', q: '', filter: 'all', genre: '', sort: 'plays', shown: 60 };
   try { Object.assign(S, JSON.parse(localStorage.getItem(PKEY) || '{}'), { q: '', genre: '', shown: 60 }); } catch (e) {}
-  const savePrefs = () => { try { localStorage.setItem(PKEY, JSON.stringify({ tab: S.tab, filter: S.filter, sort: S.sort })); } catch (e) {} };
+  const savePrefs = () => { try { localStorage.setItem(PKEY, JSON.stringify({ tab: S.tab, filter: S.filter, sort: S.sort, span: S.span })); } catch (e) {} };
   const PAGE = 60;
   let _pageOn = false, _admin = false, _artObs = null;
   // Artists asked of the genre lookup this visit, and those it has answered
@@ -1181,6 +1245,7 @@
   function funHtml() {
     checkBadges();
     let h = '';
+    h += soundHtml();
     h += qfHtml();
     return h;
   }
@@ -1266,7 +1331,7 @@
     const b = ev.target.closest('[data-gll]');
     if (!b) return;
     const a = b.dataset.gll, v = b.dataset.v;
-    if (qfClick(a, b) || gpClick(a, b)) return;
+    if (qfClick(a, b) || gpClick(a, b) || sndClick(a, b)) return;
     if (a === 'tab') { S.tab = v; S.shown = PAGE; S.genre = ''; savePrefs(); renderPage(); return; }
     if (a === 'filter') { S.filter = v; S.shown = PAGE; savePrefs(); renderPage(); return; }
     if (a === 'genre') { S.genre = v || ''; S.shown = PAGE; renderPage(); return; }
@@ -1298,6 +1363,7 @@
       root.addEventListener('click', onPageClick);
       root.addEventListener('input', onPageInput);
       root.addEventListener('change', onPageChange);
+      root.addEventListener('keydown', sndKey);
       root._glWired = true;
     }
     renderPage();
@@ -2038,6 +2104,200 @@
     if (a === 'gp-song' && L.songs && L.songs[i]) { if (typeof openSongModal === 'function' && typeof songKey === 'function') openSongModal(songKey(L.songs[i].p)); return true; }
     if (a === 'gp-album' && L.albums && L.albums[i]) { if (typeof openAlbumModal === 'function') openAlbumModal(L.albums[i].p.album + '|||' + L.albums[i].artist); return true; }
     return false;
+  }
+
+  /* ── 11. Your Sound (step 3) ───────────────────────────────────────────
+     The top of the page: a headline about you, the families as one colour
+     bar, three facts, and a bubble map (families → genres, sized by plays).
+     Tap a family to open it, a genre to open its page. S.span picks the time:
+     'all' | '365' | '30'. SND.fam is the family the map is zoomed into. */
+  const SND = { fam: '' };
+  const SPANS = ['all', '365', '30'];
+  if (!SPANS.includes(S.span)) S.span = 'all';
+  // Families by plays in the span, with their genres
+  function famsIn(span) {
+    const s = stats(), by = {};
+    for (const id of s.rank) {
+      const g = s.byId.get(id), v = spanN(g, span);
+      if (!v) continue;
+      const f = by[g.fam] || (by[g.fam] = { fam: g.fam, n: 0, genres: [] });
+      f.n += v;
+      f.genres.push({ id, n: v });
+    }
+    const list = Object.values(by).sort((a, b) => b.n - a.n);
+    for (const f of list) f.genres.sort((a, b) => b.n - a.n);
+    return { list, total: list.reduce((a, f) => a + f.n, 0) };
+  }
+  // The genre that grew most: plays in the last 90 days vs the 90 before
+  function riser() {
+    let best = null, bestV = 0;
+    for (const g of stats().byId.values()) {
+      if (g.nRecent < 8) continue;
+      const v = (g.nRecent - g.nPrev) / Math.sqrt(g.nPrev + 4);
+      if (v > bestV) { bestV = v; best = g.id; }
+    }
+    return best;
+  }
+  // The rarest genre you play: a deep cut, else a rare one, most played first
+  function rarest(span) {
+    const s = stats();
+    for (const want of ['deep', 'rare']) {
+      const id = s.rank.filter(x => spanN(s.byId.get(x), span) > 0).find(x => rarity(x) === want);
+      if (id) return id;
+    }
+    return null;
+  }
+
+  // Circle packing: radii (biggest first) → centres, each new circle put
+  // touching two placed ones, as close to the middle as it fits
+  function packCircles(rs, pad) {
+    const P = [];
+    const tangents = (A, B, r) => {
+      const ra = A.r + r + pad, rb = B.r + r + pad, dx = B.x - A.x, dy = B.y - A.y, d = Math.hypot(dx, dy);
+      if (!d || d > ra + rb || d < Math.abs(ra - rb)) return [];
+      const a = (ra * ra - rb * rb + d * d) / (2 * d), h = Math.sqrt(Math.max(0, ra * ra - a * a));
+      const mx = A.x + a * dx / d, my = A.y + a * dy / d;
+      return [{ x: mx + h * dy / d, y: my - h * dx / d }, { x: mx - h * dy / d, y: my + h * dx / d }];
+    };
+    for (let i = 0; i < rs.length; i++) {
+      const r = rs[i];
+      if (i === 0) { P.push({ x: 0, y: 0, r }); continue; }
+      if (i === 1) { P.push({ x: P[0].r + r + pad, y: 0, r }); continue; }
+      let best = null, bestD = Infinity;
+      for (let a = 0; a < P.length; a++) for (let b = a + 1; b < P.length; b++) {
+        for (const c of tangents(P[a], P[b], r)) {
+          if (P.some(q => Math.hypot(q.x - c.x, q.y - c.y) < q.r + r + pad - 1e-6)) continue;
+          const dd = Math.hypot(c.x, c.y);
+          if (dd < bestD) { bestD = dd; best = c; }
+        }
+      }
+      if (!best) { const R = Math.max(...P.map(q => Math.hypot(q.x, q.y) + q.r)); best = { x: 0, y: R + r + pad }; }
+      P.push({ x: best.x, y: best.y, r });
+    }
+    // Centre the group and measure the circle around it
+    const minX = Math.min(...P.map(q => q.x - q.r)), maxX = Math.max(...P.map(q => q.x + q.r));
+    const minY = Math.min(...P.map(q => q.y - q.r)), maxY = Math.max(...P.map(q => q.y + q.r));
+    const cx = (minX + maxX) / 2, cy = (minY + maxY) / 2;
+    for (const q of P) { q.x -= cx; q.y -= cy; }
+    const R = Math.max(...P.map(q => Math.hypot(q.x, q.y) + q.r));
+    return { P, R };
+  }
+  // A genre bubble's fill: the family hue, lighter for the smaller ones
+  const leafFill = (hue, i) => `color-mix(in srgb, ${hue} ${Math.max(62, 100 - i * 6)}%, #fff)`;
+  function svgText(x, y, size, txt, cls) {
+    return `<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" font-size="${size.toFixed(1)}" class="${cls}" text-anchor="middle">${H(txt)}</text>`;
+  }
+  function fit(name, r, size) {
+    const max = Math.floor((r * 1.7) / (size * 0.56));
+    return name.length <= max ? name : (max >= 4 ? name.slice(0, max - 1) + '…' : '');
+  }
+  function bubbleSvg(span) {
+    const { list } = famsIn(span);
+    const W = 400;
+    if (!list.length) return '';
+    if (SND.fam && !list.some(f => f.fam === SND.fam)) SND.fam = '';
+    let body = '';
+    if (SND.fam) {
+      // One family, its genres big and labelled
+      const f = list.find(x => x.fam === SND.fam), hue = FAM_HUE[f.fam] || FAM_HUE.world;
+      const gs = f.genres.slice(0, 28);
+      const { P, R } = packCircles(gs.map(g => Math.sqrt(g.n)), 0.6);
+      const k = (W / 2 - 6) / R;
+      gs.forEach((g, i) => {
+        const q = P[i], x = W / 2 + q.x * k, y = W / 2 + q.y * k, r = q.r * k;
+        const size = Math.max(8, Math.min(18, r / 3.2));
+        const name = fit(nameOf(g.id), r, size);
+        body += `<g class="gl-bub" data-gll="gp-open" data-id="${H(g.id)}" tabindex="0" role="button" aria-label="${H(nameOf(g.id) + ' · ' + plays(g.n))}">` +
+          `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}" style="fill:${leafFill(hue, i)}"/>` +
+          (name ? svgText(x, y + (r > 34 ? -size * 0.15 : size * 0.35), size, name, 'gl-bub-t') : '') +
+          (name && r > 34 ? svgText(x, y + size * 1.05, size * 0.72, num(g.n), 'gl-bub-n') : '') +
+          `<title>${H(nameOf(g.id) + ' · ' + plays(g.n))}</title></g>`;
+      });
+    } else {
+      // Every family (top 9), each a ring of its top genres
+      const fams = list.slice(0, 9).map(f => {
+        const gs = f.genres.slice(0, 12);
+        const pk = packCircles(gs.map(g => Math.sqrt(g.n)), 0.4);
+        return { f, gs, pk };
+      });
+      const outer = packCircles(fams.map(x => x.pk.R + 1.5), 2);
+      const k = (W / 2 - 4) / outer.R;
+      fams.forEach((x, fi) => {
+        const o = outer.P[fi], hue = FAM_HUE[x.f.fam] || FAM_HUE.world;
+        const fx = W / 2 + o.x * k, fy = W / 2 + o.y * k;
+        body += `<g class="gl-bub-fam" data-gll="snd-fam" data-v="${x.f.fam}" tabindex="0" role="button" aria-label="${H(tx('fam_' + x.f.fam) + ' · ' + plays(x.f.n))}">` +
+          `<circle cx="${fx.toFixed(1)}" cy="${fy.toFixed(1)}" r="${(o.r * k).toFixed(1)}" style="fill:color-mix(in srgb, ${hue} 12%, transparent);stroke:color-mix(in srgb, ${hue} 45%, transparent)"/>` +
+          `<title>${H(tx('fam_' + x.f.fam) + ' · ' + plays(x.f.n))}</title>`;
+        x.gs.forEach((g, i) => {
+          const q = x.pk.P[i], gx = fx + q.x * k, gy = fy + q.y * k, r = q.r * k;
+          const size = Math.max(7, Math.min(13, r / 3.1));
+          const name = r > 15 ? fit(nameOf(g.id), r, size) : '';
+          body += `<circle class="gl-bub-leaf" cx="${gx.toFixed(1)}" cy="${gy.toFixed(1)}" r="${r.toFixed(1)}" style="fill:${leafFill(hue, i)}"><title>${H(nameOf(g.id) + ' · ' + plays(g.n))}</title></circle>` +
+            (name ? svgText(gx, gy + size * 0.35, size, name, 'gl-bub-t') : '');
+        });
+        body += `</g>`;
+      });
+    }
+    return `<svg class="gl-bubbles${SND.fam ? ' is-fam' : ''}" viewBox="0 0 ${W} ${W}" role="group" aria-label="${H(tx('snd_map'))}">${body}</svg>`;
+  }
+
+  function soundHtml() {
+    const span = S.span, F = famsIn(span), s = stats();
+    if (!F.list.length) return '';
+    const top = F.list[0], second = F.list[1];
+    const pc = f => Math.round(f.n * 100 / F.total);
+    const em = (txt, fam) => `<em style="--gf:${FAM_HUE[fam] || FAM_HUE.world}">${H(txt)}</em>`;
+    // Headline: the words are escaped first, then the coloured parts go in
+    const head = H(tx('snd_head')).split('{pct} {fam}').join(em(pc(top) + '% ' + tx('fam_' + top.fam), top.fam));
+    let tail = '';
+    if (second && pc(second) >= 15) tail = H(tx('snd_tail_second')).split('{pct} {fam}').join(em(pc(second) + '% ' + tx('fam_' + second.fam), second.fam));
+    else if (F.list.length >= 5) tail = H(tx('snd_tail_spread', { n: num(F.list.length) }));
+    const shown = F.list.filter(f => f.n / F.total >= 0.01);
+    const rest = F.total - shown.reduce((a, f) => a + f.n, 0);
+    const bar = shown.map(f => `<button type="button" class="gl-dna-seg${SND.fam === f.fam ? ' is-on' : ''}" data-gll="snd-fam" data-v="${f.fam}" style="flex-grow:${f.n};--gf:${FAM_HUE[f.fam] || FAM_HUE.world}" title="${H(tx('fam_' + f.fam) + ' · ' + pc(f) + '%')}" aria-label="${H(tx('fam_' + f.fam) + ' ' + pc(f) + '%')}"></button>`).join('') +
+      (rest > 0 ? `<span class="gl-dna-seg is-rest" style="flex-grow:${rest}" title="${H(tx('snd_other'))}"></span>` : '');
+    const legend = shown.slice(0, 8).map(f => `<button type="button" class="gl-dna-key" data-gll="snd-fam" data-v="${f.fam}" style="--gf:${FAM_HUE[f.fam] || FAM_HUE.world}"><i aria-hidden="true"></i>${H(tx('fam_' + f.fam))} <b>${pc(f)}%</b></button>`).join('');
+    const heard = s.rank.filter(id => spanN(s.byId.get(id), span) > 0).length;
+    const rs = riser(), rr = rarest(span);
+    const fact = (v, l, id) => id
+      ? `<button type="button" class="gl-fact" data-gll="gp-open" data-id="${H(id)}" style="--gf:${FAM_HUE[(G.byId.get(id) || {}).fam] || FAM_HUE.world}"><strong>${H(v)}</strong><span>${H(l)}</span></button>`
+      : `<div class="gl-fact"><strong>${H(v)}</strong><span>${H(l)}</span></div>`;
+    const spanBtns = SPANS.map(v => `<button type="button" class="gl-seg-btn${span === v ? ' is-on' : ''}" aria-pressed="${span === v}" data-gll="snd-span" data-v="${v}">${H(tx('snd_span_' + v))}</button>`).join('');
+    const famName = SND.fam ? tx('fam_' + SND.fam) : '';
+    return `<section class="gl-sec gl-snd" id="glSnd" aria-labelledby="glSndH">
+      <div class="gl-sec-head"><div><h3 class="gl-sec-title" id="glSndH">${H(tx('snd_title'))}</h3></div>
+        <div class="dc-seg gl-seg" role="group" aria-label="${H(tx('snd_span_label'))}">${spanBtns}</div></div>
+      <div class="gl-snd-grid">
+        <div class="gl-snd-text">
+          <p class="gl-snd-head">${head}${tail || '.'}</p>
+          <div class="gl-dna" role="group" aria-label="${H(tx('snd_bar'))}">${bar}</div>
+          <div class="gl-dna-legend">${legend}</div>
+          <div class="gl-facts">
+            ${fact(num(heard), tx('snd_heard'))}
+            ${rs ? fact(nameOf(rs), tx('snd_riser'), rs) : ''}
+            ${rr ? fact(nameOf(rr), tx('snd_rarest'), rr) : ''}
+          </div>
+        </div>
+        <div class="gl-snd-map">
+          ${SND.fam ? `<div class="gl-snd-map-head"><button type="button" class="dc-btn dc-btn-plain dc-btn-sm" data-gll="snd-fam" data-v="">${ico('back')}${H(tx('snd_all_fams'))}</button><span class="gl-snd-fam" style="--gf:${FAM_HUE[SND.fam] || FAM_HUE.world}"><span class="gl-dot" aria-hidden="true"></span>${H(famName)}</span></div>`
+            : `<p class="gl-snd-hint">${H(tx('snd_hint'))}</p>`}
+          ${bubbleSvg(span)}
+        </div>
+      </div>
+    </section>`;
+  }
+  function sndClick(a, b) {
+    if (a === 'snd-span') { S.span = SPANS.includes(b.dataset.v) ? b.dataset.v : 'all'; savePrefs(); renderPage(); return true; }
+    if (a === 'snd-fam') { SND.fam = SND.fam === b.dataset.v ? '' : (b.dataset.v || ''); renderPage(); return true; }
+    return false;
+  }
+  // Enter / Space on a bubble (they're SVG groups with role=button)
+  function sndKey(ev) {
+    if (ev.key !== 'Enter' && ev.key !== ' ') return;
+    const g = ev.target.closest && ev.target.closest('.gl-bubbles [data-gll]');
+    if (!g) return;
+    ev.preventDefault();
+    g.dispatchEvent(new MouseEvent('click', { bubbles: true }));
   }
 
   /* ── Keeping things in step ──────────────────────────────────────────── */

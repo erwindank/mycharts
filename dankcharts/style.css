@@ -51194,3 +51194,112 @@ button.gl-chip:active { transform: scale(0.97); }
   .gl-gp-body { grid-template-columns: minmax(0, 1fr); }
   .gl-gp-hero { padding: var(--sp-5) var(--sp-4) var(--sp-4); }
 }
+
+
+/* ── Your Sound (step 3) ── */
+.gl-snd-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--sp-5);
+  align-items: center;
+  padding: var(--sp-5);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  background:
+    radial-gradient(80% 90% at 100% 0%, color-mix(in srgb, var(--accent) 9%, transparent), transparent 70%),
+    var(--bg2);
+}
+.gl-snd-text { display: flex; flex-direction: column; gap: var(--sp-3); min-width: 0; }
+.gl-snd-head {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 3.4vw, 2.35rem);
+  font-weight: 800;
+  line-height: 1.08;
+  letter-spacing: -0.015em;
+  color: var(--text);
+  text-wrap: balance;
+}
+.gl-snd-head em {
+  font-style: normal;
+  /* The family colour as a thick underline: the words stay theme-coloured */
+  background: linear-gradient(transparent 62%, color-mix(in srgb, var(--gf) 55%, transparent) 62%, color-mix(in srgb, var(--gf) 55%, transparent) 92%, transparent 92%);
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+.gl-dna { display: flex; gap: 2px; height: 18px; border-radius: var(--r-full); overflow: hidden; }
+.gl-dna-seg {
+  display: block;
+  min-width: 4px;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: var(--gf);
+  cursor: pointer;
+  transition: filter var(--t-fast) var(--ease), opacity var(--t-fast) var(--ease);
+}
+.gl-dna-seg:hover { filter: brightness(1.12); }
+.gl-dna-seg.is-rest { background: color-mix(in srgb, var(--text) 18%, transparent); cursor: default; }
+.gl-dna:has(.gl-dna-seg.is-on) .gl-dna-seg:not(.is-on) { opacity: 0.35; }
+.gl-dna-legend { display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.gl-dna-key {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 0;
+  border: 0;
+  background: none;
+  color: var(--text2);
+  font: inherit;
+  font-size: var(--fs-xs);
+  cursor: pointer;
+}
+.gl-dna-key i { width: 9px; height: 9px; border-radius: 3px; background: var(--gf); }
+.gl-dna-key b { font-family: var(--font-mono); font-weight: 600; color: var(--text); }
+.gl-dna-key:hover { color: var(--text); }
+.gl-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: var(--sp-2); margin-top: var(--sp-1); }
+.gl-fact {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-width: 0;
+  padding: var(--sp-3) var(--sp-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: color-mix(in srgb, var(--bg3) 70%, transparent);
+  color: var(--text);
+  font: inherit;
+  text-align: center;
+}
+button.gl-fact { cursor: pointer; border-color: color-mix(in srgb, var(--gf) 35%, var(--border)); transition: background var(--t-fast) var(--ease), transform var(--t-fast) var(--ease); }
+button.gl-fact:hover { background: color-mix(in srgb, var(--gf) 12%, var(--bg2)); }
+button.gl-fact:active { transform: translateY(1px); }
+.gl-fact strong { max-width: 100%; font-family: var(--font-display); font-size: 1.15rem; font-weight: 700; line-height: 1.15; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gl-fact span { font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text3); }
+
+.gl-snd-map { display: flex; flex-direction: column; gap: var(--sp-2); min-width: 0; }
+.gl-snd-map-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); min-height: 30px; }
+.gl-snd-fam { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: var(--fs-sm); }
+.gl-snd-hint { margin: 0; min-height: 30px; display: flex; align-items: center; justify-content: center; font-size: var(--fs-xs); color: var(--text3); text-align: center; }
+.gl-bubbles { display: block; width: 100%; max-width: 440px; height: auto; margin: 0 auto; aspect-ratio: 1; animation: glBubIn 360ms var(--ease); }
+@keyframes glBubIn { from { transform: scale(0.94); opacity: 0; } }
+.gl-bub-fam, .gl-bub { cursor: pointer; outline: none; }
+.gl-bub-fam > circle:first-of-type { stroke-width: 1; transition: fill var(--t-fast) var(--ease); }
+.gl-bub-fam:hover > circle:first-of-type, .gl-bub-fam:focus-visible > circle:first-of-type { stroke-width: 2.5; }
+.gl-bub circle { transition: transform var(--t-fast) var(--ease); transform-box: fill-box; transform-origin: center; }
+.gl-bub:hover circle, .gl-bub:focus-visible circle { transform: scale(1.05); }
+.gl-bub:focus-visible circle, .gl-bub-fam:focus-visible > circle:first-of-type { stroke: var(--text); stroke-width: 2; }
+.gl-bub-t { fill: #0b1220; font-family: var(--font-sans); font-weight: 700; pointer-events: none; }
+.gl-bub-n { fill: #0b1220; opacity: 0.7; font-family: var(--font-mono); font-weight: 600; pointer-events: none; }
+
+@media (max-width: 760px) {
+  .gl-snd-grid { grid-template-columns: minmax(0, 1fr); padding: var(--sp-4); }
+  .gl-facts { grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); }
+  .gl-fact strong { font-size: 0.95rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gl-bubbles { animation: none; }
+  .gl-bub circle { transition: none; }
+}
