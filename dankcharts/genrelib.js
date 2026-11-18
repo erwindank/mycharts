@@ -157,7 +157,19 @@
       snd_span_label: "Time span",
       snd_all_fams: "All families",
       snd_hint: "Tap a family to open it, then a genre for its page.",
-      snd_map: "Bubble map of your genres"
+      snd_map: "Bubble map of your genres",
+      sh_title: "Your genre shelf",
+      sh_sub: "{n} genres collected.",
+      sh_sub_rare: "{r} rare and {d} deep cuts among them.",
+      sh_sub_locked: "Greyed cards are genres next door you haven’t played yet.",
+      sh_locked: "Not played yet",
+      sh_all: "Show all {n}",
+      sh_less: "Show fewer",
+      card_title: "{name} card",
+      card_save: "Save image",
+      card_share: "Share",
+      card_rank: "My #{n} genre",
+      card_cta: "What’s your #1 genre? Find out on dankcharts.fm"
     },
     es: {
       title: 'Biblioteca de géneros',
@@ -287,7 +299,19 @@
       snd_span_label: "Periodo",
       snd_all_fams: "Todas las familias",
       snd_hint: "Toca una familia para abrirla y luego un género para ver su página.",
-      snd_map: "Mapa de burbujas de tus géneros"
+      snd_map: "Mapa de burbujas de tus géneros",
+      sh_title: "Tu colección de géneros",
+      sh_sub: "{n} géneros coleccionados.",
+      sh_sub_rare: "Entre ellos, {r} raros y {d} joyas ocultas.",
+      sh_sub_locked: "Las tarjetas grises son géneros parecidos que aún no has escuchado.",
+      sh_locked: "Aún sin escuchar",
+      sh_all: "Ver los {n}",
+      sh_less: "Ver menos",
+      card_title: "Tarjeta de {name}",
+      card_save: "Guardar imagen",
+      card_share: "Compartir",
+      card_rank: "Mi género n.º {n}",
+      card_cta: "¿Cuál es tu género n.º 1? Descúbrelo en dankcharts.fm"
     },
     'pt-BR': {
       title: 'Biblioteca de gêneros',
@@ -417,7 +441,19 @@
       snd_span_label: "Período",
       snd_all_fams: "Todas as famílias",
       snd_hint: "Toque numa família para abrir e depois num gênero para ver a página dele.",
-      snd_map: "Mapa de bolhas dos seus gêneros"
+      snd_map: "Mapa de bolhas dos seus gêneros",
+      sh_title: "Sua coleção de gêneros",
+      sh_sub: "{n} gêneros colecionados.",
+      sh_sub_rare: "Entre eles, {r} raros e {d} pérolas escondidas.",
+      sh_sub_locked: "Os cartões cinza são gêneros parecidos que você ainda não ouviu.",
+      sh_locked: "Ainda não ouvido",
+      sh_all: "Mostrar os {n}",
+      sh_less: "Mostrar menos",
+      card_title: "Cartão de {name}",
+      card_save: "Salvar imagem",
+      card_share: "Compartilhar",
+      card_rank: "Meu gênero nº {n}",
+      card_cta: "Qual é o seu gênero nº 1? Descubra no dankcharts.fm"
     },
     'pt-PT': {
       title: 'Biblioteca de géneros',
@@ -547,7 +583,19 @@
       snd_span_label: "Período",
       snd_all_fams: "Todas as famílias",
       snd_hint: "Toca numa família para a abrir e depois num género para ver a página dele.",
-      snd_map: "Mapa de bolhas dos teus géneros"
+      snd_map: "Mapa de bolhas dos teus géneros",
+      sh_title: "A tua coleção de géneros",
+      sh_sub: "{n} géneros colecionados.",
+      sh_sub_rare: "Entre eles, {r} raros e {d} pérolas escondidas.",
+      sh_sub_locked: "Os cartões cinzentos são géneros parecidos que ainda não ouviste.",
+      sh_locked: "Ainda não ouvido",
+      sh_all: "Mostrar os {n}",
+      sh_less: "Mostrar menos",
+      card_title: "Cartão de {name}",
+      card_save: "Guardar imagem",
+      card_share: "Partilhar",
+      card_rank: "O meu género n.º {n}",
+      card_cta: "Qual é o teu género n.º 1? Descobre no dankcharts.fm"
     }
   };
   function tx(k, vars) {
@@ -1247,6 +1295,7 @@
     let h = '';
     h += soundHtml();
     h += qfHtml();
+    h += shelfHtml();
     return h;
   }
   function funPaint(root) {
@@ -1332,6 +1381,7 @@
     if (!b) return;
     const a = b.dataset.gll, v = b.dataset.v;
     if (qfClick(a, b) || gpClick(a, b) || sndClick(a, b)) return;
+    if (a === 'sh-all') { SH.all = !SH.all; renderPage(); if (!SH.all) scrollToSec('glShelf'); return; }
     if (a === 'tab') { S.tab = v; S.shown = PAGE; S.genre = ''; savePrefs(); renderPage(); return; }
     if (a === 'filter') { S.filter = v; S.shown = PAGE; savePrefs(); renderPage(); return; }
     if (a === 'genre') { S.genre = v || ''; S.shown = PAGE; renderPage(); return; }
@@ -2298,6 +2348,200 @@
     if (!g) return;
     ev.preventDefault();
     g.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+  }
+
+  /* ── 12. Next door + the genre shelf (step 4) ──────────────────────────
+     nextDoor(): for your top families, genres in the same family you have
+     never played (not as a main genre, not as a second one). Ones that share
+     a word with a genre you play there come first ("Deep House" next to
+     House), then popular ones. Used by the shelf's locked cards and by the
+     Next door section (step 7). */
+  function nextDoor(perFam, fams) {
+    const s = stats(), F = famsIn('all').list.slice(0, fams || 3), out = [];
+    for (const f of F) {
+      const mine = new Set();
+      for (const g of f.genres) { const e = G.byId.get(g.id); if (e) for (const w of e.n.split(' ')) if (w.length > 2 && !STOPW.has(w)) mine.add(w); }
+      const cand = G.list.filter(e => e.fam === f.fam && !s.byId.has(e.id) && !s.sec.has(e.id))
+        .map(e => ({ e, sc: (e.n.split(' ').some(w => mine.has(w)) ? 2 : 0) + (e.pop ? 1 : 0) - e.n.length / 100 }))
+        .sort((a, b) => b.sc - a.sc).slice(0, perFam || 3).map(x => x.e.id);
+      out.push({ fam: f.fam, n: f.n, ids: cand });
+    }
+    return out;
+  }
+  const SH = { all: false };
+  function shelfHtml() {
+    const s = stats();
+    if (!s.rank.length) return '';
+    const deep = s.rank.filter(id => rarity(id) === 'deep').length;
+    const rare = s.rank.filter(id => rarity(id) === 'rare').length;
+    const shown = SH.all ? s.rank : s.rank.slice(0, 11);
+    const card = (id, i) => {
+      const g = s.byId.get(id), e = G.byId.get(id), fam = e ? e.fam : 'world', rar = rarity(id);
+      return `<button type="button" class="gl-gcard gl-gcard-${rar}" data-gll="gp-open" data-id="${H(id)}" style="--gf:${FAM_HUE[fam] || FAM_HUE.world}">` +
+        `<span class="gl-gcard-no">#${String(i + 1).padStart(3, '0')}</span>` +
+        `<span class="gl-gcard-fam">${H(tx('fam_' + fam))}</span>` +
+        `<span class="gl-gcard-name">${H(nameOf(id))}</span>` +
+        `<span class="gl-gcard-foot"><span class="gl-gcard-pl">${H(plays(g.n))}</span><span class="gl-gcard-rar">${rar === 'deep' ? '✦ ' : rar === 'rare' ? '◆ ' : ''}${H(tx('rar_' + rar))}</span></span></button>`;
+    };
+    // Locked cards: a few genres next door, greyed until you play them
+    const locked = SH.all ? [] : nextDoor(2, 2).flatMap(x => x.ids).slice(0, 3);
+    const lock = id => { const e = G.byId.get(id);
+      return `<button type="button" class="gl-gcard is-locked" data-gll="gp-open" data-id="${H(id)}" style="--gf:${FAM_HUE[e.fam] || FAM_HUE.world}">` +
+        `<span class="gl-gcard-no">???</span><span class="gl-gcard-fam">${H(tx('fam_' + e.fam))}</span>` +
+        `<span class="gl-gcard-name">${H(e.name)}</span><span class="gl-gcard-foot"><span class="gl-gcard-pl">${H(tx('sh_locked'))}</span></span></button>`; };
+    return `<section class="gl-sec gl-shelf" id="glShelf" aria-labelledby="glShelfH">
+      <div class="gl-sec-head"><div><h3 class="gl-sec-title" id="glShelfH">${H(tx('sh_title'))}</h3>
+        <p class="gl-sec-sub">${H(tx('sh_sub', { n: num(s.rank.length) }))}${rare + deep ? ' ' + H(tx('sh_sub_rare', { r: num(rare), d: num(deep) })) : ''}${locked.length ? ' ' + H(tx('sh_sub_locked')) : ''}</p></div></div>
+      <div class="gl-shelf-grid">${shown.map(card).join('')}${locked.map(lock).join('')}</div>
+      ${s.rank.length > 11 ? `<div class="gl-more-wrap"><button type="button" class="dc-btn dc-btn-normal dc-btn-sm" data-gll="sh-all">${H(SH.all ? tx('sh_less') : tx('sh_all', { n: num(s.rank.length) }))}</button></div>` : ''}
+    </section>`;
+  }
+
+  /* The share card: drawn straight on a canvas (no html2canvas, so none of
+     its traps), 1080×1350. No artwork, so nothing can taint the canvas. */
+  let _shEl = null, _shFile = null;
+  function wrapLines(ctx, text, maxW, maxLines) {
+    const words = String(text).split(' '), lines = [];
+    let cur = '';
+    for (const w of words) {
+      const t = cur ? cur + ' ' + w : w;
+      if (ctx.measureText(t).width <= maxW || !cur) cur = t; else { lines.push(cur); cur = w; }
+    }
+    if (cur) lines.push(cur);
+    return lines.slice(0, maxLines);
+  }
+  function roundRect(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+  }
+  function drawCard(id) {
+    const s = stats(), g = s.byId.get(id), e = G.byId.get(id);
+    const fam = e ? e.fam : 'world', hue = FAM_HUE[fam] || FAM_HUE.world, name = nameOf(id);
+    const W = 1080, Hh = 1350, c = document.createElement('canvas');
+    c.width = W; c.height = Hh;
+    const x = c.getContext('2d');
+    const disp = '"Bricolage Grotesque", "IBM Plex Sans", system-ui, sans-serif';
+    const sans = '"IBM Plex Sans", system-ui, sans-serif', mono = '"JetBrains Mono", ui-monospace, monospace';
+    // Ground: deep navy with the genre's colour glowing from the top left
+    x.fillStyle = '#0b1220'; x.fillRect(0, 0, W, Hh);
+    let gr = x.createRadialGradient(140, 120, 40, 140, 120, 1100);
+    gr.addColorStop(0, hue); gr.addColorStop(0.55, 'rgba(11,18,32,0)');
+    x.globalAlpha = 0.75; x.fillStyle = gr; x.fillRect(0, 0, W, Hh); x.globalAlpha = 1;
+    // Fine diagonal lines, like a foil card
+    x.strokeStyle = 'rgba(255,255,255,0.05)'; x.lineWidth = 2;
+    for (let i = -Hh; i < W; i += 36) { x.beginPath(); x.moveTo(i, Hh); x.lineTo(i + Hh * 0.6, 0); x.stroke(); }
+    const L = 96;
+    x.fillStyle = 'rgba(255,255,255,0.75)'; x.font = `600 30px ${mono}`;
+    x.fillText('dankcharts.fm', L, 120);
+    const rk = s.rank.indexOf(id) + 1;
+    x.fillStyle = '#ffffff'; x.font = `700 32px ${mono}`;
+    x.fillText((rk ? tx('card_rank', { n: rk }) + ' · ' : '') + tx('fam_' + fam).toUpperCase(), L, 250);
+    // The name, as big as fits on two lines
+    let size = 170, lines;
+    for (;;) {
+      x.font = `800 ${size}px ${disp}`;
+      lines = wrapLines(x, name, W - L * 2, 3);
+      if ((lines.length <= 2 && !lines.some(l => x.measureText(l).width > W - L * 2)) || size <= 70) break;
+      size -= 8;
+    }
+    x.fillStyle = '#ffffff';
+    let y = 250;
+    lines.forEach((l, i) => { y = 250 + size * 0.95 + i * size * 0.98; x.fillText(l, L, y); });
+    // Rarity pill, just under the name
+    y += 50;
+    const rar = rarity(id), rt = (rar === 'deep' ? '✦ ' : rar === 'rare' ? '◆ ' : '') + tx('rar_' + rar).toUpperCase();
+    x.font = `700 28px ${mono}`;
+    const pw = x.measureText(rt).width + 48;
+    roundRect(x, L, y, pw, 56, 28); x.fillStyle = rar === 'deep' ? '#fbbf24' : rar === 'rare' ? '#58aaf6' : 'rgba(255,255,255,0.18)'; x.fill();
+    x.fillStyle = rar === 'common' ? '#ffffff' : '#0b1220'; x.fillText(rt, L + 24, y + 38);
+    // Three numbers
+    y += 56 + 110;
+    const facts = g ? [[num(g.n), tx('gp_plays')], [pct1(g.n / (s.tagged || 1)), tx('gp_share')], [new Date(g.first).toLocaleDateString(lang(), { month: 'short', year: 'numeric' }), tx('gp_first')]] : [];
+    let fx = L;
+    for (const [v, l] of facts) {
+      x.fillStyle = '#ffffff'; x.font = `700 64px ${mono}`; x.fillText(v, fx, y);
+      x.fillStyle = 'rgba(255,255,255,0.6)'; x.font = `700 24px ${sans}`; x.fillText(l.toUpperCase(), fx, y + 42);
+      fx += Math.max(x.measureText(l.toUpperCase()).width, (() => { x.font = `700 64px ${mono}`; return x.measureText(v).width; })()) + 70;
+    }
+    // Top artists: as many of three as fit above the footer line
+    y += 130;
+    const rows = Math.max(0, Math.min(3, Math.floor((Hh - 170 - (y + 30)) / 104)));
+    if (g && rows) {
+      const arts = [...g.artists.values()].sort((a, b) => b.n - a.n).slice(0, rows);
+      x.fillStyle = 'rgba(255,255,255,0.6)'; x.font = `700 24px ${sans}`; x.fillText(tx('gp_top_artists').toUpperCase(), L, y);
+      y += 30;
+      arts.forEach((a, i) => {
+        const cy = y + 50 + i * 104;
+        x.beginPath(); x.arc(L + 38, cy, 38, 0, Math.PI * 2); x.fillStyle = hue; x.fill();
+        x.fillStyle = '#0b1220'; x.font = `800 28px ${disp}`; x.textAlign = 'center';
+        x.fillText(typeof initials === 'function' ? initials(a.name) : a.name.slice(0, 2), L + 38, cy + 10); x.textAlign = 'left';
+        x.fillStyle = '#ffffff'; x.font = `700 40px ${sans}`;
+        let nm = a.name; while (x.measureText(nm).width > W - L * 2 - 260 && nm.length > 4) nm = nm.slice(0, -2);
+        x.fillText(nm === a.name ? nm : nm + '…', L + 100, cy + 14);
+        x.fillStyle = 'rgba(255,255,255,0.65)'; x.font = `600 32px ${mono}`; x.textAlign = 'right';
+        x.fillText(num(a.n), W - L, cy + 12); x.textAlign = 'left';
+      });
+    }
+    x.fillStyle = 'rgba(255,255,255,0.7)'; x.font = `600 30px ${sans}`;
+    x.fillText(tx('card_cta'), L, Hh - 90);
+    return c;
+  }
+  function shareGenre(id) {
+    if (!id) return;
+    if (!_shEl) {
+      _shEl = document.createElement('div');
+      _shEl.className = 'modal-overlay gl-share-overlay';
+      _shEl.id = 'glShareModal';
+      _shEl.setAttribute('role', 'dialog');
+      _shEl.setAttribute('aria-modal', 'true');
+      _shEl.setAttribute('aria-labelledby', 'glShareTitle');
+      document.body.appendChild(_shEl);
+      _shEl.addEventListener('mousedown', ev => { if (ev.target === _shEl) _shEl.classList.remove('open'); });
+      _shEl.addEventListener('click', ev => {
+        const b = ev.target.closest('[data-glsh]');
+        if (!b) return;
+        if (b.dataset.glsh === 'close') _shEl.classList.remove('open');
+        if (b.dataset.glsh === 'save' && _shFile) {
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(_shFile); a.download = _shFile.name;
+          document.body.appendChild(a); a.click(); a.remove();
+          setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+        }
+        // navigator.share needs the tap itself: the file was made beforehand
+        if (b.dataset.glsh === 'share' && _shFile && navigator.share) navigator.share({ files: [_shFile] }).catch(() => {});
+      });
+    }
+    const canShare = !!(navigator.canShare && navigator.share);
+    _shEl.innerHTML = `<div class="dc-modal dc-frame gl-share-box">
+      <div class="dc-frame-head"><div class="dc-frame-titles"><h3 class="dc-frame-title" id="glShareTitle">${H(tx('card_title', { name: nameOf(id) }))}</h3></div>
+        <button type="button" class="dc-btn dc-btn-plain dc-btn-icon dc-modal-close" data-glsh="close" aria-label="${H(typeof t === 'function' ? t('set_close') : 'Close')}">✕</button></div>
+      <div class="dc-frame-body gl-share-body"><div class="gl-share-img"><span class="gl-spin" aria-hidden="true"></span></div></div>
+      <div class="dc-frame-foot"><div class="dc-frame-foot-start"></div>
+        <button type="button" class="dc-btn dc-btn-normal" data-glsh="save" disabled>${ico('download')}${H(tx('card_save'))}</button>
+        ${canShare ? `<button type="button" class="dc-btn dc-btn-main" data-glsh="share" disabled>${ico('share')}${H(tx('card_share'))}</button>` : ''}
+      </div></div>`;
+    _shEl.classList.add('open');
+    _shFile = null;
+    const fontsReady = document.fonts && document.fonts.load
+      ? Promise.all(['800 100px "Bricolage Grotesque"', '700 40px "IBM Plex Sans"', '700 40px "JetBrains Mono"'].map(f => document.fonts.load(f).catch(() => {})))
+      : Promise.resolve();
+    fontsReady.then(() => {
+      const c = drawCard(id);
+      c.toBlob(blob => {
+        if (!blob || !_shEl.classList.contains('open')) return;
+        const fname = 'dankcharts-' + nameOf(id).toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '-') + '.png';
+        _shFile = new File([blob], fname, { type: 'image/png' });
+        const img = new Image();
+        img.alt = tx('card_title', { name: nameOf(id) });
+        img.src = URL.createObjectURL(blob);
+        const box = _shEl.querySelector('.gl-share-img');
+        box.innerHTML = ''; box.appendChild(img);
+        _shEl.querySelectorAll('[data-glsh="save"], [data-glsh="share"]').forEach(b => {
+          b.disabled = b.dataset.glsh === 'share' && !(navigator.canShare && navigator.canShare({ files: [_shFile] }));
+        });
+      }, 'image/png');
+    });
   }
 
   /* ── Keeping things in step ──────────────────────────────────────────── */

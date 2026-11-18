@@ -51303,3 +51303,85 @@ button.gl-fact:active { transform: translateY(1px); }
   .gl-bubbles { animation: none; }
   .gl-bub circle { transition: none; }
 }
+
+
+/* ── The genre shelf (step 4) ── */
+.gl-shelf-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: var(--sp-3); }
+.gl-gcard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  aspect-ratio: 3 / 4;
+  padding: var(--sp-3);
+  border: 0;
+  border-radius: var(--r-lg);
+  /* Bright family colour in both themes, so the dark ink always reads */
+  background: linear-gradient(165deg, color-mix(in srgb, var(--gf) 72%, #fff) 0%, var(--gf) 55%, color-mix(in srgb, var(--gf) 78%, #000) 100%);
+  color: #0b1220;
+  font: inherit;
+  text-align: left;
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+  transition: transform var(--t-med) var(--ease), box-shadow var(--t-med) var(--ease);
+}
+/* Fine diagonal foil lines */
+.gl-gcard::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(115deg, transparent 0 16px, rgba(255, 255, 255, 0.14) 16px 17px);
+  pointer-events: none;
+}
+.gl-gcard:hover { transform: translateY(-3px) rotate(-1deg); box-shadow: 0 12px 26px rgba(0, 0, 0, 0.26); }
+.gl-gcard:focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
+.gl-gcard-no { font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; opacity: 0.72; }
+.gl-gcard-fam { font-size: 0.625rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; opacity: 0.75; }
+.gl-gcard-name {
+  margin-top: auto;
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 800;
+  line-height: 1.02;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+.gl-gcard-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px; width: 100%; margin-top: 6px; }
+.gl-gcard-pl { font-family: var(--font-mono); font-size: 0.6875rem; font-weight: 600; }
+.gl-gcard-rar {
+  padding: 2px 8px;
+  border-radius: var(--r-full);
+  background: rgba(11, 18, 32, 0.84);
+  color: #fff;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.gl-gcard-deep .gl-gcard-rar { background: #0b1220; color: #fbbf24; }
+.gl-gcard-deep { box-shadow: 0 0 0 2px #fbbf24, 0 6px 18px rgba(0, 0, 0, 0.18); }
+.gl-gcard.is-locked {
+  background: var(--bg2);
+  color: var(--text3);
+  border: 1px dashed var(--border2);
+  box-shadow: none;
+}
+.gl-gcard.is-locked::after { display: none; }
+.gl-gcard.is-locked .gl-gcard-name { color: var(--text2); }
+.gl-gcard.is-locked:hover { border-color: var(--gf); color: var(--text2); }
+
+/* ── Share card window ── */
+.gl-share-box { width: min(480px, calc(100vw - 32px)); }
+.gl-share-body { display: flex; justify-content: center; }
+.gl-share-img { display: grid; place-items: center; width: 100%; aspect-ratio: 4 / 5; border-radius: var(--r-md); background: var(--bg3); overflow: hidden; }
+.gl-share-img img { display: block; width: 100%; height: 100%; object-fit: contain; }
+
+@media (max-width: 520px) {
+  .gl-shelf-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gl-gcard { transition: none; }
+  .gl-gcard:hover { transform: none; }
+}
