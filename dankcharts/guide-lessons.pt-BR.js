@@ -2715,6 +2715,90 @@ window.GL_TEXT['pt-BR'] = {
         '{{t:sx_game_tune}} toca alguns segundos de uma das suas músicas: ligue o som.'
       ]
     },
+    genres: {
+      title: '{{t:nav_genrelib}}',
+      promise: 'Veja os gêneros dos seus artistas, álbuns e músicas, de onde vem cada um, e corrija os que estiverem errados.',
+      scenes: {
+        page: { title: '{{t:nav_genrelib}}', spots: {
+          head: ['{{t:nav_genrelib}}', 'Cada artista, álbum e música que você ouve, com seus gêneros. Abra pelo Mais.'],
+          tiles: ['Como está', 'Quantos têm gênero, quantos você escolheu e quantos ainda não têm. Toque num quadro para ver só esses.'],
+          tabs: ['Artistas, Álbuns, Músicas', 'Uma lista por vez, com quantos há.'],
+          search: ['Buscar', 'Acha nomes e também gêneros: digite “k-pop” para ver tudo o que é K-pop.'],
+          filter: ['Mostrar', 'Todos, só os que não têm gênero ou só os que você escolheu.'],
+          top: ['Principais gêneros aqui', 'Os gêneros principais desta lista, por plays. Toque num para ver só esses.'],
+          row: ['Uma linha', 'Toque para mudar os gêneros.'],
+          src: ['De onde vêm', 'Seus (você escolheu), Planilha (sua Google Sheet ou CSV), MusicBrainz ou Tags online (Gemini ou Last.fm). “Do artista” quer dizer que usa os do artista.'],
+          edit: ['Editar', 'Abre o seletor de gêneros. “Adicionar gêneros” numa linha que não tem.']
+        } },
+        pick: { title: 'O seletor de gêneros', spots: {
+          sel: ['Os gêneros', 'Os gêneros que ele vai ter. Toque em ✕ para remover um.'],
+          main: ['O gênero principal', 'O primeiro, com uma ★. Toque no nome de outro para torná-lo o principal.'],
+          count: ['Até cinco', 'Quantos você escolheu, de cinco.'],
+          search: ['Buscar na lista', 'Mais de 2.200 gêneros. Apelidos e erros de digitação funcionam: “rnb”, “dnb”, “baile funk”, “reggeaton”.'],
+          popular: ['Populares', 'Os de sempre, com um toque. Acima deles: os gêneros que ele tem agora e os do artista.'],
+          fams: ['Explorar por família', 'Todos os gêneros em 20 famílias: Latina, Brasileira, Hip hop e rap, Eletrônica e dance…'],
+          save: ['Salvar', 'Guarda sua escolha. Sem nada escolhido, salva “sem gênero” (para um podcast, por exemplo).']
+        } },
+        find: { title: 'Buscando', spots: {
+          search: ['O que você digitou', 'A lista é buscada enquanto você digita. ↑ ↓ e Enter também funcionam.'],
+          opt: ['Um gênero', 'Toque para adicionar; a família aparece à direita.'],
+          sugg: ['Não encontrou?', 'Sugira no Fórum. Quando um moderador adicionar, ele entra na lista de todo mundo.']
+        } }
+      },
+      howto: {
+        fix: { title: 'Corrigir um gênero', slides: [
+          'Abra {{t:nav_genrelib}} pelo Mais e toque no artista, álbum ou música.',
+          'Busque o gênero que você quer.',
+          'Toque para adicionar. Até cinco.',
+          'O primeiro é o gênero principal. Toque em outro nome para colocá-lo primeiro.',
+          'Salve.',
+          'A linha agora diz Seus. Prêmios, Playlists inteligentes e a aba Diário passam a usar.'
+        ] },
+        missing: { title: 'Complete o que falta', slides: [
+          'Os quadros mostram quantos ainda não têm gênero.',
+          'Escolha “Sem gênero” para ver só esses.',
+          'Ou toque num gênero principal para conferir tudo o que está nele.'
+        ] },
+        suggest: { title: 'Peça um gênero', slides: [
+          'Digite o gênero no seletor.',
+          'Não está na lista? Toque em Sugerir no Fórum: abre uma postagem já preenchida.'
+        ] }
+      },
+      options: {
+        list: { title: 'A lista', items: {
+          tabs: ['Artistas, Álbuns, Músicas', 'Um álbum ou música com gêneros próprios continua com eles; um sem gêneros usa os do artista.'],
+          filter: ['Mostrar', 'Todos, Sem gênero ou Escolhidos por você.'],
+          top: ['Principais gêneros aqui', 'Toque num para ver só esse gênero; toque de novo para ver todos.'],
+          search: ['Buscar', 'Nomes e gêneros.']
+        } },
+        pick: { title: 'O seletor', items: {
+          main: ['Gênero principal', 'O primeiro gênero é o que mais conta onde os gêneros são comparados, como nas categorias por gênero dos Prêmios.'],
+          count: ['No máximo cinco', 'Remova um para adicionar outro.'],
+          fams: ['Famílias', 'Explore quando não souber o nome exato.']
+        } }
+      },
+      challenges: {
+        'gl.open': ['Abra o seletor de gêneros', 'Toque em qualquer linha em {{t:nav_genrelib}}, ou em Gêneros… num menu ⋮.'],
+        'gl.save': ['Salve um gênero', 'Mude os gêneros de um artista, álbum ou música e salve.'],
+        'gl.filter': ['Ache os que não têm gênero', 'Escolha “Sem gênero” em {{t:nav_genrelib}}.']
+      },
+      quiz: {
+        q1: ['Onde ficam salvos os gêneros que você escolhe?',
+          ['Na sua planilha do Google', 'No app: neste aparelho, e na sua conta quando você entra', 'No Last.fm'],
+          'Ficam no app e nunca mudam sua planilha ou CSV. Com a conta, vão com você para seus outros aparelhos.'],
+        q2: ['Um gênero que você quer não está na lista. E agora?',
+          ['Digitar mesmo assim', 'Escolher o mais parecido e deixar uma nota', 'Sugerir no Fórum'],
+          'Os moderadores adicionam os gêneros sugeridos, e aí eles entram na lista de todo mundo.'],
+        q3: ['Qual gênero conta como o principal?',
+          ['O primeiro, com a ★', 'O último que você adicionou', 'O que tem mais plays'],
+          'O primeiro gênero é o principal. Toque no nome de outro para colocá-lo primeiro.']
+      },
+      tips: [
+        'A etiqueta de cada linha diz de onde vêm os gêneros. Os seus sempre ganham.',
+        'Mude a ordem: o gênero com a ★ é o principal.',
+        'Falta um gênero? Digite no seletor e toque em Sugerir no Fórum.'
+      ]
+    },
     events: {
       title: '{{t:sec_events_title}}',
       promise: 'Aniversários, datas de álbuns, lançamentos e shows dos artistas que você ouve, e o que você ouvia neste mesmo dia anos atrás.',

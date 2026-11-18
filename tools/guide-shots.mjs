@@ -304,6 +304,28 @@ async function rtSeed(pg) {
   });
 }
 // The Ratings page on one of its lists (albums / todo), editor closed
+// The Genre Library (genrelib.js) with the demo library. Two picks are made
+// first, so a row shows the "Yours" badge and the picker has a main genre.
+async function glView(pg) {
+  await pg.evaluate(() => { try { dcGenreLib.close(); } catch (e) {} });
+  await go(pg, 'genrelib');
+  await pg.waitForFunction(() => document.querySelector('#genrelibView .gl-list .gl-row'), null, { timeout: 60000 });
+  await pg.evaluate(() => dcGenreLib.ready());
+  await pg.evaluate(() => {
+    const rows = [...document.querySelectorAll('#genrelibView .gl-row-name')].map(e => e.textContent);
+    const p = n => allPlays.find(x => _pa(x) === n);
+    if (rows[0] && !genreEditGet('artist', p(rows[0]))) genreEditSet('artist', p(rows[0]), ['pop', 'dance-pop', 'synth-pop']);
+  });
+  await wait(pg, 2500);
+}
+async function glPick(pg) {
+  await glView(pg);
+  await pg.evaluate(() => document.querySelector('#genrelibView .gl-row-btn').click());
+  await pg.waitForFunction(() => document.querySelector('#glPickModal.open .gl-fams'), null, { timeout: 30000 });
+  // One more genre, so Save is lit
+  await pg.evaluate(() => { const c = document.querySelector('#glRes .gl-chip-opt:not(.is-on)'); if (c) c.click(); });
+  await wait(pg, 600);
+}
 async function rtView(pg, list = 'albums') {
   await d1Unfake(pg);
   await pg.evaluate(() => { try { closeRatingModal(); } catch (e) {} });
@@ -1038,6 +1060,24 @@ const SHOTS = [
     spots: { title: '#sxGameTitle', score: '#sxGameScore', close: '#sxGameLayer .sx-game-close', q: '#sxGameStage .sx-game-q',
       known: '#sxGameStage .sx-gsong', guess: { js: "[...document.querySelectorAll('#sxGameStage .sx-gsong')].pop()" },
       btns: '#sxGameStage .sx-hl-btns' } },
+  /* Genre Library (2026-11-18): the page, the picker, a search */
+  { id: 'gl-page', lesson: 'genres',
+    setup: async pg => { await glView(pg); },
+    clip: { from: '#genrelibView .gl-page-head', to: '#genrelibView .gl-list', pad: 12, maxH: 1300, box: '#genrelibView' },
+    spots: { head: '#genrelibView .gl-page-head', tiles: '#genrelibView .gl-tiles', tabs: '#genrelibView .gl-tabs',
+      search: '#genrelibView .gl-lib-search', filter: '#genrelibView .gl-seg', top: '#genrelibView .gl-top',
+      row: '#genrelibView .gl-row', src: '#genrelibView .gl-src', edit: '#genrelibView .gl-row-edit' } },
+  { id: 'gl-pick', lesson: 'genres',
+    setup: async pg => { await glPick(pg); },
+    clip: { from: '#glPickModal .gl-pick', to: '#glPickModal .gl-pick', pad: 10, narrow: true, maxH: 1400 },
+    spots: { sel: '#glPickModal .gl-sel-row', main: '#glPickModal .gl-chip-sel.is-main', count: '#glPickModal .gl-sel-count',
+      search: '#glPickModal .gl-search', popular: { js: "[...document.querySelectorAll('#glRes .gl-chips')].pop()" },
+      fams: '#glPickModal .gl-fams', save: '#glPickModal .gl-save' } },
+  { id: 'gl-find', lesson: 'genres',
+    setup: async pg => { await glPick(pg);
+      await pg.fill('#glQ', 'baile'); await wait(pg, 500); },
+    clip: { from: '#glPickModal .gl-pick', to: '#glPickModal .gl-pick', pad: 10, narrow: true, maxH: 1400 },
+    spots: { search: '#glPickModal .gl-search', opt: '#glPickModal .gl-opt', sugg: '#glPickModal .gl-sugg' } },
   { id: 'stats-cmp', lesson: 'stats', phone: true,
     setup: async pg => { await statsTab(pg, 'compare'); },
     clip: { from: '#graphsControls', to: '#sxCmpVerdict', pad: 12 },

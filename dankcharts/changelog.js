@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 502;
+const DC_CL_I18N_V = 503;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -98,6 +98,16 @@ const DC_CL_AREAS = {
    by id, as { title, intro, points }. A missing one shows in English.
    ------------------------------------------------------------------------- */
 const DC_CL_HIGHLIGHTS = [
+  { id: "genre-library", d: "2026-11-18", a: "data", img: "whatsnew/genre-library.webp", go: "genrelib",
+    title: "Genre Library",
+    intro: "See the genres of everything you play, where each one comes from, and fix the ones that are wrong.",
+    points: [
+      "Every artist, album and song with its genres, marked Yours, Sheet, MusicBrainz or Online tags.",
+      "Pick up to five from a list of over 2,200 genres. Nicknames and typos work when you search.",
+      "Your picks stay in the app, never in your Sheet, and count in Awards, Smart Playlists and the Daily tab.",
+      "Missing a genre? Suggest it on the Board, and once it's added it's in everyone's list.",
+    ],
+    also: ["Genre Library: see and fix the genres of your music"] },
   { id: "listening-scores", d: "2026-11-14", a: "ratings", img: "whatsnew/listening-scores.webp", go: "week",
     title: "Listening Scores",
     intro: "Everything you haven't rated yet now has a score, worked out from how you listen.",
@@ -419,6 +429,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-18', t: 'feature', a: 'data',
+    title: "Genre Library: see and fix the genres of your music",
+    detail: "A new Genre Library page in More lists every artist, album and song you play with its genres and where they come from: your own picks, your Google Sheet or CSV, MusicBrainz, or online tags from Gemini or Last.fm. Tap one to change its genres, picked from a fixed list of over 2,200 genres (up to five; the first is the main one). Search understands nicknames and typos, and you can browse 20 families. Your picks are saved in the app and your account, never in your Sheet, and come first in Awards, Smart Playlists and the Daily tab. Genres also show under the name in the song, album and artist windows, and Genres… is in every ⋮ menu. A genre missing from the list can be suggested on the Board; moderators add it for everyone. Blank-cell placeholders like - in a Sheet's genre columns are no longer read as a genre." },
   { d: '2026-11-18', t: 'feature', a: 'playlists',
     title: "Empty playlists, a library search to add songs, and playlist ideas",
     detail: "The Playlists page has a new Empty playlist card: it is called Playlist 1, Playlist 2… unless you type a name, and opens with the name ready to change. Every playlist you made yourself now has an Add songs bar to search your whole library and add songs with +. The 💡 Ideas button suggests topics from your own listening, such as More like this, On repeat lately, Fresh finds, Forgotten favorites, Late-night songs, Best of an artist or a past year, and adds a whole idea at once or song by song. Removing the last song now keeps the playlist." },

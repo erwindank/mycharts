@@ -2715,6 +2715,90 @@ window.GL_TEXT['pt-PT'] = {
         '{{t:sx_game_tune}} toca alguns segundos de uma das tuas músicas: liga o som.'
       ]
     },
+    genres: {
+      title: '{{t:nav_genrelib}}',
+      promise: 'Vê os géneros dos teus artistas, álbuns e músicas, de onde vem cada um, e corrige os que estiverem errados.',
+      scenes: {
+        page: { title: '{{t:nav_genrelib}}', spots: {
+          head: ['{{t:nav_genrelib}}', 'Cada artista, álbum e música que ouves, com os seus géneros. Abre-a a partir de Mais.'],
+          tiles: ['Como está', 'Quantos têm género, quantos escolheste tu e quantos ainda não têm. Toca num quadro para ver só esses.'],
+          tabs: ['Artistas, Álbuns, Músicas', 'Uma lista de cada vez, com quantos há.'],
+          search: ['Pesquisar', 'Encontra nomes e também géneros: escreve “k-pop” para ver tudo o que é K-pop.'],
+          filter: ['Mostrar', 'Todos, só os que não têm género ou só os que escolheste.'],
+          top: ['Principais géneros aqui', 'Os géneros principais desta lista, por reproduções. Toca num para ver só esses.'],
+          row: ['Uma linha', 'Toca-lhe para mudar os géneros.'],
+          src: ['De onde vêm', 'Teus (escolheste-os), Folha (a tua Google Sheet ou CSV), MusicBrainz ou Etiquetas online (Gemini ou Last.fm). “Do artista” quer dizer que usa os do artista.'],
+          edit: ['Editar', 'Abre o seletor de géneros. “Adicionar géneros” numa linha que não tem.']
+        } },
+        pick: { title: 'O seletor de géneros', spots: {
+          sel: ['Os géneros', 'Os géneros que vai ter. Toca em ✕ para remover um.'],
+          main: ['O género principal', 'O primeiro, com uma ★. Toca no nome de outro para o tornar o principal.'],
+          count: ['Até cinco', 'Quantos escolheste, de cinco.'],
+          search: ['Pesquisar na lista', 'Mais de 2200 géneros. Alcunhas e gralhas funcionam: “rnb”, “dnb”, “baile funk”, “reggeaton”.'],
+          popular: ['Populares', 'Os do costume, com um toque. Por cima: os géneros que tem agora e os do artista.'],
+          fams: ['Explorar por família', 'Todos os géneros em 20 famílias: Latina, Brasileira, Hip hop e rap, Eletrónica e dance…'],
+          save: ['Guardar', 'Guarda a tua escolha. Sem nada escolhido, guarda “sem género” (para um podcast, por exemplo).']
+        } },
+        find: { title: 'A pesquisar', spots: {
+          search: ['O que escreveste', 'A lista é pesquisada enquanto escreves. ↑ ↓ e Enter também funcionam.'],
+          opt: ['Um género', 'Toca-lhe para o adicionar; a família aparece à direita.'],
+          sugg: ['Não encontras?', 'Sugere-o no Fórum. Quando um moderador o adicionar, fica na lista de toda a gente.']
+        } }
+      },
+      howto: {
+        fix: { title: 'Corrigir um género', slides: [
+          'Abre {{t:nav_genrelib}} a partir de Mais e toca no artista, álbum ou música.',
+          'Pesquisa o género que queres.',
+          'Toca-lhe para o adicionar. Até cinco.',
+          'O primeiro é o género principal. Toca noutro nome para o pôr em primeiro.',
+          'Guarda.',
+          'A linha passa a dizer Teus. Prémios, Playlists inteligentes e o separador Diário passam a usá-lo.'
+        ] },
+        missing: { title: 'Completa o que falta', slides: [
+          'Os quadros mostram quantos ainda não têm género.',
+          'Escolhe “Sem género” para ver só esses.',
+          'Ou toca num género principal para rever tudo o que está nele.'
+        ] },
+        suggest: { title: 'Pede um género', slides: [
+          'Escreve o género no seletor.',
+          'Não está na lista? Toca em Sugerir no Fórum: abre-se uma publicação já preenchida.'
+        ] }
+      },
+      options: {
+        list: { title: 'A lista', items: {
+          tabs: ['Artistas, Álbuns, Músicas', 'Um álbum ou uma música com géneros próprios mantém-nos; um sem géneros usa os do artista.'],
+          filter: ['Mostrar', 'Todos, Sem género ou Escolhidos por ti.'],
+          top: ['Principais géneros aqui', 'Toca num para ver só esse género; toca outra vez para ver todos.'],
+          search: ['Pesquisar', 'Nomes e géneros.']
+        } },
+        pick: { title: 'O seletor', items: {
+          main: ['Género principal', 'O primeiro género é o que mais conta onde os géneros são comparados, como nas categorias por género dos Prémios.'],
+          count: ['No máximo cinco', 'Remove um para adicionar outro.'],
+          fams: ['Famílias', 'Explora quando não sabes o nome exato.']
+        } }
+      },
+      challenges: {
+        'gl.open': ['Abre o seletor de géneros', 'Toca em qualquer linha em {{t:nav_genrelib}}, ou em Géneros… num menu ⋮.'],
+        'gl.save': ['Guarda um género', 'Muda os géneros de um artista, álbum ou música e guarda.'],
+        'gl.filter': ['Encontra os que não têm género', 'Escolhe “Sem género” em {{t:nav_genrelib}}.']
+      },
+      quiz: {
+        q1: ['Onde ficam guardados os géneros que escolhes?',
+          ['Na tua folha do Google', 'Na app: neste dispositivo, e na tua conta quando inicias sessão', 'No Last.fm'],
+          'Ficam na app e nunca mudam a tua folha ou CSV. Com sessão iniciada, acompanham-te nos teus outros dispositivos.'],
+        q2: ['Um género que queres não está na lista. E agora?',
+          ['Escrevê-lo na mesma', 'Escolher o mais parecido e deixar uma nota', 'Sugeri-lo no Fórum'],
+          'Os moderadores adicionam os géneros sugeridos, e passam a estar na lista de toda a gente.'],
+        q3: ['Que género conta como o principal?',
+          ['O primeiro, com a ★', 'O último que adicionaste', 'O que tem mais reproduções'],
+          'O primeiro género é o principal. Toca no nome de outro para o pôr em primeiro.']
+      },
+      tips: [
+        'A etiqueta de cada linha diz de onde vêm os géneros. Os teus ganham sempre.',
+        'Muda a ordem: o género com a ★ é o principal.',
+        'Falta um género? Escreve-o no seletor e toca em Sugerir no Fórum.'
+      ]
+    },
     events: {
       title: '{{t:sec_events_title}}',
       promise: 'Aniversários, datas de álbuns, lançamentos e concertos dos artistas que ouves, e o que ouvias neste mesmo dia há anos.',

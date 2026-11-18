@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Genre Library: see and fix the genres of your music":
+    ["Biblioteca de gêneros: veja e corrija os gêneros da sua música",
+     "Uma nova página, Biblioteca de gêneros, em Mais, mostra cada artista, álbum e música que você ouve com seus gêneros e de onde eles vêm: o que você escolheu, sua Google Sheet ou CSV, MusicBrainz ou tags online do Gemini ou do Last.fm. Toque em um para mudar os gêneros, escolhidos de uma lista fixa de mais de 2.200 gêneros (até cinco; o primeiro é o principal). A busca entende apelidos e erros de digitação, e dá para explorar 20 famílias. O que você escolher fica salvo no app e na sua conta, nunca na planilha, e vem primeiro em Prêmios, Playlists inteligentes e na aba Diário. Os gêneros também aparecem sob o nome nas janelas de música, álbum e artista, e Gêneros… está em todo menu ⋮. Um gênero que falte pode ser sugerido no Fórum; os moderadores adicionam para todo mundo. Marcadores de célula vazia como - nas colunas de gênero da planilha não contam mais como gênero."],
   "Empty playlists, a library search to add songs, and playlist ideas":
     ["Playlists vazias, busca na biblioteca para adicionar músicas e ideias de playlist",
      "A página de Playlists tem um novo cartão Playlist vazia: ela se chama Playlist 1, Playlist 2… se você não digitar um nome, e abre com o nome pronto para mudar. Cada playlist feita por você agora tem uma barra Adicionar músicas para buscar em toda a sua biblioteca e adicionar com +. O botão 💡 Ideias sugere temas a partir das suas reproduções, como Mais como esta, No repeat ultimamente, Descobertas recentes, Favoritas esquecidas, Músicas da madrugada, O melhor de um artista ou de um ano passado, e adiciona uma ideia inteira ou música por música. Remover a última música não apaga mais a playlist."],
@@ -4781,6 +4784,16 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 /* Highlight cards (DC_CL_HIGHLIGHTS in changelog.js), keyed by id. */
 window.DC_CL_HIGHLIGHTS_I18N = window.DC_CL_HIGHLIGHTS_I18N || {};
 window.DC_CL_HIGHLIGHTS_I18N["pt-BR"] = {
+  "genre-library": {
+    title: "Biblioteca de gêneros",
+    intro: "Veja os gêneros de tudo o que você ouve, de onde vem cada um, e corrija os que estiverem errados.",
+    points: [
+      "Cada artista, álbum e música com seus gêneros, marcados como Seus, Planilha, MusicBrainz ou Tags online.",
+      "Escolha até cinco de uma lista de mais de 2.200 gêneros. Na busca, apelidos e erros de digitação funcionam.",
+      "O que você escolher fica no app, nunca na planilha, e vale em Prêmios, Playlists inteligentes e na aba Diário.",
+      "Falta um gênero? Sugira no Fórum e, quando for adicionado, entra na lista de todo mundo.",
+    ],
+  },
   "listening-scores": {
     title: "Notas de escuta",
     intro: "Tudo o que você ainda não avaliou agora tem uma nota, pelo jeito que você escuta.",

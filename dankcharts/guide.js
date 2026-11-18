@@ -32,7 +32,7 @@
   'use strict';
 
   // Bump when the lesson files or the pictures change (it's their ?v=)
-  const GUIDE_V = '33';
+  const GUIDE_V = '34';
   const STORE = 'dc_guide_progress';
   const LANG_FILES = ['es', 'pt-BR', 'pt-PT'];
 
@@ -168,6 +168,10 @@
     'stats.story':   { lesson: 'stats', fn: 'setStatsTab', test: a => a[0] === 'story' },
     'stats.go':      { lesson: 'stats', click: '.sx-tile-go' },
     'stats.game':    { lesson: 'games', fn: 'sxGameOpen' },   // id kept from when Games was in Stats
+    // Genre Library (genrelib.js): the picker opening, a save, the No genre filter
+    'gl.open':       { lesson: 'genres', open: '#glPickModal' },
+    'gl.save':       { lesson: 'genres', click: '#glPickModal .gl-save' },
+    'gl.filter':     { lesson: 'genres', click: '#genrelibView [data-gll="filter"][data-v="missing"]' },
     'stats.add':     { lesson: 'stats', fn: 'sxCmpAddKey' },
     'stats.race':    { lesson: 'stats', click: '#sxCmpMode [data-cmode="race"]' },
     'stats.drill':   { lesson: 'stats', fn: 'sxShowVolDrill' },
@@ -346,6 +350,9 @@
     'stats.story':   { nav: 'graphs', ring: '.stats-tabs [data-st-tab="story"]' },
     'stats.go':      { nav: 'graphs', stab: 'overview', ring: '#sxOverview .sx-tiles' },
     'stats.game':    { nav: 'games', ring: '#sxGames .sx-daily, #sxGames .sx-game-card' },
+    'gl.open':       { nav: 'genrelib', ring: '#genrelibView .gl-list' },
+    'gl.save':       { nav: 'genrelib', ring: '#genrelibView .gl-list' },
+    'gl.filter':     { nav: 'genrelib', ring: '#genrelibView .gl-seg' },
     'stats.add':     { nav: 'graphs', stab: 'compare', ring: '#sxCmpAddCard' },
     'stats.race':    { nav: 'graphs', stab: 'compare', ring: '#sxCmpMode' },
     'stats.drill':   { nav: 'graphs', stab: 'charts', ring: '.sx-vol-card' },

@@ -852,6 +852,35 @@ window.GL = {
       quiz: [ { id: 'q1', answer: 2 }, { id: 'q2', answer: 0 }, { id: 'q3', answer: 1 } ],
       tips: [ ['stats-games', 'daily', 'stats.game'], ['stats-games', 'tally', 'stats.game'], ['stats-games', 'card', 'stats.game'] ]
     },
+    /* ── Genre Library (2026-11-18, genrelib.js): see and fix the genres
+       of your artists, albums and songs, picked from one fixed list ── */
+    { id: 'genres', area: 'more', nav: 'genrelib', mins: 4, cover: 'gl-page',
+      scenes: [
+        { id: 'page', shot: 'gl-page', spots: ['head', 'tiles', 'tabs', 'search', 'filter', 'top', 'row', 'src', 'edit'] },
+        { id: 'pick', shot: 'gl-pick', spots: ['sel', 'main', 'count', 'search', 'popular', 'fams', 'save'] },
+        { id: 'find', shot: 'gl-find', spots: ['search', 'opt', 'sugg'] }
+      ],
+      howto: [
+        { id: 'fix', challenge: 'gl.save', slides: [
+          { shot: 'gl-page', spot: 'row' }, { shot: 'gl-pick', spot: 'search' }, { shot: 'gl-find', spot: 'opt' },
+          { shot: 'gl-pick', spot: 'main' }, { shot: 'gl-pick', spot: 'save' }, { shot: 'gl-page', spot: 'src' } ] },
+        { id: 'missing', challenge: 'gl.filter', slides: [
+          { shot: 'gl-page', spot: 'tiles' }, { shot: 'gl-page', spot: 'filter' }, { shot: 'gl-page', spot: 'top' } ] },
+        { id: 'suggest', challenge: 'gl.open', slides: [
+          { shot: 'gl-find', spot: 'search' }, { shot: 'gl-find', spot: 'sugg' } ] }
+      ],
+      options: [
+        { id: 'list', items: [
+          { id: 'tabs', shot: 'gl-page', spot: 'tabs' }, { id: 'filter', shot: 'gl-page', spot: 'filter' },
+          { id: 'top', shot: 'gl-page', spot: 'top' }, { id: 'search', shot: 'gl-page', spot: 'search' } ] },
+        { id: 'pick', items: [
+          { id: 'main', shot: 'gl-pick', spot: 'main' }, { id: 'count', shot: 'gl-pick', spot: 'count' },
+          { id: 'fams', shot: 'gl-pick', spot: 'fams' } ] }
+      ],
+      challenges: ['gl.open', 'gl.save', 'gl.filter'],
+      quiz: [ { id: 'q1', answer: 1 }, { id: 'q2', answer: 2 }, { id: 'q3', answer: 0 } ],
+      tips: [ ['gl-page', 'src', 'gl.open'], ['gl-pick', 'main', 'gl.save'], ['gl-find', 'sugg', 'gl.open'] ]
+    },
     { id: 'events', area: 'more', nav: 'events', mins: 6, cover: 'ev-today',
       scenes: [
         { id: 'today', shot: 'ev-today', phone: true,
@@ -3851,6 +3880,90 @@ window.GL_TEXT.en = {
         'A new {{t:sx_daily_k}} waits on {{t:nav_games}} every day. A dot on More tells you it hasn’t been played yet.',
         'Only your first try at the {{t:sx_daily_k}} counts. Play every day to keep your day streak going.',
         '{{t:sx_game_tune}} plays a few seconds of one of your songs: turn the sound on.'
+      ]
+    },
+    genres: {
+      title: '{{t:nav_genrelib}}',
+      promise: 'See the genres of your artists, albums and songs, where each one comes from, and fix any that are wrong.',
+      scenes: {
+        page: { title: '{{t:nav_genrelib}}', spots: {
+          head: ['{{t:nav_genrelib}}', 'Every artist, album and song you play, with its genres. Open it from More.'],
+          tiles: ['How you’re doing', 'How many have a genre, how many you picked yourself, and how many have none yet. Tap a tile to show just those.'],
+          tabs: ['Artists, Albums, Songs', 'One list at a time, with how many there are.'],
+          search: ['Search', 'Finds names, and genres too: type “k-pop” to see everything tagged K-pop.'],
+          filter: ['Show', 'All, only the ones with no genre, or only the ones you picked.'],
+          top: ['Top genres here', 'The main genres on this list, by plays. Tap one to see only those.'],
+          row: ['A row', 'Tap it to change its genres.'],
+          src: ['Where they come from', 'Yours (you picked them), Sheet (your Google Sheet or CSV), MusicBrainz, or Online tags (Gemini or Last.fm). “From the artist” means it borrows its artist’s.'],
+          edit: ['Edit', 'Opens the genre picker. “Add genres” on a row that has none.']
+        } },
+        pick: { title: 'The genre picker', spots: {
+          sel: ['Its genres', 'The genres it will have. Tap ✕ to remove one.'],
+          main: ['The main genre', 'The first one, with a ★. Tap another genre’s name to make it the main one.'],
+          count: ['Up to five', 'How many you picked, out of five.'],
+          search: ['Search the list', 'Over 2,200 genres. Nicknames and typos work: “rnb”, “dnb”, “baile funk”, “reggeaton”.'],
+          popular: ['Popular', 'The usual ones, one tap each. Above them: the genres it has now, and its artist’s.'],
+          fams: ['Browse by family', 'Every genre sorted into 20 families: Latin, Brazilian, Hip Hop & Rap, Electronic & Dance…'],
+          save: ['Save', 'Keeps your pick. With nothing picked it saves as “no genre” (for a podcast, say).']
+        } },
+        find: { title: 'Searching', spots: {
+          search: ['What you typed', 'The genre list is searched as you type. ↑ ↓ and Enter work too.'],
+          opt: ['A genre', 'Tap it to add it; its family is on the right.'],
+          sugg: ['Can’t find it?', 'Suggest it on the Board. When a moderator adds it, it’s in everyone’s list.']
+        } }
+      },
+      howto: {
+        fix: { title: 'Fix a genre', slides: [
+          'Open {{t:nav_genrelib}} from More and tap the artist, album or song.',
+          'Search for the genre you want.',
+          'Tap it to add it. Up to five.',
+          'The first one is the main genre. Tap another name to put it first.',
+          'Save.',
+          'The row now says Yours. Awards, Smart Playlists and the Daily tab use it from now on.'
+        ] },
+        missing: { title: 'Fill in what’s missing', slides: [
+          'The tiles show how many have no genre yet.',
+          'Pick “No genre” to see only those.',
+          'Or tap a top genre to check everything filed under it.'
+        ] },
+        suggest: { title: 'Ask for a genre', slides: [
+          'Type the genre in the picker.',
+          'Not in the list? Tap Suggest on the Board: a post opens, already filled in.'
+        ] }
+      },
+      options: {
+        list: { title: 'The list', items: {
+          tabs: ['Artists, Albums, Songs', 'An album or song with its own genres keeps them; one without borrows its artist’s.'],
+          filter: ['Show', 'All, No genre, or Picked by you.'],
+          top: ['Top genres here', 'Tap one to show only that genre; tap it again to show all.'],
+          search: ['Search', 'Names and genres.']
+        } },
+        pick: { title: 'The picker', items: {
+          main: ['Main genre', 'The first genre counts most where genres are matched, like the Awards’ genre categories.'],
+          count: ['Five at most', 'Remove one to add another.'],
+          fams: ['Families', 'Browse when you don’t know the exact name.']
+        } }
+      },
+      challenges: {
+        'gl.open': ['Open the genre picker', 'Tap any row on {{t:nav_genrelib}}, or Genres… in a ⋮ menu.'],
+        'gl.save': ['Save a genre', 'Change the genres of an artist, album or song and save.'],
+        'gl.filter': ['Find the ones with no genre', 'Pick “No genre” on {{t:nav_genrelib}}.']
+      },
+      quiz: {
+        q1: ['Where are your genre picks saved?',
+          ['In your Google Sheet', 'In the app: this device, and your account when signed in', 'On Last.fm'],
+          'They stay in the app and never change your Sheet or CSV. Signed in, they follow you to your other devices.'],
+        q2: ['A genre you want isn’t in the list. What now?',
+          ['Type it anyway', 'Pick the closest and add a note', 'Suggest it on the Board'],
+          'Moderators add suggested genres, and then they’re in everyone’s list.'],
+        q3: ['Which genre counts as the main one?',
+          ['The first one, with the ★', 'The last one you added', 'The one with the most plays'],
+          'The first genre is the main one. Tap another genre’s name to move it first.']
+      },
+      tips: [
+        'The badge on a row says where its genres come from. Yours always win.',
+        'Change the order: the genre with the ★ is the main one.',
+        'Missing a genre? Type it in the picker and tap Suggest on the Board.'
       ]
     },
     events: {
