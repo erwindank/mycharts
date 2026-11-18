@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 503;
+const DC_CL_I18N_V = 504;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -98,11 +98,21 @@ const DC_CL_AREAS = {
    by id, as { title, intro, points }. A missing one shows in English.
    ------------------------------------------------------------------------- */
 const DC_CL_HIGHLIGHTS = [
+  { id: "genre-library-fun", d: "2026-11-18", a: "data", img: "whatsnew/genre-library-fun.webp", go: "genrelib",
+    title: "A livelier Genre Library",
+    intro: "Your genres now tell a story, and fixing them is quick.",
+    points: [
+      "See your sound: your biggest genre families, a map to explore and a timeline of how your taste moved.",
+      "Quick Fix shows what's missing one card at a time, with badges as you go.",
+      "Every genre has its own page with your top music, a mix to play and a card to share.",
+      "Collect genre cards and try samples of genres you haven't heard yet.",
+    ],
+    also: ["Genre Library: your sound, Quick Fix, genre pages and more"] },
   { id: "genre-library", d: "2026-11-18", a: "data", img: "whatsnew/genre-library.webp", go: "genrelib",
     title: "Genre Library",
     intro: "See the genres of everything you play, where each one comes from, and fix the ones that are wrong.",
     points: [
-      "Every artist, album and song with its genres, marked Yours, Sheet, MusicBrainz or Online tags.",
+      "Every artist, album and song with its genres, marked Your pick, From your sheet, Voted on MusicBrainz or Guessed online.",
       "Pick up to five from a list of over 2,200 genres. Nicknames and typos work when you search.",
       "Your picks stay in the app, never in your Sheet, and count in Awards, Smart Playlists and the Daily tab.",
       "Missing a genre? Suggest it on the Board, and once it's added it's in everyone's list.",
@@ -429,6 +439,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-18', t: 'feature', a: 'data',
+    title: "Genre Library: your sound, Quick Fix, genre pages and more",
+    detail: "The Genre Library now opens on Your sound: a line about what you listen to, your genre families as one colour bar, three quick facts and a bubble map you can tap into, for all time, the last 12 months or the last 30 days. Quick Fix shows the artists with no genre one card at a time with the best guesses, a ring for how much of your listening has a genre, badges at 50, 75, 90 and 100%, and keys 1–6, Enter and → on a computer. Every genre has its own page with your top artists, songs and albums, its last 12 months, its rarity (Common, Rare or Deep cut) and the genres next to it, plus Play a mix, Make Smart Playlist and a share card. Also new: Tidy up (one-tap fixes for tags that aren't genres, guessed genres and artists whose songs disagree), a genre timeline, a shelf of collectible genre cards, Next door with 30-second samples of genres you haven't tried, a genre of the day, selecting many rows to give them all the same genres, and Group by family. Where genres come from now reads Your pick, From your sheet, Voted on MusicBrainz or Guessed online, and the genre chips in the song, album and artist windows open that genre's page." },
   { d: '2026-11-18', t: 'feature', a: 'data',
     title: "Genre Library: see and fix the genres of your music",
     detail: "A new Genre Library page in More lists every artist, album and song you play with its genres and where they come from: your own picks, your Google Sheet or CSV, MusicBrainz, or online tags from Gemini or Last.fm. Tap one to change its genres, picked from a fixed list of over 2,200 genres (up to five; the first is the main one). Search understands nicknames and typos, and you can browse 20 families. Your picks are saved in the app and your account, never in your Sheet, and come first in Awards, Smart Playlists and the Daily tab. Genres also show under the name in the song, album and artist windows, and Genres… is in every ⋮ menu. A genre missing from the list can be suggested on the Board; moderators add it for everyone. Blank-cell placeholders like - in a Sheet's genre columns are no longer read as a genre." },

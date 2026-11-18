@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Genre Library: your sound, Quick Fix, genre pages and more":
+    ["Biblioteca de gêneros: seu som, Ajuste rápido, páginas de gênero e mais",
+     "A Biblioteca de gêneros agora abre com Seu som: uma frase sobre o que você ouve, suas famílias de gêneros numa barra de cores, três fatos rápidos e um mapa de bolhas para tocar, desde sempre, nos últimos 12 meses ou nos últimos 30 dias. O Ajuste rápido mostra os artistas sem gênero um por vez com os melhores palpites, um anel com quanto do que você ouve tem gênero, medalhas em 50, 75, 90 e 100%, e as teclas 1–6, Enter e → no computador. Cada gênero tem sua página com seus principais artistas, músicas e álbuns, os últimos 12 meses, a raridade (Comum, Raro ou Pérola escondida) e os gêneros parecidos, além de Tocar um mix, Criar playlist inteligente e um cartão para compartilhar. Também é novo: Arrumar (correções de um toque para tags que não são gêneros, gêneros adivinhados e artistas cujas músicas não batem), uma linha do tempo de gêneros, uma coleção de cartões de gênero, Logo ao lado com amostras de 30 segundos de gêneros que você ainda não ouviu, um gênero do dia, selecionar várias linhas para dar a todas os mesmos gêneros, e Agrupar por família. A origem dos gêneros agora diz Escolha sua, Da sua planilha, Votado no MusicBrainz ou Adivinhado online, e os gêneros nas janelas de música, álbum e artista abrem a página daquele gênero."],
   "Genre Library: see and fix the genres of your music":
     ["Biblioteca de gêneros: veja e corrija os gêneros da sua música",
      "Uma nova página, Biblioteca de gêneros, em Mais, mostra cada artista, álbum e música que você ouve com seus gêneros e de onde eles vêm: o que você escolheu, sua Google Sheet ou CSV, MusicBrainz ou tags online do Gemini ou do Last.fm. Toque em um para mudar os gêneros, escolhidos de uma lista fixa de mais de 2.200 gêneros (até cinco; o primeiro é o principal). A busca entende apelidos e erros de digitação, e dá para explorar 20 famílias. O que você escolher fica salvo no app e na sua conta, nunca na planilha, e vem primeiro em Prêmios, Playlists inteligentes e na aba Diário. Os gêneros também aparecem sob o nome nas janelas de música, álbum e artista, e Gêneros… está em todo menu ⋮. Um gênero que falte pode ser sugerido no Fórum; os moderadores adicionam para todo mundo. Marcadores de célula vazia como - nas colunas de gênero da planilha não contam mais como gênero."],
@@ -4784,11 +4787,21 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 /* Highlight cards (DC_CL_HIGHLIGHTS in changelog.js), keyed by id. */
 window.DC_CL_HIGHLIGHTS_I18N = window.DC_CL_HIGHLIGHTS_I18N || {};
 window.DC_CL_HIGHLIGHTS_I18N["pt-BR"] = {
+  "genre-library-fun": {
+    title: "Uma Biblioteca de gêneros mais viva",
+    intro: "Seus gêneros agora contam uma história, e corrigir é rápido.",
+    points: [
+      "Veja seu som: suas maiores famílias de gêneros, um mapa para explorar e uma linha do tempo de como seu gosto mudou.",
+      "O Ajuste rápido mostra o que falta, um cartão por vez, com medalhas pelo caminho.",
+      "Cada gênero tem sua página com sua música principal, um mix para tocar e um cartão para compartilhar.",
+      "Colecione cartões de gênero e ouça amostras de gêneros que você ainda não conhece.",
+    ],
+  },
   "genre-library": {
     title: "Biblioteca de gêneros",
     intro: "Veja os gêneros de tudo o que você ouve, de onde vem cada um, e corrija os que estiverem errados.",
     points: [
-      "Cada artista, álbum e música com seus gêneros, marcados como Seus, Planilha, MusicBrainz ou Tags online.",
+      "Cada artista, álbum e música com seus gêneros, marcados como Escolha sua, Da sua planilha, Votado no MusicBrainz ou Adivinhado online.",
       "Escolha até cinco de uma lista de mais de 2.200 gêneros. Na busca, apelidos e erros de digitação funcionam.",
       "O que você escolher fica no app, nunca na planilha, e vale em Prêmios, Playlists inteligentes e na aba Diário.",
       "Falta um gênero? Sugira no Fórum e, quando for adicionado, entra na lista de todo mundo.",

@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Genre Library: your sound, Quick Fix, genre pages and more":
+    ["Biblioteca de géneros: o teu som, Correção rápida, páginas de género e mais",
+     "A Biblioteca de géneros abre agora com O teu som: uma frase sobre o que ouves, as tuas famílias de géneros numa barra de cores, três factos rápidos e um mapa de bolhas para tocar, desde sempre, nos últimos 12 meses ou nos últimos 30 dias. A Correção rápida mostra os artistas sem género um de cada vez com os melhores palpites, um anel com quanto do que ouves tem género, medalhas aos 50, 75, 90 e 100%, e as teclas 1–6, Enter e → no computador. Cada género tem a sua página com os teus principais artistas, músicas e álbuns, os últimos 12 meses, a raridade (Comum, Raro ou Pérola escondida) e os géneros parecidos, além de Tocar uma mistura, Criar playlist inteligente e um cartão para partilhar. Também é novo: Arrumar (correções de um toque para etiquetas que não são géneros, géneros adivinhados e artistas cujas músicas não batem certo), uma linha do tempo de géneros, uma coleção de cartões de género, Mesmo ao lado com amostras de 30 segundos de géneros que ainda não experimentaste, um género do dia, selecionar várias linhas para lhes dar os mesmos géneros, e Agrupar por família. A origem dos géneros diz agora Escolha tua, Da tua folha, Votado no MusicBrainz ou Adivinhado online, e os géneros nas janelas de música, álbum e artista abrem a página desse género."],
   "Genre Library: see and fix the genres of your music":
     ["Biblioteca de géneros: vê e corrige os géneros da tua música",
      "Uma nova página, Biblioteca de géneros, em Mais, mostra cada artista, álbum e música que ouves com os seus géneros e de onde vêm: o que escolheste, a tua Google Sheet ou CSV, MusicBrainz ou etiquetas online do Gemini ou do Last.fm. Toca num para mudar os géneros, escolhidos de uma lista fixa de mais de 2200 géneros (até cinco; o primeiro é o principal). A pesquisa entende alcunhas e gralhas, e podes explorar 20 famílias. O que escolheres fica guardado na app e na tua conta, nunca na folha, e vem primeiro em Prémios, Playlists inteligentes e no separador Diário. Os géneros também aparecem por baixo do nome nas janelas de música, álbum e artista, e Géneros… está em todos os menus ⋮. Um género que falte pode ser sugerido no Fórum; os moderadores adicionam-no para toda a gente. Marcadores de célula vazia como - nas colunas de género da folha já não contam como género."],
@@ -4784,11 +4787,21 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 /* Highlight cards (DC_CL_HIGHLIGHTS in changelog.js), keyed by id. */
 window.DC_CL_HIGHLIGHTS_I18N = window.DC_CL_HIGHLIGHTS_I18N || {};
 window.DC_CL_HIGHLIGHTS_I18N["pt-PT"] = {
+  "genre-library-fun": {
+    title: "Uma Biblioteca de géneros com mais vida",
+    intro: "Os teus géneros contam agora uma história, e corrigi-los é rápido.",
+    points: [
+      "Vê o teu som: as tuas maiores famílias de géneros, um mapa para explorar e uma linha do tempo de como o teu gosto mudou.",
+      "A Correção rápida mostra o que falta, um cartão de cada vez, com medalhas pelo caminho.",
+      "Cada género tem a sua página com a tua música principal, uma mistura para tocar e um cartão para partilhar.",
+      "Coleciona cartões de género e ouve amostras de géneros que ainda não conheces.",
+    ],
+  },
   "genre-library": {
     title: "Biblioteca de géneros",
     intro: "Vê os géneros de tudo o que ouves, de onde vem cada um, e corrige os que estiverem errados.",
     points: [
-      "Cada artista, álbum e música com os seus géneros, marcados como Teus, Folha, MusicBrainz ou Etiquetas online.",
+      "Cada artista, álbum e música com os seus géneros, marcados como Escolha tua, Da tua folha, Votado no MusicBrainz ou Adivinhado online.",
       "Escolhe até cinco de uma lista de mais de 2200 géneros. Na pesquisa, alcunhas e gralhas funcionam.",
       "O que escolheres fica na app, nunca na folha, e conta em Prémios, Playlists inteligentes e no separador Diário.",
       "Falta um género? Sugere-o no Fórum e, quando for adicionado, fica na lista de toda a gente.",

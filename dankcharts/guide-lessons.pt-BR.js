@@ -2720,15 +2720,27 @@ window.GL_TEXT['pt-BR'] = {
       promise: 'Veja os gêneros dos seus artistas, álbuns e músicas, de onde vem cada um, e corrija os que estiverem errados.',
       scenes: {
         page: { title: '{{t:nav_genrelib}}', spots: {
-          head: ['{{t:nav_genrelib}}', 'Cada artista, álbum e música que você ouve, com seus gêneros. Abra pelo Mais.'],
-          tiles: ['Como está', 'Quantos têm gênero, quantos você escolheu e quantos ainda não têm. Toque num quadro para ver só esses.'],
+          head: ['{{t:nav_genrelib}}', 'Seus gêneros: o que dizem sobre você, o que corrigir e cada artista, álbum e música. Abra pelo Mais.'],
+          sound: ['Seu som', 'Uma frase sobre você, a partir dos seus plays: sua maior família, e a próxima se ela também pesar.'],
+          span: ['Quando', 'Desde sempre, os últimos 12 meses ou os últimos 30 dias.'],
+          bar: ['Suas famílias', 'Cada família de gêneros numa barra de cores. Toque numa cor para abrir essa família no mapa.'],
+          facts: ['Três fatos', 'Quantos gêneros você ouviu, o que mais cresce e o mais raro. Toque num para ver a página.'],
+          map: ['O mapa', 'As famílias e seus gêneros, pelo tamanho dos plays. Toque numa família para abrir e depois num gênero para ver a página.'],
+          god: ['Gênero do dia', 'Um dos seus principais gêneros, um novo a cada dia, com a música principal para tocar.'],
+          qf: ['Ajuste rápido', 'Seus artistas mais ouvidos sem gênero, um cartão por vez. Toque nos gêneros que combinam e Salve, ou Pule.'],
+          ring: ['Quanto falta', 'A parte dos seus plays que tem gênero.'],
+          badges: ['Medalhas', 'Desbloqueiam em 50, 75, 90 e 100%.']
+        } },
+        list: { title: 'A lista inteira', spots: {
+          stats: ['Os números', 'Quantos têm gênero, quantos você escolheu e quantos não têm. Toque num para ver só esses.'],
           tabs: ['Artistas, Álbuns, Músicas', 'Uma lista por vez, com quantos há.'],
           search: ['Buscar', 'Acha nomes e também gêneros: digite “k-pop” para ver tudo o que é K-pop.'],
           filter: ['Mostrar', 'Todos, só os que não têm gênero ou só os que você escolheu.'],
           top: ['Principais gêneros aqui', 'Os gêneros principais desta lista, por plays. Toque num para ver só esses.'],
           row: ['Uma linha', 'Toque para mudar os gêneros.'],
-          src: ['De onde vêm', 'Seus (você escolheu), Planilha (sua Google Sheet ou CSV), MusicBrainz ou Tags online (Gemini ou Last.fm). “Do artista” quer dizer que usa os do artista.'],
-          edit: ['Editar', 'Abre o seletor de gêneros. “Adicionar gêneros” numa linha que não tem.']
+          src: ['De onde vêm', 'Escolha sua, Da sua planilha (sua Google Sheet ou CSV), Votado no MusicBrainz ou Adivinhado online (Gemini ou Last.fm). “Do artista” quer dizer que usa os do artista.'],
+          edit: ['Editar', 'Abre o seletor de gêneros. “Adicionar gêneros” numa linha que não tem.'],
+          sel: ['Selecionar', 'Marque várias linhas e Definir gêneros dá a todas a mesma escolha.']
         } },
         pick: { title: 'O seletor de gêneros', spots: {
           sel: ['Os gêneros', 'Os gêneros que ele vai ter. Toque em ✕ para remover um.'],
@@ -2743,6 +2755,22 @@ window.GL_TEXT['pt-BR'] = {
           search: ['O que você digitou', 'A lista é buscada enquanto você digita. ↑ ↓ e Enter também funcionam.'],
           opt: ['Um gênero', 'Toque para adicionar; a família aparece à direita.'],
           sugg: ['Não encontrou?', 'Sugira no Fórum. Quando um moderador adicionar, ele entra na lista de todo mundo.']
+        } },
+        genre: { title: 'A página de um gênero', spots: {
+          name: ['O gênero', 'A família dele e a posição entre seus gêneros.'],
+          rar: ['Raridade', 'Comum, Raro ou Pérola escondida: o quanto está longe dos grandes gêneros.'],
+          facts: ['Os números', 'Plays, a parte do que você ouve, quando ouviu pela primeira vez, e quantos artistas e músicas.'],
+          mix: ['Tocar um mix', 'As músicas dele embaralhadas no player.'],
+          sp: ['Criar playlist inteligente', 'Abre o criador de playlists inteligentes com este gênero já escolhido.'],
+          share: ['Cartão para compartilhar', 'Uma imagem para salvar ou compartilhar.'],
+          bars: ['Os últimos 12 meses', 'Seus plays dele em cada mês. A barra mais alta é seu maior mês.']
+        } },
+        more: { title: 'Linha do tempo e coleção', spots: {
+          cap: ['O que se destaca', 'O mês em que uma família se destacou, e quem lidera agora.'],
+          tl: ['Sua linha do tempo de gêneros', 'Suas famílias mês a mês. Passe o mouse ou toque num mês para ver a mistura.'],
+          shelf: ['Sua coleção de gêneros', 'Um cartão para cada gênero que você ouve, numerado pela posição. Os cinza são parecidos e ainda não ouvidos.'],
+          card: ['Um cartão', 'Toque para ver a página do gênero.'],
+          rar: ['Raridade', 'Os Raros e as Pérolas escondidas são os que vale mostrar.']
         } }
       },
       howto: {
@@ -2752,12 +2780,23 @@ window.GL_TEXT['pt-BR'] = {
           'Toque para adicionar. Até cinco.',
           'O primeiro é o gênero principal. Toque em outro nome para colocá-lo primeiro.',
           'Salve.',
-          'A linha agora diz Seus. Prêmios, Playlists inteligentes e a aba Diário passam a usar.'
+          'A linha agora diz Escolha sua. Prêmios, Playlists inteligentes e a aba Diário passam a usar.'
         ] },
         missing: { title: 'Complete o que falta', slides: [
-          'Os quadros mostram quantos ainda não têm gênero.',
-          'Escolha “Sem gênero” para ver só esses.',
-          'Ou toque num gênero principal para conferir tudo o que está nele.'
+          'O Ajuste rápido mostra os que não têm gênero, um cartão por vez.',
+          'O anel vai enchendo conforme você avança.',
+          'Ou escolha “Sem gênero” na lista para ver todos.'
+        ] },
+        quick: { title: 'Corrija gêneros rápido', slides: [
+          'Cada cartão é um artista, álbum ou música sem gênero.',
+          'Toque nos gêneros que combinam, até cinco. As teclas 1–6 também funcionam.',
+          'Salve e o próximo cartão aparece. Pule se não tiver certeza.',
+          'Cada salvamento enche o anel, e as medalhas desbloqueiam conforme ele cresce.'
+        ] },
+        genre: { title: 'Explore um gênero', slides: [
+          'Toque numa família no mapa e depois num gênero.',
+          'A página mostra seus plays, a raridade e seus principais artistas.',
+          'Toque um mix ou crie uma playlist inteligente com ele.'
         ] },
         suggest: { title: 'Peça um gênero', slides: [
           'Digite o gênero no seletor.',
@@ -2780,7 +2819,9 @@ window.GL_TEXT['pt-BR'] = {
       challenges: {
         'gl.open': ['Abra o seletor de gêneros', 'Toque em qualquer linha em {{t:nav_genrelib}}, ou em Gêneros… num menu ⋮.'],
         'gl.save': ['Salve um gênero', 'Mude os gêneros de um artista, álbum ou música e salve.'],
-        'gl.filter': ['Ache os que não têm gênero', 'Escolha “Sem gênero” em {{t:nav_genrelib}}.']
+        'gl.filter': ['Ache os que não têm gênero', 'Escolha “Sem gênero” em {{t:nav_genrelib}}.'],
+        'gl.quick': ['Salve um cartão do Ajuste rápido', 'Escolha um gênero num cartão do Ajuste rápido e salve.'],
+        'gl.genre': ['Abra a página de um gênero', 'Toque num gênero no mapa, na coleção ou em Logo ao lado.']
       },
       quiz: {
         q1: ['Onde ficam salvos os gêneros que você escolhe?',

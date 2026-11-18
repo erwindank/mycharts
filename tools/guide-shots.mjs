@@ -33,7 +33,21 @@ const require = createRequire((process.env.PW_FROM || 'C:/tmp') + '/package.json
 const { chromium } = require('playwright');
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'dankcharts', 'guide');
-const URL = 'http://localhost:8777/index.html';
+// DC_ROUTE=1: no local server needed. The page opens on https://dankcharts.fm and
+// every file is served from the local dankcharts/ folder (the proxies pass through)
+const ROUTE = !!process.env.DC_ROUTE;
+const URL = ROUTE ? 'https://dankcharts.fm/index.html' : 'http://localhost:8777/index.html';
+const SITE = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'dankcharts');
+const MIME = { '.js': 'application/javascript', '.css': 'text/css', '.html': 'text/html', '.json': 'application/json', '.webp': 'image/webp', '.png': 'image/png', '.svg': 'image/svg+xml', '.woff2': 'font/woff2', '.ico': 'image/x-icon' };
+async function routeLocal(ctx) {
+  await ctx.route('https://dankcharts.fm/**', route => {
+    const u = new globalThis.URL(route.request().url());
+    if (/^\/(deezer|grammy|kworb|billboard)-proxy/.test(u.pathname)) return route.continue();
+    const f = path.join(SITE, decodeURIComponent(u.pathname === '/' ? '/index.html' : u.pathname));
+    if (!f.startsWith(SITE) || !fs.existsSync(f) || !fs.statSync(f).isFile()) return route.fulfill({ status: 404, body: 'not found' });
+    return route.fulfill({ status: 200, body: fs.readFileSync(f), headers: { 'Content-Type': MIME[path.extname(f)] || 'application/octet-stream', 'Cache-Control': 'no-store' } });
+  });
+}
 const LANGS = ['en', 'es', 'pt-BR', 'pt-PT'];
 // Browser locale per language, so native pickers (the date picker) match too
 const LOCALE = { en: 'en-GB', es: 'es-ES', 'pt-BR': 'pt-BR', 'pt-PT': 'pt-PT' };
@@ -1061,12 +1075,29 @@ const SHOTS = [
       known: '#sxGameStage .sx-gsong', guess: { js: "[...document.querySelectorAll('#sxGameStage .sx-gsong')].pop()" },
       btns: '#sxGameStage .sx-hl-btns' } },
   /* Genre Library (2026-11-18): the page, the picker, a search */
+  // 2026-11-18 fun redo: the top of the page (Your sound, Quick Fix), the list,
+  // a genre's page, and the timeline + shelf
   { id: 'gl-page', lesson: 'genres',
     setup: async pg => { await glView(pg); },
-    clip: { from: '#genrelibView .gl-page-head', to: '#genrelibView .gl-list', pad: 12, maxH: 1300, box: '#genrelibView' },
-    spots: { head: '#genrelibView .gl-page-head', tiles: '#genrelibView .gl-tiles', tabs: '#genrelibView .gl-tabs',
-      search: '#genrelibView .gl-lib-search', filter: '#genrelibView .gl-seg', top: '#genrelibView .gl-top',
-      row: '#genrelibView .gl-row', src: '#genrelibView .gl-src', edit: '#genrelibView .gl-row-edit' } },
+    clip: { from: '#genrelibView .gl-page-head', to: '#glQf', pad: 12, maxH: 1500, box: '#genrelibView' },
+    spots: { head: '#genrelibView .gl-page-head', sound: '#glSnd .gl-snd-head', span: '#glSnd .gl-seg', bar: '#glSnd .gl-dna',
+      facts: '#glSnd .gl-facts', map: '#glSnd .gl-bubbles', god: '#genrelibView .gl-god', qf: '#glQf .gl-qf-card',
+      ring: '#glQf .gl-ring', badges: '#glQf .gl-badges' } },
+  { id: 'gl-list', lesson: 'genres',
+    setup: async pg => { await glView(pg); },
+    clip: { from: '#glLib', to: '#genrelibView .gl-list', pad: 12, maxH: 1300, box: '#genrelibView' },
+    spots: { stats: '#glLib .gl-lib-stats', tabs: '#genrelibView .gl-tabs',
+      search: '#genrelibView .gl-lib-search', filter: '#genrelibView .gl-bar .gl-seg', top: '#genrelibView .gl-top',
+      row: '#genrelibView .gl-row', src: '#genrelibView .gl-src', edit: '#genrelibView .gl-row-edit', sel: '#genrelibView .gl-sel-btn' } },
+  { id: 'gl-genre', lesson: 'genres',
+    setup: async pg => { await glView(pg); await pg.evaluate(() => dcGenreLib.openGenre(document.querySelector('#glShelf .gl-gcard').dataset.id)); await wait(pg, 2500); },
+    clip: { from: '#genrelibView .gl-gp-hero', to: '#genrelibView .gl-gp-body', pad: 12, maxH: 1500, box: '#genrelibView' },
+    spots: { name: '#genrelibView .gl-gp-name', rar: '#genrelibView .gl-gp-hero .gl-rar', facts: '#genrelibView .gl-gp-facts',
+      mix: '[data-gll="gp-mix"]', sp: '[data-gll="gp-sp"]', share: '[data-gll="gp-share"]', bars: '#genrelibView .gl-gp-bars' } },
+  { id: 'gl-shelf', lesson: 'genres',
+    setup: async pg => { await glView(pg); },
+    clip: { from: '#glTl', to: '#glShelf', pad: 12, maxH: 1600, box: '#genrelibView' },
+    spots: { cap: '#glTl .gl-tl-cap', tl: '#glTlSvg', shelf: '#glShelf .gl-shelf-grid', card: '#glShelf .gl-gcard', rar: '#glShelf .gl-gcard-rar' } },
   { id: 'gl-pick', lesson: 'genres',
     setup: async pg => { await glPick(pg); },
     clip: { from: '#glPickModal .gl-pick', to: '#glPickModal .gl-pick', pad: 10, narrow: true, maxH: 1400 },
@@ -1938,6 +1969,7 @@ async function openApp(b, lang, phone) {
     viewport: phone ? PHONE : DESK, deviceScaleFactor: DPR, locale: LOCALE[lang],
     ...(phone ? { isMobile: true, hasTouch: true } : {})
   });
+  if (ROUTE) await routeLocal(ctx);
   await ctx.addInitScript(l => {
     try {
       localStorage.setItem('dankcharts-lang', l);

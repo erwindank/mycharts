@@ -856,30 +856,39 @@ window.GL = {
        of your artists, albums and songs, picked from one fixed list ── */
     { id: 'genres', area: 'more', nav: 'genrelib', mins: 4, cover: 'gl-page',
       scenes: [
-        { id: 'page', shot: 'gl-page', spots: ['head', 'tiles', 'tabs', 'search', 'filter', 'top', 'row', 'src', 'edit'] },
+        // 2026-11-18 fun redo (GENRE-FUN-PLAN.md): the top of the page, the
+        // whole list, a genre's page, the timeline and the shelf
+        { id: 'page', shot: 'gl-page', spots: ['head', 'sound', 'span', 'bar', 'facts', 'map', 'god', 'qf', 'ring', 'badges'] },
+        { id: 'list', shot: 'gl-list', spots: ['stats', 'tabs', 'search', 'filter', 'top', 'row', 'src', 'edit', 'sel'] },
         { id: 'pick', shot: 'gl-pick', spots: ['sel', 'main', 'count', 'search', 'popular', 'fams', 'save'] },
-        { id: 'find', shot: 'gl-find', spots: ['search', 'opt', 'sugg'] }
+        { id: 'find', shot: 'gl-find', spots: ['search', 'opt', 'sugg'] },
+        { id: 'genre', shot: 'gl-genre', spots: ['name', 'rar', 'facts', 'mix', 'sp', 'share', 'bars'] },
+        { id: 'more', shot: 'gl-shelf', spots: ['cap', 'tl', 'shelf', 'card', 'rar'] }
       ],
       howto: [
         { id: 'fix', challenge: 'gl.save', slides: [
-          { shot: 'gl-page', spot: 'row' }, { shot: 'gl-pick', spot: 'search' }, { shot: 'gl-find', spot: 'opt' },
-          { shot: 'gl-pick', spot: 'main' }, { shot: 'gl-pick', spot: 'save' }, { shot: 'gl-page', spot: 'src' } ] },
+          { shot: 'gl-list', spot: 'row' }, { shot: 'gl-pick', spot: 'search' }, { shot: 'gl-find', spot: 'opt' },
+          { shot: 'gl-pick', spot: 'main' }, { shot: 'gl-pick', spot: 'save' }, { shot: 'gl-list', spot: 'src' } ] },
         { id: 'missing', challenge: 'gl.filter', slides: [
-          { shot: 'gl-page', spot: 'tiles' }, { shot: 'gl-page', spot: 'filter' }, { shot: 'gl-page', spot: 'top' } ] },
+          { shot: 'gl-page', spot: 'qf' }, { shot: 'gl-page', spot: 'ring' }, { shot: 'gl-list', spot: 'filter' } ] },
+        { id: 'quick', challenge: 'gl.quick', slides: [
+          { shot: 'gl-page', spot: 'qf' }, { shot: 'gl-page', spot: 'qf' }, { shot: 'gl-page', spot: 'qf' }, { shot: 'gl-page', spot: 'badges' } ] },
+        { id: 'genre', challenge: 'gl.genre', slides: [
+          { shot: 'gl-page', spot: 'map' }, { shot: 'gl-genre', spot: 'facts' }, { shot: 'gl-genre', spot: 'mix' } ] },
         { id: 'suggest', challenge: 'gl.open', slides: [
           { shot: 'gl-find', spot: 'search' }, { shot: 'gl-find', spot: 'sugg' } ] }
       ],
       options: [
         { id: 'list', items: [
-          { id: 'tabs', shot: 'gl-page', spot: 'tabs' }, { id: 'filter', shot: 'gl-page', spot: 'filter' },
-          { id: 'top', shot: 'gl-page', spot: 'top' }, { id: 'search', shot: 'gl-page', spot: 'search' } ] },
+          { id: 'tabs', shot: 'gl-list', spot: 'tabs' }, { id: 'filter', shot: 'gl-list', spot: 'filter' },
+          { id: 'top', shot: 'gl-list', spot: 'top' }, { id: 'search', shot: 'gl-list', spot: 'search' } ] },
         { id: 'pick', items: [
           { id: 'main', shot: 'gl-pick', spot: 'main' }, { id: 'count', shot: 'gl-pick', spot: 'count' },
           { id: 'fams', shot: 'gl-pick', spot: 'fams' } ] }
       ],
-      challenges: ['gl.open', 'gl.save', 'gl.filter'],
+      challenges: ['gl.open', 'gl.save', 'gl.filter', 'gl.quick', 'gl.genre'],
       quiz: [ { id: 'q1', answer: 1 }, { id: 'q2', answer: 2 }, { id: 'q3', answer: 0 } ],
-      tips: [ ['gl-page', 'src', 'gl.open'], ['gl-pick', 'main', 'gl.save'], ['gl-find', 'sugg', 'gl.open'] ]
+      tips: [ ['gl-list', 'src', 'gl.open'], ['gl-pick', 'main', 'gl.save'], ['gl-find', 'sugg', 'gl.open'] ]
     },
     { id: 'events', area: 'more', nav: 'events', mins: 6, cover: 'ev-today',
       scenes: [
@@ -3887,15 +3896,27 @@ window.GL_TEXT.en = {
       promise: 'See the genres of your artists, albums and songs, where each one comes from, and fix any that are wrong.',
       scenes: {
         page: { title: '{{t:nav_genrelib}}', spots: {
-          head: ['{{t:nav_genrelib}}', 'Every artist, album and song you play, with its genres. Open it from More.'],
-          tiles: ['How you’re doing', 'How many have a genre, how many you picked yourself, and how many have none yet. Tap a tile to show just those.'],
+          head: ['{{t:nav_genrelib}}', 'Your genres: what they say about you, what to fix, and every artist, album and song. Open it from More.'],
+          sound: ['Your sound', 'One line about you, from your plays: your biggest family, and the next one if it’s big too.'],
+          span: ['When', 'All time, the last 12 months or the last 30 days.'],
+          bar: ['Your families', 'Every genre family as one colour bar. Tap a colour to open that family on the map.'],
+          facts: ['Three facts', 'How many genres you’ve heard, the one growing fastest and your rarest. Tap one for its page.'],
+          map: ['The map', 'Families and their genres, sized by plays. Tap a family to open it, then a genre for its page.'],
+          god: ['Genre of the day', 'One of your top genres, a new one every day, with its top song to play.'],
+          qf: ['Quick Fix', 'Your most played artists with no genre, one card at a time. Tap the genres that fit and Save, or Skip.'],
+          ring: ['How far you are', 'The share of your plays that have a genre.'],
+          badges: ['Badges', 'They unlock at 50, 75, 90 and 100%.']
+        } },
+        list: { title: 'The whole list', spots: {
+          stats: ['The numbers', 'How many have a genre, how many you picked and how many have none. Tap one to show just those.'],
           tabs: ['Artists, Albums, Songs', 'One list at a time, with how many there are.'],
           search: ['Search', 'Finds names, and genres too: type “k-pop” to see everything tagged K-pop.'],
           filter: ['Show', 'All, only the ones with no genre, or only the ones you picked.'],
           top: ['Top genres here', 'The main genres on this list, by plays. Tap one to see only those.'],
           row: ['A row', 'Tap it to change its genres.'],
-          src: ['Where they come from', 'Yours (you picked them), Sheet (your Google Sheet or CSV), MusicBrainz, or Online tags (Gemini or Last.fm). “From the artist” means it borrows its artist’s.'],
-          edit: ['Edit', 'Opens the genre picker. “Add genres” on a row that has none.']
+          src: ['Where they come from', 'Your pick, From your sheet (your Google Sheet or CSV), Voted on MusicBrainz, or Guessed online (Gemini or Last.fm). “From the artist” means it borrows its artist’s.'],
+          edit: ['Edit', 'Opens the genre picker. “Add genres” on a row that has none.'],
+          sel: ['Select', 'Tick several rows, then Set genres gives them all the same pick.']
         } },
         pick: { title: 'The genre picker', spots: {
           sel: ['Its genres', 'The genres it will have. Tap ✕ to remove one.'],
@@ -3910,6 +3931,22 @@ window.GL_TEXT.en = {
           search: ['What you typed', 'The genre list is searched as you type. ↑ ↓ and Enter work too.'],
           opt: ['A genre', 'Tap it to add it; its family is on the right.'],
           sugg: ['Can’t find it?', 'Suggest it on the Board. When a moderator adds it, it’s in everyone’s list.']
+        } },
+        genre: { title: 'A genre’s page', spots: {
+          name: ['The genre', 'Its family, and where it ranks among your genres.'],
+          rar: ['Rarity', 'Common, Rare or Deep cut: how far it is from the big genres.'],
+          facts: ['The numbers', 'Plays, its share of your listening, when you first heard it, and how many artists and songs.'],
+          mix: ['Play a mix', 'A shuffle of its songs in the player.'],
+          sp: ['Make Smart Playlist', 'Opens the Smart Playlist builder with this genre already set.'],
+          share: ['Share card', 'A picture of it to save or share.'],
+          bars: ['The last 12 months', 'Your plays of it each month. The tallest bar is your biggest month.']
+        } },
+        more: { title: 'Timeline and shelf', spots: {
+          cap: ['What stands out', 'The month a family stood out, and who leads now.'],
+          tl: ['Your genre timeline', 'Your families month by month. Hover over or tap a month for its mix.'],
+          shelf: ['Your genre shelf', 'A card for every genre you play, numbered by rank. Grey ones are next door and not played yet.'],
+          card: ['A card', 'Tap it for the genre’s page.'],
+          rar: ['Rarity', 'Rare and Deep cut cards are the ones to show off.']
         } }
       },
       howto: {
@@ -3919,12 +3956,23 @@ window.GL_TEXT.en = {
           'Tap it to add it. Up to five.',
           'The first one is the main genre. Tap another name to put it first.',
           'Save.',
-          'The row now says Yours. Awards, Smart Playlists and the Daily tab use it from now on.'
+          'The row now says Your pick. Awards, Smart Playlists and the Daily tab use it from now on.'
         ] },
         missing: { title: 'Fill in what’s missing', slides: [
-          'The tiles show how many have no genre yet.',
-          'Pick “No genre” to see only those.',
-          'Or tap a top genre to check everything filed under it.'
+          'Quick Fix shows the ones with no genre, one card at a time.',
+          'The ring fills up as you go.',
+          'Or pick “No genre” in the list to see them all.'
+        ] },
+        quick: { title: 'Fix genres fast', slides: [
+          'Each card is an artist, album or song with no genre.',
+          'Tap the genres that fit, up to five. Keys 1–6 work too.',
+          'Save, and the next card comes up. Skip it if you’re not sure.',
+          'Each save fills the ring, and badges unlock as it grows.'
+        ] },
+        genre: { title: 'Explore a genre', slides: [
+          'Tap a family on the map, then a genre.',
+          'Its page shows your plays, its rarity and your top artists.',
+          'Play a mix, or make a Smart Playlist from it.'
         ] },
         suggest: { title: 'Ask for a genre', slides: [
           'Type the genre in the picker.',
@@ -3947,7 +3995,9 @@ window.GL_TEXT.en = {
       challenges: {
         'gl.open': ['Open the genre picker', 'Tap any row on {{t:nav_genrelib}}, or Genres… in a ⋮ menu.'],
         'gl.save': ['Save a genre', 'Change the genres of an artist, album or song and save.'],
-        'gl.filter': ['Find the ones with no genre', 'Pick “No genre” on {{t:nav_genrelib}}.']
+        'gl.filter': ['Find the ones with no genre', 'Pick “No genre” on {{t:nav_genrelib}}.'],
+        'gl.quick': ['Save a Quick Fix card', 'Pick a genre on a Quick Fix card and save it.'],
+        'gl.genre': ['Open a genre’s page', 'Tap a genre on the map, the shelf or Next door.']
       },
       quiz: {
         q1: ['Where are your genre picks saved?',

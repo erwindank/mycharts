@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Genre Library: your sound, Quick Fix, genre pages and more":
+    ["Biblioteca de géneros: tu sonido, Arreglo rápido, páginas de género y más",
+     "La Biblioteca de géneros ahora abre con Tu sonido: una frase sobre lo que escuchas, tus familias de géneros en una barra de colores, tres datos rápidos y un mapa de burbujas que puedes tocar, para siempre, los últimos 12 meses o los últimos 30 días. Arreglo rápido muestra los artistas sin género de uno en uno con las mejores sugerencias, un anillo con cuánto de lo que escuchas tiene género, insignias al 50, 75, 90 y 100%, y las teclas 1–6, Enter y → en el ordenador. Cada género tiene su página con tus artistas, canciones y álbumes principales, sus últimos 12 meses, su rareza (Común, Raro o Joya oculta) y los géneros parecidos, además de Escuchar una mezcla, Crear lista inteligente y una tarjeta para compartir. También nuevo: Ordenar (arreglos de un toque para etiquetas que no son géneros, géneros adivinados y artistas cuyas canciones no coinciden), una línea de tiempo de géneros, una colección de tarjetas de género, Al lado con muestras de 30 segundos de géneros que no has probado, un género del día, seleccionar varias filas para darles los mismos géneros, y Agrupar por familia. El origen de los géneros ahora dice Elegido por ti, De tu hoja, Votado en MusicBrainz o Adivinado en línea, y los géneros de las ventanas de canción, álbum y artista abren la página de ese género."],
   "Genre Library: see and fix the genres of your music":
     ["Biblioteca de géneros: mira y corrige los géneros de tu música",
      "Una nueva página, Biblioteca de géneros, en Más, muestra cada artista, álbum y canción que escuchas con sus géneros y de dónde salen: lo que elegiste tú, tu Google Sheet o CSV, MusicBrainz o etiquetas en línea de Gemini o Last.fm. Toca uno para cambiar sus géneros, elegidos de una lista fija de más de 2.200 géneros (hasta cinco; el primero es el principal). La búsqueda entiende apodos y erratas, y puedes explorar 20 familias. Lo que elijas se guarda en la app y en tu cuenta, nunca en tu hoja, y va primero en Premios, Listas inteligentes y la pestaña Diario. Los géneros también aparecen bajo el nombre en las ventanas de canción, álbum y artista, y Géneros… está en cada menú ⋮. Un género que falte se puede sugerir en el Foro; los moderadores lo añaden para todos. Los marcadores de celda vacía como - en las columnas de género de una hoja ya no cuentan como género."],
@@ -4788,11 +4791,21 @@ window.DC_CHANGELOG_I18N['es'] = {
 /* Highlight cards (DC_CL_HIGHLIGHTS in changelog.js), keyed by id. */
 window.DC_CL_HIGHLIGHTS_I18N = window.DC_CL_HIGHLIGHTS_I18N || {};
 window.DC_CL_HIGHLIGHTS_I18N["es"] = {
+  "genre-library-fun": {
+    title: "Una Biblioteca de géneros con más vida",
+    intro: "Tus géneros ahora cuentan una historia, y corregirlos es rápido.",
+    points: [
+      "Mira tu sonido: tus familias de géneros principales, un mapa para explorar y una línea de tiempo de cómo cambió tu gusto.",
+      "Arreglo rápido te enseña lo que falta, una tarjeta cada vez, con insignias a medida que avanzas.",
+      "Cada género tiene su página con tu música principal, una mezcla para escuchar y una tarjeta para compartir.",
+      "Colecciona tarjetas de género y prueba muestras de géneros que aún no has escuchado.",
+    ],
+  },
   "genre-library": {
     title: "Biblioteca de géneros",
     intro: "Mira los géneros de todo lo que escuchas, de dónde sale cada uno, y corrige los que estén mal.",
     points: [
-      "Cada artista, álbum y canción con sus géneros, marcados como Tuyos, Hoja, MusicBrainz o Etiquetas en línea.",
+      "Cada artista, álbum y canción con sus géneros, marcados como Elegido por ti, De tu hoja, Votado en MusicBrainz o Adivinado en línea.",
       "Elige hasta cinco de una lista de más de 2.200 géneros. Al buscar funcionan los apodos y las erratas.",
       "Lo que elijas se queda en la app, nunca en tu hoja, y cuenta en Premios, Listas inteligentes y la pestaña Diario.",
       "¿Falta un género? Sugiérelo en el Foro y, cuando lo añadan, estará en la lista de todos.",

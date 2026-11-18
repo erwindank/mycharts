@@ -2040,7 +2040,14 @@
     // Its own tags, matched to the list even when spelled differently
     for (const tg of x.info.g || []) {
       let e = entryOfTag(tg);
-      if (!e) { const sr = search(String(tg), { limit: 1 }); if (!sr.fuzzy) e = sr.list[0]; }
+      // Not in the list as written: only when the tag holds a genre's whole
+      // name ("electropop music" → Electropop); a looser search guessed
+      // "Classical Period" for a pop artist
+      if (!e) {
+        const tn = ' ' + norm(tg) + ' ';
+        const sr = search(String(tg), { limit: 8 });
+        if (!sr.fuzzy) e = sr.list.find(c => c.n.length >= 4 && tn.includes(' ' + c.n + ' ')) || null;
+      }
       if (e) add(e.id, 'tags');
     }
     if (kind === 'artist') for (const id of collabGenres(r.key).slice(0, 4)) add(id, 'collab');
@@ -2921,6 +2928,12 @@
       r.v._other = other.reduce((a, f) => a + (m.fam[f] || 0), 0); r.t += r.v._other;
       return r;
     });
+    // Months at either end with next to nothing (the month that has only
+    // just begun, a library that starts mid-year) would pinch the chart to a
+    // point: leave them off
+    const big = Math.max(1, ...rows.map(r => r.t));
+    while (rows.length > 2 && rows[rows.length - 1].t < big * 0.12) rows.pop();
+    while (rows.length > 2 && rows[0].t < big * 0.12) rows.shift();
     return { keep, hasOther: other.length > 0, rows, tot };
   }
   const monthName = (ym, style) => { const [y, m] = ym.split('-'); return new Date(+y, +m - 1, 1).toLocaleDateString(lang(), { month: style || 'long' }); };
@@ -2957,9 +2970,10 @@
     const lead = D.keep.slice().sort((a, b) => last.v[b] - last.v[a])[0];
     let since = live.length - 1;
     while (since > 0 && D.keep.slice().sort((a, b) => live[since - 1].v[b] - live[since - 1].v[a])[0] === lead) since--;
-    if (live.length - 1 - since >= 2) out += H(tx('tl_cap_since', { m: monthName(live[since].ym) })).split('{fam}').join(fam(lead));
+    // On top the whole time shown → "has led all year"
+    if (since === 0) out += H(tx('tl_cap_steady')).split('{fam}').join(fam(lead));
+    else if (live.length - 1 - since >= 2) out += H(tx('tl_cap_since', { m: monthName(live[since].ym) })).split('{fam}').join(fam(lead));
     else out += H(tx('tl_cap_now')).split('{fam}').join(fam(lead));
-    if (!best && lead === top && since === 0) out = H(tx('tl_cap_steady')).split('{fam}').join(fam(top));
     return out;
   }
   function timelineHtml() {

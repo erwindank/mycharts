@@ -32,7 +32,7 @@
   'use strict';
 
   // Bump when the lesson files or the pictures change (it's their ?v=)
-  const GUIDE_V = '34';
+  const GUIDE_V = '35';
   const STORE = 'dc_guide_progress';
   const LANG_FILES = ['es', 'pt-BR', 'pt-PT'];
 
@@ -172,6 +172,9 @@
     'gl.open':       { lesson: 'genres', open: '#glPickModal' },
     'gl.save':       { lesson: 'genres', click: '#glPickModal .gl-save' },
     'gl.filter':     { lesson: 'genres', click: '#genrelibView [data-gll="filter"][data-v="missing"]' },
+    // 2026-11-18 fun redo: save a Quick Fix card, open a genre's own page
+    'gl.quick':      { lesson: 'genres', click: '#genrelibView [data-gll="qf-save"]' },
+    'gl.genre':      { lesson: 'genres', click: '#genrelibView [data-gll="gp-open"], #genrelibView [data-gll="gp-go"], .gl-dp [data-gid]' },
     'stats.add':     { lesson: 'stats', fn: 'sxCmpAddKey' },
     'stats.race':    { lesson: 'stats', click: '#sxCmpMode [data-cmode="race"]' },
     'stats.drill':   { lesson: 'stats', fn: 'sxShowVolDrill' },
@@ -353,6 +356,8 @@
     'gl.open':       { nav: 'genrelib', ring: '#genrelibView .gl-list' },
     'gl.save':       { nav: 'genrelib', ring: '#genrelibView .gl-list' },
     'gl.filter':     { nav: 'genrelib', ring: '#genrelibView .gl-seg' },
+    'gl.quick':      { nav: 'genrelib', ring: '#glQf' },
+    'gl.genre':      { nav: 'genrelib', ring: '#glSnd .gl-snd-map, #glShelf' },
     'stats.add':     { nav: 'graphs', stab: 'compare', ring: '#sxCmpAddCard' },
     'stats.race':    { nav: 'graphs', stab: 'compare', ring: '#sxCmpMode' },
     'stats.drill':   { nav: 'graphs', stab: 'charts', ring: '.sx-vol-card' },
