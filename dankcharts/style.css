@@ -51408,3 +51408,51 @@ button.gl-fact:active { transform: translateY(1px); }
   .gl-tidy-ic { width: 32px; height: 32px; }
   .gl-tidy-row .dc-btn { grid-column: 2; justify-self: start; }
 }
+
+
+/* ── Your genre timeline (step 6) ── */
+.gl-tl-cap {
+  margin: 6px 0 0;
+  max-width: 60ch;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--text);
+}
+.gl-tl-cap:empty { display: none; }
+.gl-tl-cap em {
+  font-style: normal;
+  background: linear-gradient(transparent 60%, color-mix(in srgb, var(--gf) 50%, transparent) 60%, color-mix(in srgb, var(--gf) 50%, transparent) 92%, transparent 92%);
+}
+.gl-tl-box {
+  padding: var(--sp-4);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  background: var(--bg2);
+}
+.gl-tl-read {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  min-height: 22px;
+  margin-bottom: var(--sp-2);
+  font-size: var(--fs-xs);
+  color: var(--text3);
+}
+.gl-tl-read strong { color: var(--text); text-transform: capitalize; }
+.gl-tl-rf { display: inline-flex; align-items: center; gap: 5px; color: var(--text2); }
+.gl-tl-rf i, .gl-tl-key i { width: 8px; height: 8px; border-radius: 2px; background: var(--gf); }
+.gl-tl-svg { display: block; width: 100%; height: auto; touch-action: pan-y; cursor: crosshair; }
+.gl-tl-band { opacity: 0.9; transition: opacity var(--t-fast) var(--ease); }
+.gl-tl-svg:hover .gl-tl-band { opacity: 0.75; }
+.gl-tl-svg .gl-tl-band:hover { opacity: 1; }
+.gl-tl-guide { stroke: var(--text); stroke-width: 1.5; stroke-dasharray: 4 4; transition: opacity var(--t-fast) var(--ease); }
+.gl-tl-m { fill: var(--text3); font-family: var(--font-mono); font-size: 13px; text-transform: capitalize; }
+.gl-tl-legend { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: var(--sp-2); }
+.gl-tl-key { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-xs); color: var(--text2); }
+@media (max-width: 560px) {
+  .gl-tl-m { font-size: 20px; }
+  .gl-tl-box { padding: var(--sp-3); }
+}

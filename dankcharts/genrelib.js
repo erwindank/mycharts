@@ -189,7 +189,13 @@
       td_guess_btn: "Check {n}",
       td_mixed_t: "{name}’s songs say {n} different things",
       td_mixed: "Your sheet gives their songs {list}. Pick what the artist is; songs keep their own.",
-      td_mixed_btn: "Choose for {name}"
+      td_mixed_btn: "Choose for {name}",
+      tl_title: "Your genre timeline",
+      tl_hint: "Hover over or tap a month to see its mix.",
+      tl_cap_month: "{m} was your {fam} month.",
+      tl_cap_since: "{fam} has been on top since {m}.",
+      tl_cap_now: "{fam} leads this month.",
+      tl_cap_steady: "{fam} has led all year."
     },
     es: {
       title: 'Biblioteca de géneros',
@@ -351,7 +357,13 @@
       td_guess_btn: "Revisar {n}",
       td_mixed_t: "Las canciones de {name} dicen {n} cosas distintas",
       td_mixed: "Tu hoja les da {list}. Elige qué es el artista; las canciones conservan lo suyo.",
-      td_mixed_btn: "Elegir para {name}"
+      td_mixed_btn: "Elegir para {name}",
+      tl_title: "Tu línea de tiempo de géneros",
+      tl_hint: "Pasa el ratón o toca un mes para ver su mezcla.",
+      tl_cap_month: "En {m} destacó {fam}.",
+      tl_cap_since: "{fam} va en cabeza desde {m}.",
+      tl_cap_now: "{fam} lidera este mes.",
+      tl_cap_steady: "{fam} ha liderado todo el año."
     },
     'pt-BR': {
       title: 'Biblioteca de gêneros',
@@ -513,7 +525,13 @@
       td_guess_btn: "Conferir {n}",
       td_mixed_t: "As músicas de {name} dizem {n} coisas diferentes",
       td_mixed: "Sua planilha dá a elas {list}. Escolha o que o artista é; as músicas mantêm o delas.",
-      td_mixed_btn: "Escolher para {name}"
+      td_mixed_btn: "Escolher para {name}",
+      tl_title: "Sua linha do tempo de gêneros",
+      tl_hint: "Passe o mouse ou toque num mês para ver a mistura.",
+      tl_cap_month: "Em {m}, o destaque foi {fam}.",
+      tl_cap_since: "{fam} está na frente desde {m}.",
+      tl_cap_now: "{fam} lidera este mês.",
+      tl_cap_steady: "{fam} liderou o ano todo."
     },
     'pt-PT': {
       title: 'Biblioteca de géneros',
@@ -675,7 +693,13 @@
       td_guess_btn: "Confirmar {n}",
       td_mixed_t: "As músicas de {name} dizem {n} coisas diferentes",
       td_mixed: "A tua folha dá-lhes {list}. Escolhe o que o artista é; as músicas mantêm o delas.",
-      td_mixed_btn: "Escolher para {name}"
+      td_mixed_btn: "Escolher para {name}",
+      tl_title: "A tua linha do tempo de géneros",
+      tl_hint: "Passa o rato ou toca num mês para ver a mistura.",
+      tl_cap_month: "Em {m}, o destaque foi {fam}.",
+      tl_cap_since: "{fam} está à frente desde {m}.",
+      tl_cap_now: "{fam} lidera este mês.",
+      tl_cap_steady: "{fam} liderou o ano inteiro."
     }
   };
   function tx(k, vars) {
@@ -1378,11 +1402,13 @@
     h += soundHtml();
     h += qfHtml();
     h += tidyHtml();
+    h += timelineHtml();
     h += shelfHtml();
     return h;
   }
   function funPaint(root) {
     qfPaint(root);
+    tlPaint(root);
   }
   let _shownRows = [];
 
@@ -2722,6 +2748,119 @@
     if (a === 'td-guess') { QF.mode = 'review'; QF.key = ''; QF.sel = null; renderPage(); scrollToSec('glQf'); return true; }
     if (a === 'td-mixed' && _tidy && _tidy.mixed) { open('artist', _tidy.mixed.p); return true; }
     return false;
+  }
+
+  /* ── 14. Your genre timeline (step 6) ──────────────────────────────────
+     A stream chart of the last 12 months: one band per family (the six
+     biggest, the rest as "everything else"), centred on a middle line so
+     the shape shows how your listening moved. A caption says what stands
+     out; hovering or tapping a month shows its numbers. */
+  const TL = { i: -1 };
+  function tlData() {
+    const s = stats();
+    const tot = {};
+    for (const m of s.months) for (const f in m.fam) tot[f] = (tot[f] || 0) + m.fam[f];
+    const fams = Object.keys(tot).sort((a, b) => tot[b] - tot[a]);
+    const keep = fams.slice(0, 6), other = fams.slice(6);
+    const rows = s.months.map(m => {
+      const r = { ym: m.ym, v: {}, t: 0 };
+      for (const f of keep) { r.v[f] = m.fam[f] || 0; r.t += r.v[f]; }
+      r.v._other = other.reduce((a, f) => a + (m.fam[f] || 0), 0); r.t += r.v._other;
+      return r;
+    });
+    return { keep, hasOther: other.length > 0, rows, tot };
+  }
+  const monthName = (ym, style) => { const [y, m] = ym.split('-'); return new Date(+y, +m - 1, 1).toLocaleDateString(lang(), { month: style || 'long' }); };
+  // Catmull-Rom through the points, as a smooth SVG path (no jump at the ends)
+  function smooth(pts, move) {
+    let d = (move ? 'M' : 'L') + pts[0][0].toFixed(1) + ' ' + pts[0][1].toFixed(1);
+    for (let i = 0; i < pts.length - 1; i++) {
+      const p0 = pts[i - 1] || pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] || p2;
+      const c1 = [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6];
+      const c2 = [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6];
+      d += `C${c1[0].toFixed(1)} ${c1[1].toFixed(1)} ${c2[0].toFixed(1)} ${c2[1].toFixed(1)} ${p2[0].toFixed(1)} ${p2[1].toFixed(1)}`;
+    }
+    return d;
+  }
+  function tlCaption(D) {
+    const live = D.rows.filter(r => r.t >= 10);
+    if (live.length < 2) return '';
+    const top = D.keep[0];
+    // The month a family stood out most against its usual share
+    let best = null;
+    for (const f of D.keep.slice(1)) {
+      const avg = D.tot[f] / live.reduce((a, r) => a + r.t, 0);
+      for (const r of live) {
+        if (r.v[f] < 5) continue;
+        const lift = (r.v[f] / r.t) / (avg || 1);
+        if (lift >= 1.4 && (!best || lift > best.lift)) best = { f, ym: r.ym, lift };
+      }
+    }
+    const fam = f => `<em style="--gf:${FAM_HUE[f] || FAM_HUE.world}">${H(tx('fam_' + f))}</em>`;
+    let out = '';
+    if (best) out += H(tx('tl_cap_month', { m: monthName(best.ym) })).split('{fam}').join(fam(best.f)) + ' ';
+    // Who leads now, and since when
+    const last = live[live.length - 1];
+    const lead = D.keep.slice().sort((a, b) => last.v[b] - last.v[a])[0];
+    let since = live.length - 1;
+    while (since > 0 && D.keep.slice().sort((a, b) => live[since - 1].v[b] - live[since - 1].v[a])[0] === lead) since--;
+    if (live.length - 1 - since >= 2) out += H(tx('tl_cap_since', { m: monthName(live[since].ym) })).split('{fam}').join(fam(lead));
+    else out += H(tx('tl_cap_now')).split('{fam}').join(fam(lead));
+    if (!best && lead === top && since === 0) out = H(tx('tl_cap_steady')).split('{fam}').join(fam(top));
+    return out;
+  }
+  function timelineHtml() {
+    const D = tlData();
+    if (D.rows.filter(r => r.t > 0).length < 2) return '';
+    const W = 900, Ht = 250, padB = 28, padX = 16;
+    const n = D.rows.length, maxT = Math.max(1, ...D.rows.map(r => r.t));
+    const X = i => padX + i * (W - padX * 2) / (n - 1);
+    const mid = (Ht - padB) / 2, k = (Ht - padB - 12) / maxT;
+    const layers = D.keep.concat(D.hasOther ? ['_other'] : []);
+    // Bottom of each band, from the centre line out
+    const base = D.rows.map(r => mid - r.t * k / 2);
+    let paths = '';
+    const lo = base.slice();
+    for (const f of layers) {
+      const top = [], bot = [];
+      D.rows.forEach((r, i) => { const h = r.v[f] * k; top.push([X(i), lo[i]]); bot.push([X(i), lo[i] + h]); lo[i] += h; });
+      const d = smooth(top, true) + smooth(bot.slice().reverse(), false) + 'Z';
+      const hue = f === '_other' ? 'var(--border2)' : (FAM_HUE[f] || FAM_HUE.world);
+      paths += `<path d="${d}" class="gl-tl-band" data-f="${f}" style="fill:${hue}"><title>${H(f === '_other' ? tx('snd_other') : tx('fam_' + f))}</title></path>`;
+    }
+    const labels = D.rows.map((r, i) => `<text x="${X(i).toFixed(1)}" y="${Ht - 8}" text-anchor="middle" class="gl-tl-m">${H(monthName(r.ym, 'short'))}</text>`).join('');
+    const legend = layers.map(f => `<span class="gl-tl-key" style="--gf:${f === '_other' ? 'var(--border2)' : (FAM_HUE[f] || FAM_HUE.world)}"><i aria-hidden="true"></i>${H(f === '_other' ? tx('snd_other') : tx('fam_' + f))}</span>`).join('');
+    TL.D = D; TL.X = X; TL.W = W;
+    return `<section class="gl-sec gl-tl" id="glTl" aria-labelledby="glTlH">
+      <div class="gl-sec-head"><div><h3 class="gl-sec-title" id="glTlH">${H(tx('tl_title'))}</h3>
+        <p class="gl-tl-cap">${tlCaption(D)}</p></div></div>
+      <div class="gl-tl-box">
+        <div class="gl-tl-read" id="glTlRead" aria-live="polite">${H(tx('tl_hint'))}</div>
+        <svg class="gl-tl-svg" id="glTlSvg" viewBox="0 0 ${W} ${Ht}" role="img" aria-label="${H(tx('tl_title'))}">
+          ${paths}<line class="gl-tl-guide" id="glTlGuide" x1="0" x2="0" y1="0" y2="${Ht - padB}" style="opacity:0"/>${labels}
+        </svg>
+        <div class="gl-tl-legend">${legend}</div>
+      </div>
+    </section>`;
+  }
+  // After drawing: hover / tap a month for its numbers
+  function tlPaint(root) {
+    const svg = root.querySelector('#glTlSvg');
+    if (!svg || !TL.D) return;
+    const read = root.querySelector('#glTlRead'), guide = root.querySelector('#glTlGuide');
+    const pick = clientX => {
+      const r = svg.getBoundingClientRect(), x = (clientX - r.left) * TL.W / r.width;
+      let best = 0;
+      TL.D.rows.forEach((_, i) => { if (Math.abs(TL.X(i) - x) < Math.abs(TL.X(best) - x)) best = i; });
+      const row = TL.D.rows[best];
+      guide.setAttribute('x1', TL.X(best)); guide.setAttribute('x2', TL.X(best)); guide.style.opacity = '1';
+      const tops = Object.keys(row.v).filter(f => row.v[f] > 0).sort((a, b) => row.v[b] - row.v[a]).slice(0, 3);
+      read.innerHTML = `<strong>${H(monthName(row.ym) + ' ' + row.ym.slice(0, 4))}</strong> · ${H(plays(row.t))}` +
+        (tops.length ? ' · ' + tops.map(f => `<span class="gl-tl-rf" style="--gf:${f === '_other' ? 'var(--border2)' : (FAM_HUE[f] || FAM_HUE.world)}"><i aria-hidden="true"></i>${H(f === '_other' ? tx('snd_other') : tx('fam_' + f))} ${Math.round(row.v[f] * 100 / row.t)}%</span>`).join(' ') : '');
+    };
+    svg.addEventListener('pointermove', e => pick(e.clientX));
+    svg.addEventListener('pointerdown', e => pick(e.clientX));
+    svg.addEventListener('pointerleave', () => { guide.style.opacity = '0'; });
   }
 
   /* ── Keeping things in step ──────────────────────────────────────────── */
