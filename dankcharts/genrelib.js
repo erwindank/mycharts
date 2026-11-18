@@ -221,7 +221,8 @@
       god_title: "Genre of the day",
       god_play: "Play its top song",
       god_open: "Open its page",
-      god_top: "Your top song: {title} · {artist}"
+      god_top: "Your top song: {title} · {artist}",
+      snd_more: "{n} more here:"
     },
     es: {
       title: 'Biblioteca de géneros',
@@ -415,7 +416,8 @@
       god_title: "Género del día",
       god_play: "Escuchar su mejor canción",
       god_open: "Abrir su página",
-      god_top: "Tu canción principal: {title} · {artist}"
+      god_top: "Tu canción principal: {title} · {artist}",
+      snd_more: "{n} más aquí:"
     },
     'pt-BR': {
       title: 'Biblioteca de gêneros',
@@ -609,7 +611,8 @@
       god_title: "Gênero do dia",
       god_play: "Tocar a música principal",
       god_open: "Abrir a página",
-      god_top: "Sua música principal: {title} · {artist}"
+      god_top: "Sua música principal: {title} · {artist}",
+      snd_more: "Mais {n} aqui:"
     },
     'pt-PT': {
       title: 'Biblioteca de géneros',
@@ -803,7 +806,8 @@
       god_title: "Género do dia",
       god_play: "Tocar a música principal",
       god_open: "Abrir a página",
-      god_top: "A tua música principal: {title} · {artist}"
+      god_top: "A tua música principal: {title} · {artist}",
+      snd_more: "Mais {n} aqui:"
     }
   };
   function tx(k, vars) {
@@ -2506,58 +2510,85 @@
   function svgText(x, y, size, txt, cls) {
     return `<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" font-size="${size.toFixed(1)}" class="${cls}" text-anchor="middle">${H(txt)}</text>`;
   }
-  function fit(name, r, size) {
-    const max = Math.floor((r * 1.7) / (size * 0.56));
-    return name.length <= max ? name : (max >= 4 ? name.slice(0, max - 1) + '…' : '');
+  /* Readable sizes (user feedback 2026-11-18: true-to-scale bubbles left most
+     genres as unclickable specks around one giant). Bubble size still grows
+     with plays, but on a softened curve (plays^0.32), and the smallest one is
+     never under 42% of the biggest; so the order still shows, everything has
+     room for its name, and nothing is too small to tap. */
+  function softRadii(vals) {
+    const raw = vals.map(v => Math.pow(Math.max(1, v), 0.32));
+    const max = Math.max(...raw), min = Math.min(...raw);
+    return raw.map(x => 42 + 58 * (max === min ? 1 : (x - min) / (max - min)));
   }
+  // A name in up to two lines inside a circle of radius r: the biggest font
+  // (from `big` down to 8) at which it fits, cut with … only as a last resort
+  function labelLines(name, r, big) {
+    const room = r * 1.62, cw = 0.56;
+    const words = String(name).split(' ');
+    for (let s = big; s >= 8; s -= 0.5) {
+      const max = Math.floor(room / (s * cw));
+      if (name.length <= max) return { s, lines: [name] };
+      // Two lines, split where the longer line is shortest
+      let best = null;
+      for (let i = 1; i < words.length; i++) {
+        const a = words.slice(0, i).join(' '), b = words.slice(i).join(' ');
+        const w = Math.max(a.length, b.length);
+        if (w <= max * 0.92 && (!best || w < best.w)) best = { w, lines: [a, b] };
+      }
+      if (best && s * 2.3 < r * 1.3) return { s, lines: best.lines };
+    }
+    const max = Math.max(3, Math.floor(room / (8 * cw)));
+    return { s: 8, lines: [name.slice(0, max - 1) + '…'] };
+  }
+  // Name (1–2 lines) and a small number under it, centred in the circle
+  function bubbleLabel(x, y, r, name, sub, big) {
+    const L = labelLines(name, r, big), lh = L.s * 1.08, subS = Math.max(7.5, L.s * 0.72);
+    const showSub = sub && r > L.s * (L.lines.length + 1.6);
+    const total = L.lines.length * lh + (showSub ? subS * 1.2 : 0);
+    let ty = y - total / 2 + L.s * 0.82;
+    let out = '';
+    for (const l of L.lines) { out += svgText(x, ty, L.s, l, 'gl-bub-t'); ty += lh; }
+    if (showSub) out += svgText(x, ty + subS * 0.15, subS, sub, 'gl-bub-n');
+    return out;
+  }
+  const FAM_SHOWN = 14;   // genres drawn in a family's map; the rest are chips below it
   function bubbleSvg(span) {
-    const { list } = famsIn(span);
+    const { list, total } = famsIn(span);
     const W = 400;
     if (!list.length) return '';
     if (SND.fam && !list.some(f => f.fam === SND.fam)) SND.fam = '';
-    let body = '';
+    let body = '', below = '';
     if (SND.fam) {
-      // One family, its genres big and labelled
+      // One family: its top genres, each labelled with its plays
       const f = list.find(x => x.fam === SND.fam), hue = FAM_HUE[f.fam] || FAM_HUE.world;
-      const gs = f.genres.slice(0, 28);
-      const { P, R } = packCircles(gs.map(g => Math.sqrt(g.n)), 0.6);
-      const k = (W / 2 - 6) / R;
+      const gs = f.genres.slice(0, FAM_SHOWN);
+      const { P, R } = packCircles(softRadii(gs.map(g => g.n)), 5);
+      const k = (W / 2 - 4) / R;
       gs.forEach((g, i) => {
         const q = P[i], x = W / 2 + q.x * k, y = W / 2 + q.y * k, r = q.r * k;
-        const size = Math.max(8, Math.min(18, r / 3.2));
-        const name = fit(nameOf(g.id), r, size);
         body += `<g class="gl-bub" data-gll="gp-open" data-id="${H(g.id)}" tabindex="0" role="button" aria-label="${H(nameOf(g.id) + ' · ' + plays(g.n))}">` +
           `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}" style="fill:${leafFill(hue, i)}"/>` +
-          (name ? svgText(x, y + (r > 34 ? -size * 0.15 : size * 0.35), size, name, 'gl-bub-t') : '') +
-          (name && r > 34 ? svgText(x, y + size * 1.05, size * 0.72, num(g.n), 'gl-bub-n') : '') +
+          bubbleLabel(x, y, r, nameOf(g.id), num(g.n), Math.min(17, r / 2.6)) +
           `<title>${H(nameOf(g.id) + ' · ' + plays(g.n))}</title></g>`;
       });
+      const rest = f.genres.slice(FAM_SHOWN);
+      if (rest.length) below = `<div class="gl-snd-more"><span>${H(tx('snd_more', { n: num(rest.length) }))}</span>` +
+        rest.slice(0, 24).map(g => `<button type="button" class="gl-chip" data-gll="gp-open" data-id="${H(g.id)}" style="--gf:${hue}"><span class="gl-dot" aria-hidden="true"></span>${H(nameOf(g.id))}</button>`).join('') + `</div>`;
     } else {
-      // Every family (top 9), each a ring of its top genres
-      const fams = list.slice(0, 9).map(f => {
-        const gs = f.genres.slice(0, 12);
-        const pk = packCircles(gs.map(g => Math.sqrt(g.n)), 0.4);
-        return { f, gs, pk };
-      });
-      const outer = packCircles(fams.map(x => x.pk.R + 1.5), 2);
-      const k = (W / 2 - 4) / outer.R;
-      fams.forEach((x, fi) => {
-        const o = outer.P[fi], hue = FAM_HUE[x.f.fam] || FAM_HUE.world;
-        const fx = W / 2 + o.x * k, fy = W / 2 + o.y * k;
-        body += `<g class="gl-bub-fam" data-gll="snd-fam" data-v="${x.f.fam}" tabindex="0" role="button" aria-label="${H(tx('fam_' + x.f.fam) + ' · ' + plays(x.f.n))}">` +
-          `<circle cx="${fx.toFixed(1)}" cy="${fy.toFixed(1)}" r="${(o.r * k).toFixed(1)}" style="fill:color-mix(in srgb, ${hue} 12%, transparent);stroke:color-mix(in srgb, ${hue} 45%, transparent)"/>` +
-          `<title>${H(tx('fam_' + x.f.fam) + ' · ' + plays(x.f.n))}</title>`;
-        x.gs.forEach((g, i) => {
-          const q = x.pk.P[i], gx = fx + q.x * k, gy = fy + q.y * k, r = q.r * k;
-          const size = Math.max(7, Math.min(13, r / 3.1));
-          const name = r > 15 ? fit(nameOf(g.id), r, size) : '';
-          body += `<circle class="gl-bub-leaf" cx="${gx.toFixed(1)}" cy="${gy.toFixed(1)}" r="${r.toFixed(1)}" style="fill:${leafFill(hue, i)}"><title>${H(nameOf(g.id) + ' · ' + plays(g.n))}</title></circle>` +
-            (name ? svgText(gx, gy + size * 0.35, size, name, 'gl-bub-t') : '');
-        });
-        body += `</g>`;
+      // Every family as one solid bubble: its name and its share
+      const fams = list.slice(0, 10);
+      const { P, R } = packCircles(softRadii(fams.map(f => f.n)), 6);
+      const k = (W / 2 - 4) / R;
+      fams.forEach((f, i) => {
+        const q = P[i], x = W / 2 + q.x * k, y = W / 2 + q.y * k, r = q.r * k, hue = FAM_HUE[f.fam] || FAM_HUE.world;
+        const pc = Math.round(f.n * 100 / (total || 1));
+        body += `<g class="gl-bub gl-bub-fam" data-gll="snd-fam" data-v="${f.fam}" tabindex="0" role="button" aria-label="${H(tx('fam_' + f.fam) + ' · ' + (pc || '<1') + '%')}">` +
+          `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}" style="fill:color-mix(in srgb, ${hue} 88%, #fff)"/>` +
+          bubbleLabel(x, y, r, tx('fam_' + f.fam), (pc || '<1') + '%', Math.min(18, r / 2.7)) +
+          `<title>${H(tx('fam_' + f.fam) + ' · ' + plays(f.n))}</title></g>`;
       });
     }
-    return `<svg class="gl-bubbles${SND.fam ? ' is-fam' : ''}" viewBox="0 0 ${W} ${W}" role="group" aria-label="${H(tx('snd_map'))}">${body}</svg>`;
+    return `<svg class="gl-bubbles${SND.fam ? ' is-fam' : ''}" viewBox="0 0 ${W} ${W}" role="group" aria-label="${H(tx('snd_map'))}">${body}</svg>${below}`;
   }
 
   function soundHtml() {

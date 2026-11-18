@@ -51608,3 +51608,10 @@ button.gl-fact:active { transform: translateY(1px); }
 /* The tick sits outside the row's grid, so the row keeps its own layout */
 .gl-row.is-picking .gl-row-btn { position: relative; padding-left: 46px; }
 .gl-row.is-picking .gl-tick { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); }
+
+/* Bubble map, readable sizes (2026-11-18 feedback): solid bubbles with a
+   faint rim, and the genres that don't fit the family map as chips below */
+.gl-bub circle { stroke: color-mix(in srgb, #fff 35%, transparent); stroke-width: 1.2; }
+.gl-bub-fam .gl-bub-t { font-weight: 800; }
+.gl-snd-more { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: var(--sp-2); }
+.gl-snd-more > span { font-size: var(--fs-xs); color: var(--text3); margin-right: 2px; }
