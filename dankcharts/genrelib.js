@@ -2515,17 +2515,20 @@
      with plays, but on a softened curve (plays^0.32), and the smallest one is
      never under 42% of the biggest; so the order still shows, everything has
      room for its name, and nothing is too small to tap. */
-  function softRadii(vals) {
+  function softRadii(vals, floor) {
+    const lo = floor || 42;
     const raw = vals.map(v => Math.pow(Math.max(1, v), 0.32));
     const max = Math.max(...raw), min = Math.min(...raw);
-    return raw.map(x => 42 + 58 * (max === min ? 1 : (x - min) / (max - min)));
+    return raw.map(x => lo + (100 - lo) * (max === min ? 1 : (x - min) / (max - min)));
   }
   // A name in up to two lines inside a circle of radius r: the biggest font
   // (from `big` down to 8) at which it fits, cut with … only as a last resort
-  function labelLines(name, r, big) {
-    const room = r * 1.62, cw = 0.56;
+  // wide: the share of the diameter a line may use (a centred single line
+  // can use more of it than two lines can)
+  function labelLines(name, r, big, wide) {
+    const room = r * (wide || 1.62), cw = 0.56;
     const words = String(name).split(' ');
-    for (let s = big; s >= 8; s -= 0.5) {
+    for (let s = big; s >= 7.5; s -= 0.5) {
       const max = Math.floor(room / (s * cw));
       if (name.length <= max) return { s, lines: [name] };
       // Two lines, split where the longer line is shortest
@@ -2542,7 +2545,7 @@
   }
   // Name (1–2 lines) and a small number under it, centred in the circle
   function bubbleLabel(x, y, r, name, sub, big) {
-    const L = labelLines(name, r, big), lh = L.s * 1.08, subS = Math.max(7.5, L.s * 0.72);
+    const L = labelLines(name, r, big, 1.76), lh = L.s * 1.08, subS = Math.max(7.5, L.s * 0.72);
     const showSub = sub && r > L.s * (L.lines.length + 1.6);
     const total = L.lines.length * lh + (showSub ? subS * 1.2 : 0);
     let ty = y - total / 2 + L.s * 0.82;
@@ -2575,17 +2578,60 @@
       if (rest.length) below = `<div class="gl-snd-more"><span>${H(tx('snd_more', { n: num(rest.length) }))}</span>` +
         rest.slice(0, 24).map(g => `<button type="button" class="gl-chip" data-gll="gp-open" data-id="${H(g.id)}" style="--gf:${hue}"><span class="gl-dot" aria-hidden="true"></span>${H(nameOf(g.id))}</button>`).join('') + `</div>`;
     } else {
-      // Every family as one solid bubble: its name and its share
-      const fams = list.slice(0, 10);
-      const { P, R } = packCircles(softRadii(fams.map(f => f.n)), 6);
-      const k = (W / 2 - 4) / R;
-      fams.forEach((f, i) => {
-        const q = P[i], x = W / 2 + q.x * k, y = W / 2 + q.y * k, r = q.r * k, hue = FAM_HUE[f.fam] || FAM_HUE.world;
+      /* Families as groups (user, 2026-11-18: "I still wanted them grouped"):
+         each family is a ring with its name and share on top, holding only
+         its biggest few genres (more for bigger families) at readable
+         sizes, plus a "+N" bubble for the rest. Genre sizes share one
+         softened scale across all families, so a big family's genres are
+         bigger too. Tap a genre → its page; the ring or +N → the family. */
+      // Top 7 families; bigger families show more of their genres (1–5)
+      const fams = list.slice(0, 7);
+      const showN = f => Math.max(1, Math.min(5, Math.round(1.2 + (f.n / (total || 1)) * 12), f.genres.length));
+      const leaves = fams.flatMap(f => f.genres.slice(0, showN(f)).map(g => g.n));
+      const soft = softRadii(leaves, 68);
+      let li = 0;
+      // PLUS: the "+N" bubble. DROP: how far the genres sit below the ring's
+      // centre, which leaves a band at the top of the ring for the name
+      const PLUS = 30, DROP = 34, EDGE = 6;
+      const groups = fams.map(f => {
+        const gs = f.genres.slice(0, showN(f)), rs = gs.map(() => soft[li++]);
+        const more = f.genres.length - gs.length;
+        const pk = packCircles(more ? rs.concat([PLUS]) : rs, 4);
+        return { f, gs, more, pk, R: pk.R + DROP + EDGE };
+      });
+      const outer = packCircles(groups.map(g => g.R), 7);
+      const k = (W / 2 - 3) / outer.R;
+      groups.forEach((G2, fi) => {
+        const o = outer.P[fi], f = G2.f, hue = FAM_HUE[f.fam] || FAM_HUE.world;
+        const cx = W / 2 + o.x * k, cy = W / 2 + o.y * k, R = G2.R * k;
         const pc = Math.round(f.n * 100 / (total || 1));
-        body += `<g class="gl-bub gl-bub-fam" data-gll="snd-fam" data-v="${f.fam}" tabindex="0" role="button" aria-label="${H(tx('fam_' + f.fam) + ' · ' + (pc || '<1') + '%')}">` +
-          `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}" style="fill:color-mix(in srgb, ${hue} 88%, #fff)"/>` +
-          bubbleLabel(x, y, r, tx('fam_' + f.fam), (pc || '<1') + '%', Math.min(18, r / 2.7)) +
-          `<title>${H(tx('fam_' + f.fam) + ' · ' + plays(f.n))}</title></g>`;
+        const oy = cy + DROP * k;
+        // The family's name inside the ring's top band: as wide as the ring
+        // is there, on one or two lines (its share is in the bar and legend)
+        const band = (2 * DROP + EDGE) * k, mid = R - band / 2;
+        const half = Math.sqrt(Math.max(0, R * R - mid * mid));
+        const L = labelLines(tx('fam_' + f.fam), (half * 2 * 0.94) / 1.62, Math.min(13, band / 2.3));
+        let ty = cy - R + band / 2 - (L.lines.length * L.s * 1.05) / 2 + L.s * 0.82;
+        const name = L.lines.map(l => { const t = `<tspan x="${cx.toFixed(1)}" y="${ty.toFixed(1)}">${H(l)}</tspan>`; ty += L.s * 1.05; return t; }).join('');
+        body += `<g class="gl-bub-grp" style="--gf:${hue}">` +
+          `<g class="gl-bub-ring" data-gll="snd-fam" data-v="${f.fam}" tabindex="0" role="button" aria-label="${H(tx('fam_' + f.fam) + ' · ' + (pc || '<1') + '%')}">` +
+          `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${R.toFixed(1)}" style="fill:color-mix(in srgb, ${hue} 13%, transparent);stroke:color-mix(in srgb, ${hue} 60%, transparent)"/>` +
+          `<text text-anchor="middle" class="gl-ring-t" font-size="${L.s.toFixed(1)}">${name}</text>` +
+          `<title>${H(tx('fam_' + f.fam) + ' · ' + (pc || '<1') + '% · ' + plays(f.n))}</title></g>`;
+        G2.gs.forEach((g, i) => {
+          const q = G2.pk.P[i], x = cx + q.x * k, y = oy + q.y * k, r = q.r * k;
+          body += `<g class="gl-bub" data-gll="gp-open" data-id="${H(g.id)}" tabindex="0" role="button" aria-label="${H(nameOf(g.id) + ' · ' + plays(g.n))}">` +
+            `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}" style="fill:${leafFill(hue, i)}"/>` +
+            bubbleLabel(x, y, r, nameOf(g.id), '', Math.min(14, r / 2.4)) +
+            `<title>${H(nameOf(g.id) + ' · ' + plays(g.n))}</title></g>`;
+        });
+        if (G2.more) {
+          const q = G2.pk.P[G2.gs.length], x = cx + q.x * k, y = oy + q.y * k, r = q.r * k;
+          body += `<g class="gl-bub gl-bub-plus" data-gll="snd-fam" data-v="${f.fam}" tabindex="0" role="button" aria-label="${H(tx('snd_more', { n: num(G2.more) }) + ' ' + tx('fam_' + f.fam))}">` +
+            `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}" style="fill:color-mix(in srgb, ${hue} 30%, var(--bg2));stroke:color-mix(in srgb, ${hue} 70%, transparent)"/>` +
+            svgText(x, y + 4, Math.min(12, r / 2.3), '+' + num(G2.more), 'gl-plus-t') + `</g>`;
+        }
+        body += `</g>`;
       });
     }
     return `<svg class="gl-bubbles${SND.fam ? ' is-fam' : ''}" viewBox="0 0 ${W} ${W}" role="group" aria-label="${H(tx('snd_map'))}">${body}</svg>${below}`;

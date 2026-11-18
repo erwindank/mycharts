@@ -51199,7 +51199,7 @@ button.gl-chip:active { transform: scale(0.97); }
 /* ── Your Sound (step 3) ── */
 .gl-snd-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
   gap: var(--sp-5);
   align-items: center;
   padding: var(--sp-5);
@@ -51283,7 +51283,7 @@ button.gl-fact:active { transform: translateY(1px); }
 .gl-snd-map-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); min-height: 30px; }
 .gl-snd-fam { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: var(--fs-sm); }
 .gl-snd-hint { margin: 0; min-height: 30px; display: flex; align-items: center; justify-content: center; font-size: var(--fs-xs); color: var(--text3); text-align: center; }
-.gl-bubbles { display: block; width: 100%; max-width: 440px; height: auto; margin: 0 auto; aspect-ratio: 1; animation: glBubIn 360ms var(--ease); }
+.gl-bubbles { display: block; width: 100%; max-width: 560px; height: auto; margin: 0 auto; aspect-ratio: 1; animation: glBubIn 360ms var(--ease); }
 @keyframes glBubIn { from { transform: scale(0.94); opacity: 0; } }
 .gl-bub-fam, .gl-bub { cursor: pointer; outline: none; }
 .gl-bub-fam > circle:first-of-type { stroke-width: 1; transition: fill var(--t-fast) var(--ease); }
@@ -51615,3 +51615,12 @@ button.gl-fact:active { transform: translateY(1px); }
 .gl-bub-fam .gl-bub-t { font-weight: 800; }
 .gl-snd-more { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: var(--sp-2); }
 .gl-snd-more > span { font-size: var(--fs-xs); color: var(--text3); margin-right: 2px; }
+
+/* Bubble map overview as family groups (2026-11-18): a tinted ring with the
+   family's name on top, its biggest genres inside, "+N" for the rest */
+.gl-bub-ring { cursor: pointer; outline: none; }
+.gl-bub-ring > circle { stroke-width: 1.4; transition: stroke-width var(--t-fast) var(--ease), fill var(--t-fast) var(--ease); }
+.gl-bub-grp:hover .gl-bub-ring > circle, .gl-bub-ring:focus-visible > circle { stroke-width: 2.6; fill: color-mix(in srgb, var(--gf) 20%, transparent); }
+.gl-ring-t { fill: var(--text); font-family: var(--font-sans); font-weight: 800; letter-spacing: 0.01em; pointer-events: none; }
+.gl-plus-t { fill: var(--text); font-family: var(--font-mono); font-weight: 700; pointer-events: none; }
+.gl-bub-plus circle { stroke-width: 1.4; stroke-dasharray: 3 3; }
