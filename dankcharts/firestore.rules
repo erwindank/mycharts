@@ -142,6 +142,22 @@ service cloud.firestore {
       allow list, write: if false;
     }
 
+    // ── Genre list extras (genrelib.js, 2026-11-18) ─────────────────────────
+    // Genres the moderators add to the fixed genre list from Board
+    // suggestions. Everyone reads them (the picker merges them in); only
+    // moderators write. Small docs with only the known fields.
+    match /genreExtras/{id} {
+      allow read: if true;
+      allow create, update: if isBoardAdmin()
+        && request.resource.data.keys().hasOnly(['id', 'name', 'fam', 'aliases', 'at', 'by'])
+        && textOk(request.resource.data.id, 2, 60)
+        && textOk(request.resource.data.name, 2, 60)
+        && request.resource.data.fam is string
+        && (!('aliases' in request.resource.data) || textOk(request.resource.data.aliases, 0, 300))
+        && request.resource.data.by == request.auth.uid;
+      allow delete: if isBoardAdmin();
+    }
+
     match /boardPosts/{postId} {
       allow read: if true;
 

@@ -348,6 +348,59 @@ async function dcLoadImgChoices() {
   }
 }
 
+// The Genre Library's hand-picked genres (2026-11-18): { e: { key: { g, at } },
+// r: { key: at } } — see _genreEdits in app.js. Own document, written whole,
+// like the image choices above; merged per entry on sign-in by
+// dcMergeGenreEdits(). Covered by the users/{uid}/data/{doc} rule.
+function _genreEditsRef(uid) {
+  return _db.collection('users').doc(uid).collection('data').doc('genreEdits');
+}
+async function dcSaveGenreEdits(payload) {
+  if (!_currentUser) return;
+  await _ensureDb();
+  try {
+    await _genreEditsRef(_currentUser.uid).set(payload);
+  } catch (err) {
+    console.warn('[dankcharts] Genre edits save error:', err);
+  }
+}
+async function dcLoadGenreEdits() {
+  if (!_currentUser) return null;
+  await _ensureDb();
+  try {
+    const snap = await _genreEditsRef(_currentUser.uid).get();
+    return snap.exists ? snap.data() : null;
+  } catch (err) {
+    console.warn('[dankcharts] Genre edits load error:', err);
+    return null;
+  }
+}
+
+// Genres added to the fixed list by the Board moderators, from suggestions
+// (genrelib.js). Public to read, so everyone's picker has them without a site
+// update; only boardAdmins can write (firestore.rules). One doc per genre:
+// { id (lower-case, what gets saved), name (shown), fam, aliases, at, by }.
+async function dcLoadGenreExtras() {
+  await _ensureDb();
+  try {
+    const snap = await _db.collection('genreExtras').get();
+    return snap.docs.map(d => Object.assign({ doc: d.id }, d.data()));
+  } catch (err) {
+    console.warn('[dankcharts] Genre extras load error:', err);
+    return null;
+  }
+}
+async function dcSaveGenreExtra(docId, data) {
+  if (!_currentUser) throw new Error('signed out');
+  await _ensureDb();
+  await _db.collection('genreExtras').doc(docId).set(Object.assign({}, data, { by: _currentUser.uid, at: Date.now() }));
+}
+async function dcDeleteGenreExtra(docId) {
+  if (!_currentUser) throw new Error('signed out');
+  await _ensureDb();
+  await _db.collection('genreExtras').doc(docId).delete();
+}
+
 function _playlistsRef(uid) {
   return _db.collection('users').doc(uid).collection('data').doc('playlists');
 }
@@ -956,6 +1009,11 @@ window.dcSaveDiary                 = dcSaveDiary;
 window.dcLoadDiary                 = dcLoadDiary;
 window.dcSaveImgChoices            = dcSaveImgChoices;
 window.dcLoadImgChoices            = dcLoadImgChoices;
+window.dcSaveGenreEdits            = dcSaveGenreEdits;
+window.dcLoadGenreEdits            = dcLoadGenreEdits;
+window.dcLoadGenreExtras           = dcLoadGenreExtras;
+window.dcSaveGenreExtra            = dcSaveGenreExtra;
+window.dcDeleteGenreExtra          = dcDeleteGenreExtra;
 window.dcSavePlaylistsToFirestore  = dcSavePlaylistsToFirestore;
 window.dcLoadPlaylistsFromFirestore = dcLoadPlaylistsFromFirestore;
 window.dcSaveSmartPlaylists       = dcSaveSmartPlaylists;
@@ -1016,6 +1074,10 @@ _auth.onAuthStateChanged(async (user) => {
   // Same per-entry merge for pictures picked in the image picker.
   const remoteImgChoices = await dcLoadImgChoices();
   if (typeof dcMergeImgChoices === 'function') dcMergeImgChoices(remoteImgChoices);
+
+  // The Genre Library's hand-picked genres, merged per entry the same way
+  const remoteGenreEdits = await dcLoadGenreEdits();
+  if (typeof dcMergeGenreEdits === 'function') dcMergeGenreEdits(remoteGenreEdits);
 
   // The Charts Guide's progress, merged per challenge / answer (guide.js)
   const remoteGuide = await dcLoadGuideProgress();

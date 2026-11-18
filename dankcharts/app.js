@@ -7411,7 +7411,11 @@ function makeGenreReader(headers) {
     for (const i of cols) {
       for (const t of get(i).split(/[;,/|]/)) {
         const g = t.trim().toLowerCase();
-        if (g && !tags.includes(g)) tags.push(g);
+        // A blank-cell placeholder ("-", "—", "?", "n/a" split into "n" and
+        // "a") is not a genre: skipping it lets the song fall through to its
+        // album's, artist's or the looked-up genres (Genre Library, 2026-11-18)
+        if (g.length < 2 || !/[\p{L}\p{N}]/u.test(g)) continue;
+        if (!tags.includes(g)) tags.push(g);
       }
     }
     if (!tags.length) return null;
@@ -15427,10 +15431,12 @@ document.getElementById('periodNav').addEventListener('click', e => {
      Raw Data left Stats, Events and Awards on screen under it, and Stats and
      Records left Awards. (Playlists shows part of Events again on purpose.) */
   ['rawDataView', 'graphsView', 'recordsView', 'eventsView', 'awardsView',
-   'soundtrackView', 'playlistsView', 'chartsguideView', 'ratingsView', 'gamesView'].forEach(id => {
+   'soundtrackView', 'playlistsView', 'chartsguideView', 'ratingsView', 'gamesView', 'genrelibView'].forEach(id => {
     const v = document.getElementById(id);
     if (v) v.style.display = 'none';
   });
+  // The Genre Library stops its picture lookups while it isn't showing (genrelib.js)
+  if (btn.dataset.period !== 'genrelib' && window.dcGenreLib) window.dcGenreLib.hide();
   document.getElementById('eventsView')?.classList.remove('dc-pl-mode');
 
   if (btn.dataset.period === 'rawdata') {
@@ -15806,6 +15812,27 @@ document.getElementById('periodNav').addEventListener('click', e => {
     return;
   }
 
+  if (btn.dataset.period === 'genrelib') {
+    // The Genre Library (2026-11-18, genrelib.js): the genres of every artist,
+    // album and song, and the picker to fix them. Whole library, no date bar.
+    savedOffsets[currentPeriod] = currentOffset;
+    currentPeriod = 'genrelib';
+    localStorage.setItem('dc_period', currentPeriod);
+    ['chartTypeToggleBar', 'exportPlaylistBtn', 'dateNav', 'navHint', 'statsStrip', 'statsStrip3',
+     'songsSection', 'artistsSection', 'albumsSection', 'buSongsSection', 'buArtistsSection', 'buAlbumsSection'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = 'none';
+    });
+    COLLAPSE_ALL_TYPES.forEach(hideOffSection);
+    NEW_ENTRY_SECTIONS.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
+    document.getElementById('genrelibView').style.display = 'block';
+    // Before the plays are in it says so; finalizeLoad clicks this tab again
+    if (window.dcGenreLib) window.dcGenreLib.show();
+    if (typeof window._refreshBackToTop === 'function') window._refreshBackToTop();
+    updateScrobbleBtn();
+    return;
+  }
+
   if (btn.dataset.period === 'chartsguide') {
     // Switch to charts guide view
     savedOffsets[currentPeriod] = currentOffset;
@@ -15840,7 +15867,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
   }
 
   // Leaving raw data, graphs, records, events, awards, soundtrack, playlists, chartsguide or board view — restore chart UI
-  if (currentPeriod === 'rawdata' || currentPeriod === 'graphs' || currentPeriod === 'records' || currentPeriod === 'events' || currentPeriod === 'awards' || currentPeriod === 'soundtrack' || currentPeriod === 'playlists' || currentPeriod === 'chartsguide' || currentPeriod === 'board' || currentPeriod === 'dank100' || currentPeriod === 'worldcharts' || currentPeriod === 'ratings' || currentPeriod === 'games') {
+  if (currentPeriod === 'rawdata' || currentPeriod === 'graphs' || currentPeriod === 'records' || currentPeriod === 'events' || currentPeriod === 'awards' || currentPeriod === 'soundtrack' || currentPeriod === 'playlists' || currentPeriod === 'chartsguide' || currentPeriod === 'board' || currentPeriod === 'dank100' || currentPeriod === 'worldcharts' || currentPeriod === 'ratings' || currentPeriod === 'games' || currentPeriod === 'genrelib') {
     document.getElementById('dateNav').style.display = '';
     document.getElementById('navHint').style.display = '';
     document.getElementById('statsStrip').style.display = '';
@@ -15860,7 +15887,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
   }
 
 
-  savedOffsets[(currentPeriod === 'rawdata' || currentPeriod === 'graphs' || currentPeriod === 'records' || currentPeriod === 'events' || currentPeriod === 'awards' || currentPeriod === 'playlists' || currentPeriod === 'chartsguide' || currentPeriod === 'board' || currentPeriod === 'dank100' || currentPeriod === 'worldcharts' || currentPeriod === 'ratings' || currentPeriod === 'games') ? btn.dataset.period : currentPeriod] = currentOffset;
+  savedOffsets[(currentPeriod === 'rawdata' || currentPeriod === 'graphs' || currentPeriod === 'records' || currentPeriod === 'events' || currentPeriod === 'awards' || currentPeriod === 'playlists' || currentPeriod === 'chartsguide' || currentPeriod === 'board' || currentPeriod === 'dank100' || currentPeriod === 'worldcharts' || currentPeriod === 'ratings' || currentPeriod === 'games' || currentPeriod === 'genrelib') ? btn.dataset.period : currentPeriod] = currentOffset;
   currentPeriod = btn.dataset.period;
   localStorage.setItem('dc_period', currentPeriod);
   currentOffset = savedOffsets[currentPeriod];
@@ -23878,6 +23905,8 @@ const _EA_MI = {
   artist:   _EA_MI_SVG('<rect x="9" y="2.5" width="6" height="11.5" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0"/><path d="M12 17.5v4"/><path d="M8.5 21.5h7"/>'),
   chartrun: _EA_MI_SVG('<path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="m19 8-5 5-4-4-3 3"/>'),
   cover:    _EA_MI_SVG('<rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/>'),
+  // Genres (Genre Library, 2026-11-18): a tag
+  genres:   _EA_MI_SVG('<path d="M3 12V4a1 1 0 0 1 1-1h8l9 9-9 9z"/><circle cx="7.5" cy="7.5" r="1.5"/>'),
   yt:       '<svg class="ea-mi-brand" viewBox="0 0 24 24" aria-hidden="true"><path fill="#FF0033" d="M22.6 7.2a2.8 2.8 0 0 0-2-2C18.9 4.7 12 4.7 12 4.7s-6.9 0-8.6.5a2.8 2.8 0 0 0-2 2A29 29 0 0 0 1 12a29 29 0 0 0 .4 4.8 2.8 2.8 0 0 0 2 2c1.7.5 8.6.5 8.6.5s6.9 0 8.6-.5a2.8 2.8 0 0 0 2-2A29 29 0 0 0 23 12a29 29 0 0 0-.4-4.8z"/><path fill="#fff" d="M9.8 15.1 15.5 12 9.8 8.9z"/></svg>',
   get spotify() { return '<span class="ea-mi-brand ea-mi-sp">' + _msSvg() + '</span>'; }, // or Apple Music / Deezer
 };
@@ -23936,6 +23965,8 @@ function _eaOpenMenu(el, x, y, alignRight) {
   if (el.classList && el.classList.contains('bu-row')) h += _eaMenuItem('buhistory', '▦', t('bucr_btn_title'), '', 'chartrun');
   h += sep;
   if (d.imgId && document.getElementById(d.imgId)) h += _eaMenuItem('cover', '✎', t('ea_change_cover'));
+  // Its genres, in the Genre Library's picker (genrelib.js)
+  if (window.dcGenreLib) h += _eaMenuItem('genres', '#', t('ea_genres'));
   h += _eaMenuItem('yt', '↗', t('ea_search_yt'));
   h += _eaMenuItem('spotify', '↗', _msLabel());
   _eaMenuEl.innerHTML = h;
@@ -23997,6 +24028,9 @@ function _eaRunAction(action, el, arg) {
                   : d.type === 'albums' ? 'album:' + d.artist.toLowerCase() + '|||' + d.album.toLowerCase()
                   : 'artist:' + d.artist.toLowerCase();
     openImgPicker({ imgid: d.imgId, type: kind, prefkey, name, artist: d.artist, album: d.album });
+  } else if (action === 'genres') {
+    // The genre picker for this song / album / artist (genrelib.js)
+    if (window.dcGenreLib) window.dcGenreLib.openFor(kind, { title: d.title, artist: d.artist, album: d.album });
   } else if (action === 'yt') {
     // A link to youtube.com: free, it doesn't use the site's search allowance
     const q = d.type === 'songs' ? d.artist + ' ' + d.title : d.type === 'albums' ? d.artist + ' ' + d.album : d.artist;
@@ -33574,7 +33608,8 @@ window.dcTopbarHome = dcTopbarHome;
 const DC_CHART_PERIODS = ['day', 'week', 'month', 'year', 'alltime'];
 // Pages inside More (2026-11-09: Soundtrack, then Records and Awards moved in;
 // Events and Playlists moved out to the tab bars; 2026-11-14: Games, out of Stats)
-const DC_MORE_VIEWS = ['chartsguide', 'records', 'awards', 'soundtrack', 'games', 'dank100', 'worldcharts', 'ratings', 'board', 'rawdata'];
+// 2026-11-18: the Genre Library, after Ratings
+const DC_MORE_VIEWS = ['chartsguide', 'records', 'awards', 'soundtrack', 'games', 'dank100', 'worldcharts', 'ratings', 'genrelib', 'board', 'rawdata'];
 // Keyboard shortcuts (initNavShortcuts) shown in the tab tooltips
 const DC_TAB_SHORTCUT = { charts: '1–4', graphs: '6', records: '7', awards: '9', events: '8', rawdata: '5' };
 
@@ -48173,9 +48208,11 @@ async function _backupCollect() {
   // The Charts Guide's progress (guide.js)
   let guide = null;
   try { guide = JSON.parse(localStorage.getItem('dc_guide_progress') || 'null'); } catch (e) {}
+  // The Genre Library's hand-picked genres (2026-11-18)
+  const genres = Object.keys(_genreEdits).length ? { e: _genreEdits, r: _genreEditResets } : null;
   return JSON.parse(JSON.stringify({
     app: 'dankcharts', v: 1, createdAt: Date.now(),
-    config, awards, ratings: hasRatings ? _ratings : null, diary, guide
+    config, awards, ratings: hasRatings ? _ratings : null, diary, guide, genres
   }));
 }
 
@@ -48276,6 +48313,16 @@ async function _backupApply(p) {
     if (typeof dcSaveGuideProgress === 'function') {
       try { await _withTimeout(dcSaveGuideProgress(JSON.parse(localStorage.getItem('dc_guide_progress') || '{}')), 10000); } catch (e) {}
     }
+  }
+  if (p.genres && p.genres.e && typeof p.genres.e === 'object') {
+    // The Genre Library's picks, replaced whole and re-stamped like ratings,
+    // so the merge on other devices keeps the restored ones
+    const ge = {};
+    for (const [k, e] of Object.entries(p.genres.e)) if (e && Array.isArray(e.g)) ge[k] = { g: e.g.slice(0, GENRE_EDIT_MAX), at: now };
+    const gr = {};
+    for (const k of Object.keys(_genreEdits)) if (!ge[k]) gr[k] = now;   // picks made since, undone
+    try { localStorage.setItem(GENRE_EDITS_LS, JSON.stringify({ e: ge, r: gr })); } catch (e) {}
+    if (typeof dcSaveGenreEdits === 'function') { try { await _withTimeout(dcSaveGenreEdits({ e: ge, r: gr }), 10000); } catch (e) {} }
   }
   location.reload();
 }
@@ -49715,19 +49762,158 @@ function _awardsSheetGenres() {
    Gemini and Last.fm land in _awardsGenreCache (artist name, lower-cased →
    tags), also kept in this browser. undefined there = not looked up yet. */
 
-// A song's tags (undefined = nothing in the sheet and the artist not looked up yet)
+/* ─── YOUR OWN GENRES (Genre Library, 2026-11-18) ────────────────────────────
+   Genres the user picked by hand in the Genre Library (genrelib.js) for an
+   artist, an album or a song. They sit at the very top of the order above:
+   at each level (song, then album, then artist) the user's pick beats the
+   sheet's, and the more specific level wins — a song's own pick beats its
+   album's sheet genres, and an album pick beats the artist's. Only ids from
+   the fixed genre list (genres.js) are ever saved, so they match the names
+   MusicBrainz uses. Nothing is written back to the Google Sheet / CSV.
+   Kept in this browser (dc_genre_edits) and in the account
+   (users/{uid}/data/genreEdits, firebase.js), merged per entry on sign-in.
+     _genreEdits:      'artist:<_pk>' | 'album:<_ak>' | 'song:<_sk>' →
+                       { g: [genre ids, the first is the main one], at }
+                       g = [] is "no genre": the automatic sources are
+                       blocked for it (a podcast, an audiobook…)
+     _genreEditResets: key → when it was put back to automatic, so that
+                       reset reaches the other devices too (the same idea as
+                       imgChoiceResets) */
+const GENRE_EDITS_LS = 'dc_genre_edits';
+const GENRE_EDIT_MAX = 5;               // genres per artist / album / song
+let _genreEdits = {}, _genreEditResets = {};
+try {
+  const v = JSON.parse(localStorage.getItem(GENRE_EDITS_LS) || '{}');
+  if (v && typeof v === 'object') { _genreEdits = v.e || {}; _genreEditResets = v.r || {}; }
+} catch (e) {}
+// How many edits there are: 0 skips the lookups below in the hot award loops
+let _genreEditCount = Object.keys(_genreEdits).length;
+// Until the sign-in merge has run, pushes wait (writing this device's
+// partial set first would wipe the edits made on the other devices)
+let _genreEditsMerged = false;
+let _genreEditsPushTimer = null;
+
+function genreEditKey(kind, p) {
+  return kind === 'artist' ? 'artist:' + _pk(p) : kind === 'album' ? 'album:' + _ak(p) : 'song:' + _sk(p);
+}
+// The user's genres for it, or undefined when they haven't picked any
+function genreEditGet(kind, p) {
+  if (!_genreEditCount) return undefined;
+  const e = _genreEdits[genreEditKey(kind, p)];
+  return e && Array.isArray(e.g) ? e.g : undefined;
+}
+// list = genre ids (first = main), [] = "no genre", null = back to automatic
+function genreEditSet(kind, p, list) {
+  const k = genreEditKey(kind, p), now = Date.now();
+  if (list == null) {
+    if (!_genreEdits[k]) return;
+    delete _genreEdits[k];
+    _genreEditResets[k] = now;
+  } else {
+    const g = [...new Set(list.map(x => String(x).toLowerCase()).filter(Boolean))].slice(0, GENRE_EDIT_MAX);
+    _genreEdits[k] = { g, at: now };
+    delete _genreEditResets[k];
+  }
+  _genreEditsChanged();
+}
+function _genreEditsSaveLocal() {
+  try { localStorage.setItem(GENRE_EDITS_LS, JSON.stringify({ e: _genreEdits, r: _genreEditResets })); } catch (e) {}
+}
+// Saved locally at once; the account copy is written a moment later, so a
+// run of quick edits is one write
+function genreEditsPush() {
+  if (!_genreEditsMerged || typeof dcSaveGenreEdits !== 'function') return;
+  if (typeof dcIsSignedIn === 'function' && !dcIsSignedIn()) return;
+  clearTimeout(_genreEditsPushTimer);
+  _genreEditsPushTimer = setTimeout(() => dcSaveGenreEdits({ e: _genreEdits, r: _genreEditResets }), 800);
+}
+function _genreEditsChanged() {
+  _genreEditCount = Object.keys(_genreEdits).length;
+  _genreEditsSaveLocal();
+  genreEditsPush();
+  // Smart Playlists, Daily and the library page redraw on this
+  try { window.dispatchEvent(new CustomEvent('dc-genres-changed')); } catch (e) {}
+}
+// Called by firebase.js once signed in: per entry, the newest of this
+// device's pick or reset and the account's pick or reset wins
+function dcMergeGenreEdits(remote) {
+  const re = (remote && remote.e) || {}, rr = (remote && remote.r) || {};
+  const mineAt = k => Math.max(_genreEdits[k] ? (_genreEdits[k].at || 0) : 0, _genreEditResets[k] || 0);
+  let changed = false;
+  for (const [k, e] of Object.entries(re)) {
+    if (!e || !Array.isArray(e.g) || (e.at || 0) <= mineAt(k)) continue;
+    _genreEdits[k] = { g: e.g.slice(0, GENRE_EDIT_MAX), at: e.at };
+    delete _genreEditResets[k];
+    changed = true;
+  }
+  for (const [k, at] of Object.entries(rr)) {
+    if (!(at > mineAt(k))) continue;
+    if (_genreEdits[k]) { delete _genreEdits[k]; changed = true; }
+    _genreEditResets[k] = at;
+  }
+  _genreEditsMerged = true;
+  if (changed) _genreEditsChanged();
+  else { _genreEditsSaveLocal(); genreEditsPush(); }
+}
+window.dcMergeGenreEdits = dcMergeGenreEdits;
+
+// A song's tags (undefined = nothing in the sheet and the artist not looked up yet).
+// Order: your song pick → sheet song → your album pick → sheet album →
+// your artist pick → sheet artist → outside sources. genreInfo() below
+// walks the same order and must be kept in step with it.
 function _awardsSongTags(p) {
-  return _awardsSheetGenres().songs.get(_sk(p))
-    || (p.album && p.album !== '—' ? _awardsAlbumSheetTags(p)?.slice(0, 5) : undefined)
-    || _awardsArtistSheetTags(p)?.slice(0, 5)
-    || _genreSongOutside(p);
+  let v;
+  if ((v = genreEditGet('song', p))) return v;
+  if ((v = _awardsSheetGenres().songs.get(_sk(p)))) return v;
+  if (p.album && p.album !== '—') {
+    if ((v = genreEditGet('album', p))) return v;
+    if ((v = _awardsAlbumSheetTags(p))) return v.slice(0, 5);
+  }
+  if ((v = genreEditGet('artist', p))) return v;
+  if ((v = _awardsArtistSheetTags(p))) return v.slice(0, 5);
+  return _genreSongOutside(p);
 }
 
-// An album's tags: its tracks' sheet genres, else the artist's sheet genres,
-// else MusicBrainz's for that album, else the artist's looked-up ones
+// An album's tags: your pick, its tracks' sheet genres, your artist pick, the
+// artist's sheet genres, MusicBrainz's for that album, the artist's looked-up ones
 function _awardsAlbumTags(p) {
-  return _awardsAlbumSheetTags(p) || _awardsArtistSheetTags(p)?.slice(0, 5)
+  let v;
+  if ((v = genreEditGet('album', p))) return v;
+  if ((v = _awardsAlbumSheetTags(p))) return v;
+  if ((v = genreEditGet('artist', p))) return v;
+  return _awardsArtistSheetTags(p)?.slice(0, 5)
     || _genreAlbumOutside(p) || _genreArtistOutside(_pa(p));
+}
+
+/* The same order as the three functions above, with where the answer came
+   from — for the Genre Library's source badges. kind = 'artist' | 'album' |
+   'song'. Returns { g: [genres], src, from }:
+     src  'you' (picked by hand) · 'sheet' (Google Sheet / CSV) · 'mb'
+          (MusicBrainz) · 'web' (Gemini / Last.fm) · 'none' (nobody knows)
+          · 'wait' (not looked up yet)
+     from '' when it is the item's own, else 'album' / 'artist' when it was
+          borrowed from there (a song showing its artist's genres) */
+function genreInfo(kind, p) {
+  let v;
+  const hasAlbum = kind !== 'artist' && p.album && p.album !== '—';
+  const via = lvl => (lvl === kind ? '' : lvl);
+  if (kind === 'song') {
+    if ((v = genreEditGet('song', p))) return { g: v, src: 'you', from: '' };
+    if ((v = _awardsSheetGenres().songs.get(_sk(p)))) return { g: v, src: 'sheet', from: '' };
+  }
+  if (hasAlbum) {
+    if ((v = genreEditGet('album', p))) return { g: v, src: 'you', from: via('album') };
+    if ((v = _awardsAlbumSheetTags(p))) return { g: v.slice(0, 5), src: 'sheet', from: via('album') };
+  }
+  if ((v = genreEditGet('artist', p))) return { g: v, src: 'you', from: via('artist') };
+  if ((v = _awardsArtistSheetTags(p))) return { g: v.slice(0, 5), src: 'sheet', from: via('artist') };
+  if (kind === 'song' && (v = _genreReleaseOutside(_pa(p), p.title))) return { g: v, src: 'mb', from: '' };
+  if (hasAlbum && (v = _genreAlbumOutside(p))) return { g: v, src: 'mb', from: via('album') };
+  const k = _pa(p).toLowerCase(), mb = _mbGenreStore[k], c = _awardsGenreCache[k];
+  if (mb && mb.a && mb.a.length) return { g: mb.a, src: 'mb', from: via('artist') };
+  if (Array.isArray(c) && c.length) return { g: c, src: 'web', from: via('artist') };
+  if (mb && mb.w && mb.w.length) return { g: mb.w, src: 'mb', from: via('artist') };
+  return { g: [], src: (c === undefined || !mb) ? 'wait' : 'none', from: '' };
 }
 
 // ─── Outside sources, best first (sources 2–5 above) ───
@@ -49939,6 +50125,9 @@ async function _mbGenreFetchArtist(name) {
 
 // An album fits a genre when at least half its sheet-tagged tracks do; null = no sheet data
 function _awardsAlbumSheetFits(p, f) {
+  // An album the user gave genres by hand: those decide, not the tracks
+  const own = genreEditGet('album', p);
+  if (own) return _genreMatch(own, f);
   const tracks = _awardsSheetGenres().albums.get(_ak(p));
   if (!tracks) return null;
   return tracks.filter(tags => _genreMatch(tags, f)).length * 2 >= tracks.length;
@@ -49961,6 +50150,8 @@ function _awardsArtistSheetTags(p) {
 // An artist's tags: the sheet's (their top five, so one stray song doesn't
 // make a rapper pop), else the looked-up ones (MusicBrainz, Gemini, Last.fm)
 function _awardsArtistTags(p) {
+  const own = genreEditGet('artist', p);   // picked by hand in the Genre Library
+  if (own) return own;
   const sheet = _awardsArtistSheetTags(p);
   return sheet ? sheet.slice(0, 5) : _genreArtistOutside(_pa(p));
 }
@@ -63025,6 +63216,11 @@ const _cgTourSteps = [
   { title: 'Games',
     content: 'Twelve quick quizzes made from your own library, played full screen: Higher or lower, Name that tune, Guess the year, Guess the #1 and more. A new Game of the day waits every day (the same puzzle all day, and only your first try counts), so play daily to keep your streak. Your best scores stay on this device.',
     nav: 'games' },
+
+  // The Genre Library (2026-11-18, genrelib.js)
+  { title: 'Genre Library',
+    content: 'Every artist, album and song you play, with its genres and where they come from: your own picks, your Sheet or CSV, MusicBrainz, or online tags. Tap one to fix it from a fixed list of over 2,200 genres (up to five, the first is the main one). Your picks stay in the app and count in Awards, Smart Playlists and the Daily tab. Missing a genre? Suggest it on the Board.',
+    nav: 'genrelib' },
 
   { title: 'Playlists',
     content: 'Save any chart as a named playlist, queue tracks from anywhere in the app with + Play, and keep the queue across sessions. Recent releases and anniversaries sit alongside it so there is always something to add.',

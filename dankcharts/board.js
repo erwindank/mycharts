@@ -628,6 +628,11 @@
         h += '<label class="bd-status-pick"><span>' + esc(tr('board_category_label')) + '</span><select class="bd-input bd-select" onchange="dcBoard.setPostCategory(\'' + esc(p.id) + '\', this.value)">' +
           CATEGORIES.map(function (c) { return '<option value="' + c + '"' + (p.category === c ? ' selected' : '') + '>' + esc(catLabel(c)) + '</option>'; }).join('') +
           '</select></label>';
+        // A genre suggestion from the Genre Library (its title starts with
+        // 🏷️): one click opens the add-a-genre window with the name filled in
+        if ((p.title || '').indexOf('🏷') === 0 && window.dcGenreLib) {
+          h += '<button type="button" class="dc-btn dc-btn-main dc-btn-sm" onclick="dcGenreLib.addFromPost(\'' + esc(p.id) + '\')">🏷️ ' + esc(dcGenreLib.tx('ad_from_post')) + '</button>';
+        }
       }
       h += '<button type="button" class="dc-btn dc-btn-plain dc-btn-sm dc-btn-danger" onclick="dcBoard.askDeletePost(\'' + esc(p.id) + '\')">' + ico('trash') + esc(tr('board_delete')) + '</button>';
       h += '</div>';
@@ -1018,6 +1023,33 @@
       }, 350);
     },
     dropSmart: function () { S.smart = null; render(); },
+
+    /* The Genre Library's "Suggest on the Board" (genrelib.js, 2026-11-18):
+       the Board with the new-post form open as a Suggestion, title and text
+       filled in. The title starts with 🏷️, which is how a moderator's view
+       knows to offer "Add to genre list" (detailHTML). */
+    composeGenre: function (title, body) {
+      if (!user()) { toast(tr('board_signin_note')); return false; }
+      S.smart = null;
+      S.composing = true; S.editingId = null; S.openId = null;
+      S.cat = 'all';
+      _drafts.bdNewTitle = title || '';
+      _drafts.bdNewBody = body || '';
+      if (_active) { render(); }
+      else if (typeof dcGoTab === 'function') dcGoTab('board');
+      setTimeout(function () {
+        var c = document.querySelector('#boardView .bd-composer');
+        if (c) c.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        var r = document.querySelector('input[name="bdNewCat"][value="suggestion"]');
+        if (r) r.checked = true;
+      }, 350);
+      return true;
+    },
+    // Whether the signed-in user is a moderator (checked against boardAdmins)
+    checkAdmin: function () { return refreshAdmin().then(function () { return S.isAdmin; }); },
+    // A genre suggestion was added to the list: mark its post Done
+    markDone: function (id) { if (S.isAdmin && findPost(id)) adminSet(id, { status: 'done' }); },
+    postTitle: function (id) { var p = findPost(id); return p ? p.title || '' : ''; },
 
     setCat: function (c) { S.cat = c; savePrefs(); render(); },
     setStatus: function (s) { S.status = s; savePrefs(); render(); },

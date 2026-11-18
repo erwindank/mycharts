@@ -2808,6 +2808,8 @@ TRANSLATIONS['pt-BR'] = Object.assign({
     rec_ratings_sub: 'O álbum que você ouve muito além da nota, o que você avalia bem acima do quanto ouve, o álbum que mantém o nível do início ao fim e o artista que você avalia melhor',
     nav_ratings: 'Avaliações',
     nav_games: 'Jogos',   // Games page in More (2026-11-14)
+    nav_genrelib: 'Biblioteca de gêneros',   // Genre Library page in More (2026-11-18)
+    ea_genres: 'Gêneros…',   // ⋮ menu: the genre picker (genrelib.js)
     rp_intro: 'Cada álbum, single e música que você avaliou: seus veredictos, suas notas mais altas e mais baixas, os artistas que você avalia melhor e o que você ouve muito mas nunca avaliou.',
     rp_kicker_album: 'Seu álbum médio',
     rp_kicker_song: 'Sua música média',

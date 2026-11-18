@@ -213,6 +213,13 @@
       '<circle class="gk-o gk-dot" cx="15.4" cy="11.9" r="1.1"/>' +
       '<circle class="gk-o gk-dot gk-d1" cx="17.6" cy="9.9" r="1.1"/>',
 
+    // Genre Library (2026-11-18): a price tag with a music note on it; the
+    // note pops in, the tag's hole glints
+    genres:
+      '<path class="gk-f" d="M2.6 11.2V3.9a1.3 1.3 0 0 1 1.3-1.3h7.3l10.2 10.2-8.6 8.6Z"/>' +
+      '<circle class="gk-o gk-dot" cx="7" cy="7" r="1.5"/>' +
+      '<g class="gk-pop gk-late"><path class="gk-s gk-thick" d="M12.6 16.2v-5.1l3.2-.9"/><circle class="gk-o" cx="11.4" cy="16.3" r="1.4"/></g>',
+
     // Community Board: two speech bubbles, someone typing in the front one
     board:
       '<path class="gk-f" d="M9 2.8h10.2a2.5 2.5 0 0 1 2.5 2.5v5a2.5 2.5 0 0 1-2.5 2.5H18.5v2.8l-3.2-2.8"/>' +
@@ -368,7 +375,7 @@
     day: 'day', week: 'week', month: 'month', year: 'year', alltime: 'alltime',
     rawdata: 'raw', graphs: 'stats', records: 'records', events: 'events',
     awards: 'awards', soundtrack: 'sound', playlists: 'lists', ratings: 'ratings',
-    board: 'board', dank100: 'd100', worldcharts: 'world', games: 'games'
+    board: 'board', dank100: 'd100', worldcharts: 'world', games: 'games', genrelib: 'genres'
   };
 
   function dcGlowIco(name, cls) {
