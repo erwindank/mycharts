@@ -48085,6 +48085,11 @@ html.lsx-open { overflow: hidden; }
   .plx-num .dc-pl-drag-handle { display: none; }
   .plx-track:hover .plx-num-n { opacity: 1; }
 }
+/* ⋮ menus (dcPlMoreMenu): the row stays lit while its menu is open */
+.dc-pl-track.plx-track.menu-open { background: var(--hover); }
+.plx-track.menu-open .plx-tr-btn { opacity: 1; }
+.plx-more-btn svg { width: 16px; height: 16px; }
+.plx-more-menu { min-width: 220px; }
 
 /* ── Smart playlists (smartplaylists.js) ──
    The label on a library card's cover, the kicker and the rules sentence on

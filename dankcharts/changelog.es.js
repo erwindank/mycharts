@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Songs in a playlist have their own menu":
+    ["Las canciones de una lista tienen su propio menú",
+     "Cada canción de una lista abierta tiene ahora un botón ⋮ con Reproducir ahora, Reproducir a continuación, Añadir a la cola, Añadir a una lista y Añadir a una lista nueva. El ⋮ junto al nombre de la lista hace lo mismo con la lista entera. Si no suena nada, Reproducir a continuación y Añadir a la cola empiezan la música enseguida."],
   "Chart rules in smart playlists can look further back":
     ["Las reglas de listas en las listas inteligentes miran más atrás",
      "En la lista, Nueva entrada, Reentrada, Fuera del Ranking y En Aspirantes antes solo miraban la lista de esta semana o la de la semana pasada. Ahora también pueden mirar unas semanas atrás, la misma semana del año pasado, cualquier momento, alguna de las últimas semanas, cada una de ellas, un mes, un año o una estación, una lista que elijas por fecha, o entre dos fechas. Funciona igual con las listas diaria, mensual y anual."],

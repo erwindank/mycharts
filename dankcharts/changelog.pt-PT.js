@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Songs in a playlist have their own menu":
+    ["As músicas de uma playlist têm o seu próprio menu",
+     "Cada música de uma playlist aberta tem agora um botão ⋮ com Ouvir agora, Ouvir a seguir, Adicionar à fila, Adicionar a uma playlist e Adicionar a uma nova playlist. O ⋮ ao lado do nome da playlist faz o mesmo com a lista inteira. Se nada estiver a tocar, Ouvir a seguir e Adicionar à fila começam a música logo."],
   "Chart rules in smart playlists can look further back":
     ["As regras de tabela das playlists inteligentes olham mais para trás",
      "Na tabela, Nova entrada, Reentrada, Fora do Top e Em Aspirantes antes só olhavam a tabela desta semana ou da semana passada. Agora também podem olhar algumas semanas atrás, a mesma semana do ano passado, qualquer momento, alguma das últimas semanas, cada uma delas, um mês, um ano ou uma estação, uma tabela escolhida pela data, ou entre duas datas. Funciona também nas tabelas diária, mensal e anual."],

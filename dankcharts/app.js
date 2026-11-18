@@ -41190,6 +41190,8 @@ const _DC_PL_SVG = {
   trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3,6 5,6 21,6"/><path d="M19,6l-1,14a2,2,0,0,1-2,2H8a2,2,0,0,1-2-2L5,6"/><path d="M10,11v6"/><path d="M14,11v6"/><path d="M9,6V4a1,1,0,0,1,1-1h4a1,1,0,0,1,1,1v2"/></svg>',
   save: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>',
   queue: '<svg class="dc-pl-ic dc-pl-ic-queue" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 3.9h8.4M2 7.5h8.4M2 11.1h5"/><path d="M10.5 9.9 14.3 12.1 10.5 14.3Z"/></svg>',
+  // ⋮ for the song / whole-list menus
+  more: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="12" cy="19" r="1.9"/></svg>',
   grip: '<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="6" cy="4" r="1.1"/><circle cx="10" cy="4" r="1.1"/><circle cx="6" cy="8" r="1.1"/><circle cx="10" cy="8" r="1.1"/><circle cx="6" cy="12" r="1.1"/><circle cx="10" cy="12" r="1.1"/></svg>'
 };
 
@@ -41389,6 +41391,8 @@ function _dcPlDetailHtml(name) {
     // Smart playlists: change the rules in the builder (smartplaylists.js)
     (smart ? spEditBtnHtml(name) : '') +
     `<span class="plx-hero-tools">` +
+    // ⋮ the whole list: Play next / Add to queue / Add to a playlist / new playlist
+    `<button type="button" class="dc-btn dc-btn-plain dc-btn-icon plx-more-btn" onclick="dcPlMoreMenu(${nameJson},-1,this)" title="${esc(t('pl_more_list'))}" aria-label="${esc(t('pl_more_list'))}" aria-haspopup="menu">${_DC_PL_SVG.more}</button>` +
     // Smart playlists: save today's songs as a normal playlist (smartplaylists.js)
     (smart ? spCopyBtnHtml(name) : '') +
     // Smart playlists: share the rules on the Community Board (smartplaylists.js)
@@ -41435,6 +41439,8 @@ function _dcPlDetailHtml(name) {
       `<a class="dc-pl-act dc-pl-act-yt" href="https://www.youtube.com/results?search_query=${ytQ}" target="_blank" rel="noopener" draggable="false" title="${esc(t('awx_yt'))}" aria-label="${esc(t('awx_yt'))}" onclick="event.stopPropagation()">${_ST_AM_YT_SVG}</a>` +
       `<button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon plx-tr-btn" onclick="dcPlPlayFromTrack(${nameJson},${idx})" title="${esc(t('pl_view_play_from'))}" aria-label="${esc(t('pl_view_play_from'))}">${_DC_PL_SVG.queue}</button>` +
       (smart ? '' : `<button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon dc-btn-danger plx-tr-btn" onclick="dcPlRemoveTrack(${nameJson},${idx})" title="${esc(t('pl_view_remove'))}" aria-label="${esc(t('pl_view_remove'))}">✕</button>`) +
+      // ⋮ Play next / Add to queue / Add to a playlist / new playlist (dcPlMoreMenu)
+      `<button type="button" class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon plx-tr-btn plx-more-btn" onclick="event.stopPropagation();dcPlMoreMenu(${nameJson},${idx},this)" title="${esc(t('pl_more'))}" aria-label="${esc(t('pl_more'))}" aria-haspopup="menu">${_DC_PL_SVG.more}</button>` +
       `</div>` +
       `</div>`; // end track
   });
@@ -41599,6 +41605,142 @@ function dcPlPlayFromTrack(name, idx) {
   rest.forEach(t => _ytQueue.push({ title: t.title, artist: t.artist, album: t.album, btn: null }));
   _ytUpdateQueueDisplay();
   _ytSaveQueue();
+}
+
+// ── ⋮ menus on an open playlist (asked for 2026-11-17) ──
+// Each song has a ⋮ button with Play now / Play next / Add to queue /
+// Add to a playlist / Add to a new playlist, and the playlist's header has
+// a ⋮ with the same choices for the whole list. Looks like the player's
+// History menu (.ea-menu, same icons).
+
+// Is the site player open with a song in it?
+function _dcPlPlayerOn() {
+  const el = document.getElementById('ytMiniPlayer');
+  return !!(_ytCurrentTrack && _ytCurrentTrack.title && el && el.style.display !== 'none');
+}
+
+// Puts songs after the current one ('next') or at the end of the queue
+// ('queue'). With nothing playing there is nothing to wait for, so the
+// first song starts right away and the rest follow it.
+function _dcPlEnqueue(tracks, where) {
+  const qs = tracks.filter(tr => tr && tr.title)
+    .map(tr => ({ title: tr.title, artist: tr.artist || '', album: tr.album || '', btn: null }));
+  if (!qs.length) return;
+  if (!_dcPlPlayerOn()) {
+    const [first, ...rest] = qs;
+    openYtPlayer(first.title, first.artist, first.album, null);
+    // the rest go in front of anything already waiting, in playlist order
+    _ytQueue.unshift(...rest);
+  } else if (where === 'next') {
+    _ytQueue.unshift(...qs);   // keeps the playlist's order
+  } else {
+    _ytQueue.push(...qs);
+  }
+  _ytUpdateQueueDisplay(); _ytSaveQueue();
+  const one = qs.length === 1;
+  dcPlToast(one
+    ? t(where === 'next' ? 'yt_np_hist_next' : 'ea_queued', { name: qs[0].title })
+    : t(where === 'next' ? 'pl_more_list_next' : 'pl_more_list_queued', { songs: tCount('songs', qs.length) }));
+}
+
+// Opens the playlist picker straight on "name a new playlist"
+function _dcPlToNewPlaylist(tracks, label) {
+  dcOpenPlaylistPicker(tracks, label, label);
+  if (document.getElementById('dcPlPickModal')?.classList.contains('open')) _dcPickShowNew();
+}
+
+let _dcPlMoreEl = null;
+function _dcPlMoreClose() {
+  if (_dcPlMoreEl) { _dcPlMoreEl.remove(); _dcPlMoreEl = null; }
+  document.querySelectorAll('.plx-track.menu-open').forEach(r => r.classList.remove('menu-open'));
+  document.removeEventListener('pointerdown', _dcPlMoreOutside, true);
+  document.removeEventListener('keydown', _dcPlMoreKey, true);
+  document.removeEventListener('scroll', _dcPlMoreScroll, true);
+}
+function _dcPlMoreOutside(e) { if (_dcPlMoreEl && !_dcPlMoreEl.contains(e.target) && !e.target.closest?.('.plx-more-btn')) _dcPlMoreClose(); }
+function _dcPlMoreKey(e) { if (e.key === 'Escape') { e.stopPropagation(); _dcPlMoreClose(); } }
+function _dcPlMoreScroll(e) { if (_dcPlMoreEl && !(e.target.nodeType === 1 && _dcPlMoreEl.contains(e.target))) _dcPlMoreClose(); }
+
+// idx = a song's place in the playlist, or -1 for the whole playlist
+function dcPlMoreMenu(name, idx, btn) {
+  const pl = _ytPlaylists[name];
+  if (!pl) return;
+  const key = name + '#' + idx;
+  const wasOpenHere = _dcPlMoreEl && _dcPlMoreEl.dataset.key === key;
+  _dcPlMoreClose();
+  if (wasOpenHere) return;   // a second tap on the same ⋮ just closes it
+  const whole = idx < 0;
+  const tr = whole ? null : pl[idx];
+  if (!whole && !tr) return;
+  const item = (act, label, icon) =>
+    `<button type="button" role="menuitem" class="wv-ctx-item" data-act="${act}"><span class="ea-mi-ic" aria-hidden="true">${icon}</span>${esc(label)}</button>`;
+  const sep = '<div class="wv-ctx-sep" role="separator"></div>';
+  const m = document.createElement('div');
+  m.className = 'wv-ctx-menu ea-menu ytp-hist-menu plx-more-menu';
+  m.setAttribute('role', 'menu');
+  m.dataset.key = key;
+  m.innerHTML =
+    // What the menu is for: the song, or the playlist and its size
+    `<div class="ytp-hist-menu-head"><b>${esc(whole ? name : tr.title)}</b><span>${esc(whole ? tCount('songs', pl.length) : (tr.artist || ''))}</span></div>` + sep +
+    (whole ? '' : item('play', t('ea_play_now_short'), _EA_MI.play)) +
+    item('next',  t('ea_play_next'), _EA_MI.next) +
+    item('queue', t('ea_add_queue'), _EA_MI.queue) +
+    sep +
+    item('playlist', t('ea_add_playlist'),    _EA_MI.playlist) +
+    item('newpl',    t('pl_more_new_playlist'), dcIco('plus')) +
+    (whole ? '' : sep +
+      item('yt',      t('ea_search_yt'), _EA_MI.yt) +
+      item('spotify', _msLabel(),        _EA_MI.spotify));
+  m.style.display = 'block';
+  m.addEventListener('click', ev => {
+    const b = ev.target.closest('.wv-ctx-item[data-act]');
+    if (!b) return;
+    ev.stopPropagation();
+    _dcPlMoreClose();
+    dcPlMoreAction(name, idx, b.dataset.act);
+  });
+  document.body.appendChild(m);
+  // Under the button, right edges lined up, kept inside the screen
+  const r = btn.getBoundingClientRect();
+  const mw = m.offsetWidth, mh = m.offsetHeight;
+  const left = Math.max(8, Math.min(r.right - mw, window.innerWidth - mw - 8));
+  let top = r.bottom + 4;
+  if (top + mh > window.innerHeight - 8) top = Math.max(8, r.top - mh - 4);
+  m.style.left = left + 'px';
+  m.style.top = top + 'px';
+  _dcPlMoreEl = m;
+  btn.closest('.plx-track')?.classList.add('menu-open');
+  // Listeners go on after this tap so it doesn't close the menu at once
+  setTimeout(() => {
+    document.addEventListener('pointerdown', _dcPlMoreOutside, true);
+    document.addEventListener('keydown', _dcPlMoreKey, true);
+    document.addEventListener('scroll', _dcPlMoreScroll, true);
+  }, 0);
+  m.querySelector('.wv-ctx-item')?.focus({ preventScroll: true });
+}
+
+function dcPlMoreAction(name, idx, act) {
+  const pl = _ytPlaylists[name];
+  if (!pl) return;
+  const whole = idx < 0;
+  const tracks = (whole ? pl : [pl[idx]]).filter(Boolean)
+    .map(tr => ({ title: tr.title, artist: tr.artist || '', album: tr.album || '' }));
+  if (!tracks.length) return;
+  const label = whole ? name : tracks[0].title;
+  if (act === 'play') {
+    openYtPlayer(tracks[0].title, tracks[0].artist, tracks[0].album, null);
+  } else if (act === 'next' || act === 'queue') {
+    _dcPlEnqueue(tracks, act);
+  } else if (act === 'playlist') {
+    dcOpenPlaylistPicker(tracks, label, label);
+  } else if (act === 'newpl') {
+    _dcPlToNewPlaylist(tracks, label);
+  } else if (act === 'yt') {
+    // a youtube.com link: free, doesn't use the site's search allowance
+    window.open('https://www.youtube.com/results?search_query=' + encodeURIComponent(tracks[0].artist + ' ' + tracks[0].title), '_blank', 'noopener');
+  } else if (act === 'spotify') {
+    window.open(_msUrl(encodeURIComponent(tracks[0].artist + ' ' + tracks[0].title)), '_blank', 'noopener');
+  }
 }
 
 // Resume the last-played track (with queue already loaded from localStorage on startup)

@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 497;
+const DC_CL_I18N_V = 499;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -419,6 +419,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-17', t: 'feature', a: 'playlists',
+    title: "Songs in a playlist have their own menu",
+    detail: "Every song in an open playlist now has a ⋮ button with Play now, Play next, Add to queue, Add to a playlist and Add to a new playlist. The ⋮ next to the playlist's name does the same for the whole list. With nothing playing, Play next and Add to queue start the music right away." },
   { d: '2026-11-16', t: 'feature', a: 'playlists',
     title: "Chart rules in smart playlists can look further back",
     detail: "On the chart, New entry, Re-entry, Off the Chart and In Bubbling Under used to look only at this week's or last week's chart. Now they can also look a few weeks back, at the same week last year, at any time, at any of the last few weeks, at every one of them, during a month, a year or a season, at one chart you pick by date, or between two dates. The same works on the daily, monthly and yearly charts." },
