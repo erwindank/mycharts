@@ -2725,7 +2725,7 @@ window.GL_TEXT.es = {
           span: ['Cuándo', 'Siempre, los últimos 12 meses o los últimos 30 días.'],
           bar: ['Tus familias', 'Cada familia de géneros en una barra de colores. Toca un color para abrir esa familia en el mapa.'],
           facts: ['Tres datos', 'Cuántos géneros has escuchado, el que más sube y el más raro. Toca uno para ver su página.'],
-          map: ['El mapa', 'Las familias y sus géneros, según reproducciones. Toca una familia para abrirla y luego un género para ver su página.'],
+          map: ['El mapa', 'Las familias y sus géneros principales, según reproducciones. Toca un género para ver su página, o el borde de una familia para ver todos sus géneros.'],
           god: ['Género del día', 'Uno de tus géneros principales, cada día otro, con su mejor canción para escuchar.'],
           qf: ['Arreglo rápido', 'Tus artistas más escuchados sin género, una tarjeta cada vez. Toca los géneros que encajen y Guarda, o Salta.'],
           ring: ['Cuánto llevas', 'La parte de tus reproducciones que tiene género.'],

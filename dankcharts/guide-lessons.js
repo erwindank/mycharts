@@ -3901,7 +3901,7 @@ window.GL_TEXT.en = {
           span: ['When', 'All time, the last 12 months or the last 30 days.'],
           bar: ['Your families', 'Every genre family as one colour bar. Tap a colour to open that family on the map.'],
           facts: ['Three facts', 'How many genres you’ve heard, the one growing fastest and your rarest. Tap one for its page.'],
-          map: ['The map', 'Families and their genres, sized by plays. Tap a family to open it, then a genre for its page.'],
+          map: ['The map', 'Families and their biggest genres, sized by plays. Tap a genre for its page, or a family’s edge to see all of its genres.'],
           god: ['Genre of the day', 'One of your top genres, a new one every day, with its top song to play.'],
           qf: ['Quick Fix', 'Your most played artists with no genre, one card at a time. Tap the genres that fit and Save, or Skip.'],
           ring: ['How far you are', 'The share of your plays that have a genre.'],

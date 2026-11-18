@@ -51624,3 +51624,13 @@ button.gl-fact:active { transform: translateY(1px); }
 .gl-ring-t { fill: var(--text); font-family: var(--font-sans); font-weight: 800; letter-spacing: 0.01em; pointer-events: none; }
 .gl-plus-t { fill: var(--text); font-family: var(--font-mono); font-weight: 700; pointer-events: none; }
 .gl-bub-plus circle { stroke-width: 1.4; stroke-dasharray: 3 3; }
+
+/* Matching the draft (2026-11-18): family words in the headline in their own
+   colour (mixed with the text colour so they stay readable on light themes),
+   borderless fact tiles, genre bubbles without a rim */
+.gl-snd-head em { background: none; color: color-mix(in srgb, var(--gf) 82%, var(--text)); }
+.gl-tl-cap em { background: none; color: color-mix(in srgb, var(--gf) 82%, var(--text)); }
+.gl-fact, button.gl-fact { border: 0; background: var(--bg3); border-radius: 12px; }
+button.gl-fact:hover { background: color-mix(in srgb, var(--gf) 14%, var(--bg3)); }
+.gl-bub-leaf circle { stroke: none; }
+.gl-bub-grp:hover .gl-bub-ring > circle, .gl-bub-ring:focus-visible > circle { stroke-width: 2.2; }

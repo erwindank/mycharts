@@ -2725,7 +2725,7 @@ window.GL_TEXT['pt-BR'] = {
           span: ['Quando', 'Desde sempre, os últimos 12 meses ou os últimos 30 dias.'],
           bar: ['Suas famílias', 'Cada família de gêneros numa barra de cores. Toque numa cor para abrir essa família no mapa.'],
           facts: ['Três fatos', 'Quantos gêneros você ouviu, o que mais cresce e o mais raro. Toque num para ver a página.'],
-          map: ['O mapa', 'As famílias e seus gêneros, pelo tamanho dos plays. Toque numa família para abrir e depois num gênero para ver a página.'],
+          map: ['O mapa', 'As famílias e seus maiores gêneros, pelo tamanho dos plays. Toque num gênero para ver a página, ou na borda de uma família para ver todos os gêneros dela.'],
           god: ['Gênero do dia', 'Um dos seus principais gêneros, um novo a cada dia, com a música principal para tocar.'],
           qf: ['Ajuste rápido', 'Seus artistas mais ouvidos sem gênero, um cartão por vez. Toque nos gêneros que combinam e Salve, ou Pule.'],
           ring: ['Quanto falta', 'A parte dos seus plays que tem gênero.'],

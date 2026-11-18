@@ -156,7 +156,7 @@
       snd_span_30: "Last 30 days",
       snd_span_label: "Time span",
       snd_all_fams: "All families",
-      snd_hint: "Tap a family to open it, then a genre for its page.",
+      snd_hint: "Tap a genre for its page. To see a whole family, tap its circle’s edge or its colour in the bar.",
       snd_map: "Bubble map of your genres",
       sh_title: "Your genre shelf",
       sh_sub: "{n} genres collected.",
@@ -351,7 +351,7 @@
       snd_span_30: "Últimos 30 días",
       snd_span_label: "Periodo",
       snd_all_fams: "Todas las familias",
-      snd_hint: "Toca una familia para abrirla y luego un género para ver su página.",
+      snd_hint: "Toca un género para ver su página. Para ver una familia entera, toca el borde de su círculo o su color en la barra.",
       snd_map: "Mapa de burbujas de tus géneros",
       sh_title: "Tu colección de géneros",
       sh_sub: "{n} géneros coleccionados.",
@@ -546,7 +546,7 @@
       snd_span_30: "Últimos 30 dias",
       snd_span_label: "Período",
       snd_all_fams: "Todas as famílias",
-      snd_hint: "Toque numa família para abrir e depois num gênero para ver a página dele.",
+      snd_hint: "Toque num gênero para ver a página dele. Para ver uma família inteira, toque na borda do círculo ou na cor dela na barra.",
       snd_map: "Mapa de bolhas dos seus gêneros",
       sh_title: "Sua coleção de gêneros",
       sh_sub: "{n} gêneros colecionados.",
@@ -741,7 +741,7 @@
       snd_span_30: "Últimos 30 dias",
       snd_span_label: "Período",
       snd_all_fams: "Todas as famílias",
-      snd_hint: "Toca numa família para a abrir e depois num género para ver a página dele.",
+      snd_hint: "Toca num género para ver a página dele. Para ver uma família inteira, toca na borda do círculo ou na cor dela na barra.",
       snd_map: "Mapa de bolhas dos teus géneros",
       sh_title: "A tua coleção de géneros",
       sh_sub: "{n} géneros colecionados.",
@@ -2515,9 +2515,9 @@
      with plays, but on a softened curve (plays^0.32), and the smallest one is
      never under 42% of the biggest; so the order still shows, everything has
      room for its name, and nothing is too small to tap. */
-  function softRadii(vals, floor) {
+  function softRadii(vals, floor, exp) {
     const lo = floor || 42;
-    const raw = vals.map(v => Math.pow(Math.max(1, v), 0.32));
+    const raw = vals.map(v => Math.pow(Math.max(1, v), exp || 0.32));
     const max = Math.max(...raw), min = Math.min(...raw);
     return raw.map(x => lo + (100 - lo) * (max === min ? 1 : (x - min) / (max - min)));
   }
@@ -2554,6 +2554,11 @@
     if (showSub) out += svgText(x, ty + subS * 0.15, subS, sub, 'gl-bub-n');
     return out;
   }
+  // One line that fits across a circle, cut with … (the draft's labels)
+  function fit(name, r, size) {
+    const max = Math.floor((r * 1.75) / (size * 0.56));
+    return name.length <= max ? name : (max >= 4 ? name.slice(0, max - 1) + '…' : '');
+  }
   const FAM_SHOWN = 14;   // genres drawn in a family's map; the rest are chips below it
   function bubbleSvg(span) {
     const { list, total } = famsIn(span);
@@ -2578,59 +2583,43 @@
       if (rest.length) below = `<div class="gl-snd-more"><span>${H(tx('snd_more', { n: num(rest.length) }))}</span>` +
         rest.slice(0, 24).map(g => `<button type="button" class="gl-chip" data-gll="gp-open" data-id="${H(g.id)}" style="--gf:${hue}"><span class="gl-dot" aria-hidden="true"></span>${H(nameOf(g.id))}</button>`).join('') + `</div>`;
     } else {
-      /* Families as groups (user, 2026-11-18: "I still wanted them grouped"):
-         each family is a ring with its name and share on top, holding only
-         its biggest few genres (more for bigger families) at readable
-         sizes, plus a "+N" bubble for the rest. Genre sizes share one
-         softened scale across all families, so a big family's genres are
-         bigger too. Tap a genre → its page; the ring or +N → the family. */
-      // Top 7 families; bigger families show more of their genres (1–5)
-      const fams = list.slice(0, 7);
-      const showN = f => Math.max(1, Math.min(5, Math.round(1.2 + (f.n / (total || 1)) * 12), f.genres.length));
+      /* The draft's look (user, 2026-11-18: "I was really expecting it to
+         look like the draft"): every family a tinted circle hugging its
+         genres, the genres solid bubbles in the family's colour, names on one
+         line (cut with … when long), the smallest left unlabelled. Unlike a
+         true-to-scale pack, a family shows only its 6 biggest genres and sizes
+         follow the softened curve, so nothing shrinks to a speck. Tap a genre
+         for its page; tap the family's circle to open the whole family. */
+      // Bigger families show more genres (2–6) and their bubbles grow closer
+      // to true scale (plays^0.45), so a family's size shows its share
+      const fams = list.slice(0, 9);
+      const showN = f => Math.max(2, Math.min(6, Math.round(2 + (f.n / (total || 1)) * 10)));
       const leaves = fams.flatMap(f => f.genres.slice(0, showN(f)).map(g => g.n));
-      const soft = softRadii(leaves, 68);
+      const soft = softRadii(leaves, 22, 0.45);
       let li = 0;
-      // PLUS: the "+N" bubble. DROP: how far the genres sit below the ring's
-      // centre, which leaves a band at the top of the ring for the name
-      const PLUS = 30, DROP = 34, EDGE = 6;
       const groups = fams.map(f => {
-        const gs = f.genres.slice(0, showN(f)), rs = gs.map(() => soft[li++]);
-        const more = f.genres.length - gs.length;
-        const pk = packCircles(more ? rs.concat([PLUS]) : rs, 4);
-        return { f, gs, more, pk, R: pk.R + DROP + EDGE };
+        const gs = f.genres.slice(0, showN(f)), pk = packCircles(gs.map(() => soft[li++]), 3);
+        return { f, gs, pk, R: pk.R + 5 };
       });
-      const outer = packCircles(groups.map(g => g.R), 7);
+      const outer = packCircles(groups.map(g => g.R), 6);
       const k = (W / 2 - 3) / outer.R;
       groups.forEach((G2, fi) => {
         const o = outer.P[fi], f = G2.f, hue = FAM_HUE[f.fam] || FAM_HUE.world;
         const cx = W / 2 + o.x * k, cy = W / 2 + o.y * k, R = G2.R * k;
         const pc = Math.round(f.n * 100 / (total || 1));
-        const oy = cy + DROP * k;
-        // The family's name inside the ring's top band: as wide as the ring
-        // is there, on one or two lines (its share is in the bar and legend)
-        const band = (2 * DROP + EDGE) * k, mid = R - band / 2;
-        const half = Math.sqrt(Math.max(0, R * R - mid * mid));
-        const L = labelLines(tx('fam_' + f.fam), (half * 2 * 0.94) / 1.62, Math.min(13, band / 2.3));
-        let ty = cy - R + band / 2 - (L.lines.length * L.s * 1.05) / 2 + L.s * 0.82;
-        const name = L.lines.map(l => { const t = `<tspan x="${cx.toFixed(1)}" y="${ty.toFixed(1)}">${H(l)}</tspan>`; ty += L.s * 1.05; return t; }).join('');
         body += `<g class="gl-bub-grp" style="--gf:${hue}">` +
           `<g class="gl-bub-ring" data-gll="snd-fam" data-v="${f.fam}" tabindex="0" role="button" aria-label="${H(tx('fam_' + f.fam) + ' · ' + (pc || '<1') + '%')}">` +
-          `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${R.toFixed(1)}" style="fill:color-mix(in srgb, ${hue} 13%, transparent);stroke:color-mix(in srgb, ${hue} 60%, transparent)"/>` +
-          `<text text-anchor="middle" class="gl-ring-t" font-size="${L.s.toFixed(1)}">${name}</text>` +
+          `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${R.toFixed(1)}" style="fill:color-mix(in srgb, ${hue} 16%, transparent);stroke:color-mix(in srgb, ${hue} 50%, transparent)"/>` +
           `<title>${H(tx('fam_' + f.fam) + ' · ' + (pc || '<1') + '% · ' + plays(f.n))}</title></g>`;
         G2.gs.forEach((g, i) => {
-          const q = G2.pk.P[i], x = cx + q.x * k, y = oy + q.y * k, r = q.r * k;
-          body += `<g class="gl-bub" data-gll="gp-open" data-id="${H(g.id)}" tabindex="0" role="button" aria-label="${H(nameOf(g.id) + ' · ' + plays(g.n))}">` +
-            `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}" style="fill:${leafFill(hue, i)}"/>` +
-            bubbleLabel(x, y, r, nameOf(g.id), '', Math.min(14, r / 2.4)) +
+          const q = G2.pk.P[i], x = cx + q.x * k, y = cy + q.y * k, r = q.r * k;
+          const s = Math.max(8, Math.min(14, r / 3.2));
+          const nm = r > 14 ? fit(nameOf(g.id), r, s) : '';
+          body += `<g class="gl-bub gl-bub-leaf" data-gll="gp-open" data-id="${H(g.id)}" tabindex="0" role="button" aria-label="${H(nameOf(g.id) + ' · ' + plays(g.n))}">` +
+            `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}" style="fill:${hue}"/>` +
+            (nm ? svgText(x, y + s * 0.36, s, nm, 'gl-bub-t') : '') +
             `<title>${H(nameOf(g.id) + ' · ' + plays(g.n))}</title></g>`;
         });
-        if (G2.more) {
-          const q = G2.pk.P[G2.gs.length], x = cx + q.x * k, y = oy + q.y * k, r = q.r * k;
-          body += `<g class="gl-bub gl-bub-plus" data-gll="snd-fam" data-v="${f.fam}" tabindex="0" role="button" aria-label="${H(tx('snd_more', { n: num(G2.more) }) + ' ' + tx('fam_' + f.fam))}">` +
-            `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}" style="fill:color-mix(in srgb, ${hue} 30%, var(--bg2));stroke:color-mix(in srgb, ${hue} 70%, transparent)"/>` +
-            svgText(x, y + 4, Math.min(12, r / 2.3), '+' + num(G2.more), 'gl-plus-t') + `</g>`;
-        }
         body += `</g>`;
       });
     }
