@@ -51456,3 +51456,63 @@ button.gl-fact:active { transform: translateY(1px); }
   .gl-tl-m { font-size: 20px; }
   .gl-tl-box { padding: var(--sp-3); }
 }
+
+
+/* ── Next door (step 7) ── */
+.gl-nd-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--sp-3); }
+.gl-nd-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  padding: var(--sp-4);
+  border: 1px solid color-mix(in srgb, var(--gf) 30%, var(--border));
+  border-radius: var(--r-lg);
+  background:
+    radial-gradient(100% 80% at 0% 0%, color-mix(in srgb, var(--gf) 14%, transparent), transparent 70%),
+    var(--bg2);
+}
+.gl-nd-from { font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text3); }
+.gl-nd-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.gl-nd-row { display: flex; align-items: center; gap: 6px; }
+.gl-nd-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: var(--r-md);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+.gl-nd-name:hover { background: var(--bg3); }
+.gl-smp {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 32px; height: 32px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--bg3);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.9rem;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
+}
+.gl-smp:hover { border-color: var(--gf, var(--accent)); }
+.gl-smp.is-on { background: var(--gf, var(--accent)); border-color: var(--gf, var(--accent)); color: #0b1220; animation: glSmpPulse 1.2s ease-in-out infinite; }
+@keyframes glSmpPulse { 50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--gf, var(--accent)) 25%, transparent); } }
+.gl-smp-yt svg { width: 14px; height: 14px; }
+.gl-smp-now { margin: 0; min-height: 1.2em; font-size: var(--fs-xs); color: var(--text2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gl-smp-now:empty { min-height: 0; }
+.gl-gp-try { align-self: center; font-size: var(--fs-sm); color: var(--text2); }
+.gl-gp-actions .gl-smp-now { flex-basis: 100%; }
+@media (prefers-reduced-motion: reduce) { .gl-smp.is-on { animation: none; } }

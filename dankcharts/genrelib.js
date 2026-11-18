@@ -195,7 +195,16 @@
       tl_cap_month: "{m} was your {fam} month.",
       tl_cap_since: "{fam} has been on top since {m}.",
       tl_cap_now: "{fam} leads this month.",
-      tl_cap_steady: "{fam} has led all year."
+      tl_cap_steady: "{fam} has led all year.",
+      nd_title: "Next door",
+      nd_sub: "Genres close to the ones you love that you haven’t played yet. Tap ♪ for a 30-second sample.",
+      nd_from: "You love {fam}",
+      nd_sample: "Play a sample of {name}",
+      nd_yt: "Search {name} on YouTube",
+      nd_loading: "Finding a sample…",
+      nd_nosample: "No sample found. Try the YouTube link.",
+      nd_now: "♪ {title} · {artist}",
+      nd_try: "Have a listen:"
     },
     es: {
       title: 'Biblioteca de géneros',
@@ -363,7 +372,16 @@
       tl_cap_month: "En {m} destacó {fam}.",
       tl_cap_since: "{fam} va en cabeza desde {m}.",
       tl_cap_now: "{fam} lidera este mes.",
-      tl_cap_steady: "{fam} ha liderado todo el año."
+      tl_cap_steady: "{fam} ha liderado todo el año.",
+      nd_title: "Al lado",
+      nd_sub: "Géneros cercanos a los que te encantan y que aún no has escuchado. Toca ♪ para oír 30 segundos.",
+      nd_from: "Te encanta: {fam}",
+      nd_sample: "Escuchar una muestra de {name}",
+      nd_yt: "Buscar {name} en YouTube",
+      nd_loading: "Buscando una muestra…",
+      nd_nosample: "No se encontró muestra. Prueba el enlace de YouTube.",
+      nd_now: "♪ {title} · {artist}",
+      nd_try: "Escucha un poco:"
     },
     'pt-BR': {
       title: 'Biblioteca de gêneros',
@@ -531,7 +549,16 @@
       tl_cap_month: "Em {m}, o destaque foi {fam}.",
       tl_cap_since: "{fam} está na frente desde {m}.",
       tl_cap_now: "{fam} lidera este mês.",
-      tl_cap_steady: "{fam} liderou o ano todo."
+      tl_cap_steady: "{fam} liderou o ano todo.",
+      nd_title: "Logo ao lado",
+      nd_sub: "Gêneros próximos dos que você ama e que você ainda não ouviu. Toque em ♪ para ouvir 30 segundos.",
+      nd_from: "Você ama: {fam}",
+      nd_sample: "Ouvir uma amostra de {name}",
+      nd_yt: "Buscar {name} no YouTube",
+      nd_loading: "Procurando uma amostra…",
+      nd_nosample: "Nenhuma amostra encontrada. Tente o link do YouTube.",
+      nd_now: "♪ {title} · {artist}",
+      nd_try: "Dê uma ouvida:"
     },
     'pt-PT': {
       title: 'Biblioteca de géneros',
@@ -699,7 +726,16 @@
       tl_cap_month: "Em {m}, o destaque foi {fam}.",
       tl_cap_since: "{fam} está à frente desde {m}.",
       tl_cap_now: "{fam} lidera este mês.",
-      tl_cap_steady: "{fam} liderou o ano inteiro."
+      tl_cap_steady: "{fam} liderou o ano inteiro.",
+      nd_title: "Mesmo ao lado",
+      nd_sub: "Géneros próximos dos que adoras e que ainda não ouviste. Toca em ♪ para ouvir 30 segundos.",
+      nd_from: "Adoras: {fam}",
+      nd_sample: "Ouvir uma amostra de {name}",
+      nd_yt: "Pesquisar {name} no YouTube",
+      nd_loading: "À procura de uma amostra…",
+      nd_nosample: "Não foi encontrada nenhuma amostra. Experimenta o link do YouTube.",
+      nd_now: "♪ {title} · {artist}",
+      nd_try: "Ouve um bocadinho:"
     }
   };
   function tx(k, vars) {
@@ -1295,6 +1331,7 @@
     if (GP.id) {
       root.innerHTML = head() + (G.list.length ? genrePageHtml(GP.id) : `<div class="gl-empty-page"><span class="gl-spin" aria-hidden="true"></span>${H(tx('pk_loading'))}</div>`);
       gpPaint(root);
+      paintSamples();
       return;
     }
     // Keep focus and caret in the search box while typing
@@ -1404,11 +1441,13 @@
     h += tidyHtml();
     h += timelineHtml();
     h += shelfHtml();
+    h += nextDoorHtml();
     return h;
   }
   function funPaint(root) {
     qfPaint(root);
     tlPaint(root);
+    paintSamples();
   }
   let _shownRows = [];
 
@@ -1490,6 +1529,7 @@
     if (!b) return;
     const a = b.dataset.gll, v = b.dataset.v;
     if (qfClick(a, b) || gpClick(a, b) || sndClick(a, b) || tidyClick(a)) return;
+    if (a === 'smp') { playSample(b.dataset.id); return; }
     if (a === 'sh-all') { SH.all = !SH.all; renderPage(); if (!SH.all) scrollToSec('glShelf'); return; }
     if (a === 'tab') { S.tab = v; S.shown = PAGE; S.genre = ''; savePrefs(); renderPage(); return; }
     if (a === 'filter') { S.filter = v; S.shown = PAGE; savePrefs(); renderPage(); return; }
@@ -1532,7 +1572,7 @@
       dcBoard.checkAdmin().then(ok => { if (ok !== _admin) { _admin = ok; renderPage(); } }).catch(() => {});
     }
   }
-  function hide() { _pageOn = false; GP.id = ''; if (_artObs) { _artObs.disconnect(); _artObs = null; } }
+  function hide() { _pageOn = false; GP.id = ''; stopSample(); if (_artObs) { _artObs.disconnect(); _artObs = null; } }
 
   /* ── 6. Genres in the side panel ───────────────────────────────────────
      Under the name in the song / album / artist panel: the genres it has
@@ -2162,7 +2202,9 @@
         (g && g.n ? `<button type="button" class="dc-btn dc-btn-main" data-gll="gp-mix">${ico('play')}${H(tx('gp_mix'))}</button>` +
           `<button type="button" class="dc-btn dc-btn-normal" data-gll="gp-sp">${ico('wand')}${H(tx('gp_sp'))}</button>` +
           `<button type="button" class="dc-btn dc-btn-normal" data-gll="gp-share">${ico('share')}${H(tx('gp_share_card'))}</button>` +
-          `<button type="button" class="dc-btn dc-btn-plain" data-gll="gp-fix">${ico('edit')}${H(tx('gp_fix'))}</button>` : '') +
+          `<button type="button" class="dc-btn dc-btn-plain" data-gll="gp-fix">${ico('edit')}${H(tx('gp_fix'))}</button>`
+          // Not played yet: a sample and a YouTube search instead (step 7)
+          : `<span class="gl-gp-try">${H(tx('nd_try'))}</span>${sampleBtns(id)}<p class="gl-smp-now" data-ids="${H(id)}" aria-live="polite"></p>`) +
       `</div>
     </header>`;
     if (g && g.n) {
@@ -2861,6 +2903,96 @@
     svg.addEventListener('pointermove', e => pick(e.clientX));
     svg.addEventListener('pointerdown', e => pick(e.clientX));
     svg.addEventListener('pointerleave', () => { guide.style.opacity = '0'; });
+  }
+
+  /* ── 15. Next door (step 7) ────────────────────────────────────────────
+     For your three biggest families: genres in the same family you have
+     never played (nextDoor(), section 12), each with a ♪ sample and a
+     YouTube search. A sample is a 30-second Deezer preview from a playlist
+     named after the genre (through deezer-proxy), else from a track search.
+     One sample plays at a time; tapping it again stops it. */
+  const SMP = { audio: null, id: '', cache: new Map(), now: null };
+  function sampleTracks(id) {
+    if (SMP.cache.has(id)) return SMP.cache.get(id);
+    const name = nameOf(id);
+    const get = ep => deezerFetch(ep).then(r => r.json());
+    const job = (async () => {
+      if (typeof deezerFetch !== 'function') return [];
+      let tracks = [];
+      try {
+        const j = await get(`search/playlist?q=${encodeURIComponent(name)}&limit=6`);
+        const pl = (j.data || []).find(p => (p.nb_tracks || 0) >= 10) || (j.data || [])[0];
+        if (pl) tracks = ((await get(`playlist/${pl.id}/tracks?limit=30`)).data || []).filter(x => x.preview);
+      } catch (e) {}
+      if (!tracks.length) {
+        try { tracks = ((await get(`search/track?q=${encodeURIComponent(name)}&limit=15`)).data || []).filter(x => x.preview); } catch (e) {}
+      }
+      return tracks;
+    })();
+    SMP.cache.set(id, job);
+    // A miss isn't kept: the next tap asks again
+    job.then(t => { if (!t.length) SMP.cache.delete(id); });
+    return job;
+  }
+  function stopSample() {
+    if (SMP.audio) { try { SMP.audio.pause(); } catch (e) {} }
+    SMP.audio = null; SMP.id = ''; SMP.now = null;
+    paintSamples();
+  }
+  function playSample(id) {
+    if (SMP.id === id) { stopSample(); return; }
+    stopSample();
+    SMP.id = id; SMP.now = { loading: true };
+    paintSamples();
+    sampleTracks(id).then(tracks => {
+      if (SMP.id !== id) return;
+      if (!tracks.length) { SMP.now = { none: true }; paintSamples(); return; }
+      const x = tracks[Math.floor(Math.random() * tracks.length)];
+      const a = new Audio(x.preview);
+      a.volume = 0.85;
+      a.addEventListener('ended', () => { if (SMP.audio === a) stopSample(); });
+      SMP.audio = a;
+      SMP.now = { title: x.title || '', artist: (x.artist && x.artist.name) || '' };
+      a.play().catch(() => { if (SMP.audio === a) { SMP.now = { none: true }; paintSamples(); } });
+      paintSamples();
+    });
+  }
+  // Updates the ♪ buttons and the "now playing" line without a redraw
+  function paintSamples() {
+    document.querySelectorAll('#genrelibView [data-gll="smp"]').forEach(b => {
+      const on = b.dataset.id === SMP.id;
+      b.classList.toggle('is-on', on);
+      b.setAttribute('aria-pressed', on);
+      b.textContent = on ? '■' : '♪';
+    });
+    document.querySelectorAll('#genrelibView .gl-smp-now').forEach(el => {
+      const mine = SMP.id && el.dataset.ids.split('|').includes(SMP.id);
+      el.textContent = !mine ? '' : SMP.now && SMP.now.loading ? tx('nd_loading')
+        : SMP.now && SMP.now.none ? tx('nd_nosample') : SMP.now ? tx('nd_now', { title: SMP.now.title, artist: SMP.now.artist, name: nameOf(SMP.id) }) : '';
+    });
+  }
+  const ytSearch = id => 'https://www.youtube.com/results?search_query=' + encodeURIComponent(nameOf(id) + ' music');
+  function sampleBtns(id) {
+    return `<button type="button" class="gl-smp${SMP.id === id ? ' is-on' : ''}" data-gll="smp" data-id="${H(id)}" aria-pressed="${SMP.id === id}" aria-label="${H(tx('nd_sample', { name: nameOf(id) }))}" title="${H(tx('nd_sample', { name: nameOf(id) }))}">${SMP.id === id ? '■' : '♪'}</button>` +
+      `<a class="gl-smp gl-smp-yt" href="${H(ytSearch(id))}" target="_blank" rel="noopener" aria-label="${H(tx('nd_yt', { name: nameOf(id) }))}" title="${H(tx('nd_yt', { name: nameOf(id) }))}">${ico('external')}</a>`;
+  }
+  function nextDoorHtml() {
+    const groups = nextDoor(4, 3).filter(x => x.ids.length);
+    if (!groups.length) return '';
+    return `<section class="gl-sec gl-nd" id="glNd" aria-labelledby="glNdH">
+      <div class="gl-sec-head"><div><h3 class="gl-sec-title" id="glNdH">${H(tx('nd_title'))}</h3>
+        <p class="gl-sec-sub">${H(tx('nd_sub'))}</p></div></div>
+      <div class="gl-nd-grid">` + groups.map(x => {
+        const hue = FAM_HUE[x.fam] || FAM_HUE.world;
+        return `<div class="gl-nd-card" style="--gf:${hue}">
+          <span class="gl-nd-from">${H(tx('nd_from', { fam: tx('fam_' + x.fam) }))} · ${H(plays(x.n))}</span>
+          <ul class="gl-nd-list">${x.ids.map(id => `<li class="gl-nd-row">` +
+            `<button type="button" class="gl-nd-name" data-gll="gp-open" data-id="${H(id)}"><span class="gl-dot" aria-hidden="true"></span>${H(nameOf(id))}</button>` +
+            sampleBtns(id) + `</li>`).join('')}</ul>
+          <p class="gl-smp-now" data-ids="${H(x.ids.join('|'))}" aria-live="polite"></p>
+        </div>`;
+      }).join('') + `</div>
+    </section>`;
   }
 
   /* ── Keeping things in step ──────────────────────────────────────────── */
