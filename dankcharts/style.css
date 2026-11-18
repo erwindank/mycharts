@@ -50887,3 +50887,193 @@ button.gl-chip:active { transform: scale(0.97); }
 .gl-chip.is-free .gl-dot { display: none; }
 /* The picker's own ↵ hint stands where the browser's ✕ would be */
 .gl-search input::-webkit-search-cancel-button { display: none; }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   GENRE LIBRARY — the fun redo (2026-11-18, GENRE-FUN-PLAN.md)
+   Sections stacked above the list: Your Sound, Quick Fix, Tidy up, the
+   timeline, the shelf, Next door; plus the genre pages. Genre colour is
+   still --gf (a family hue): fills, rings and tints, never body text.
+   ═══════════════════════════════════════════════════════════════════════ */
+.gl-sec { margin-bottom: var(--sp-6); }
+.gl-sec-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--sp-2) var(--sp-4);
+  margin-bottom: var(--sp-3);
+}
+.gl-sec-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.375rem;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  text-wrap: balance;
+}
+.gl-sec-sub { margin: 4px 0 0; max-width: 62ch; font-size: var(--fs-sm); line-height: 1.55; color: var(--text2); }
+
+/* ── The whole library's numbers (were the three tiles) ── */
+.gl-lib-stats { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-bottom: var(--sp-3); }
+.gl-stat {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 7px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-full);
+  background: var(--bg2);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  cursor: pointer;
+  transition: border-color var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
+}
+.gl-stat strong { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-weight: 700; }
+.gl-stat span { color: var(--text3); }
+.gl-stat:hover { border-color: var(--border2); background: var(--raised); }
+.gl-stat.is-on { border-color: var(--accent); box-shadow: 0 0 0 3px var(--gl-ring); }
+.gl-lib .gl-signin { margin-bottom: var(--sp-3); }
+
+/* ── Quick Fix ── */
+.gl-qf-grid { display: grid; grid-template-columns: minmax(0, 1fr) 240px; gap: var(--sp-4); align-items: stretch; }
+.gl-qf-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-3);
+  min-height: 340px;
+  padding: var(--sp-5) var(--sp-4);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  background:
+    radial-gradient(90% 70% at 50% 0%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 70%),
+    var(--bg2);
+  text-align: center;
+  transition: transform 220ms var(--ease), opacity 220ms var(--ease);
+  animation: glQfIn 260ms var(--ease);
+}
+.gl-qf-card.is-out-r { transform: translateX(36px) rotate(3deg); opacity: 0; }
+.gl-qf-card.is-out-l { transform: translateX(-36px) rotate(-3deg); opacity: 0; }
+@keyframes glQfIn { from { transform: translateY(10px) scale(0.98); opacity: 0; } }
+.gl-qf-eyebrow { font-family: var(--font-mono); font-size: 0.6875rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text3); }
+.gl-qf-art {
+  display: grid;
+  place-items: center;
+  width: 120px; height: 120px;
+  border-radius: var(--r-md);
+  background: var(--bg3) center / cover no-repeat;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.28);
+  font-family: var(--font-display);
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: var(--text2);
+}
+.gl-qf-art.is-round { border-radius: 50%; }
+.gl-qf-names { display: flex; flex-direction: column; gap: 2px; min-width: 0; max-width: 100%; }
+.gl-qf-name { font-family: var(--font-display); font-size: 1.5rem; font-weight: 700; line-height: 1.15; overflow-wrap: anywhere; text-wrap: balance; }
+.gl-qf-sub { font-size: var(--fs-sm); color: var(--text3); }
+.gl-qf-why { margin: 0; max-width: 46ch; font-size: var(--fs-sm); color: var(--text2); }
+.gl-qf-opts { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--sp-2); max-width: 560px; }
+.gl-qf-opt { padding: 7px 14px; font-size: var(--fs-sm); }
+.gl-qf-opt.is-on {
+  background: color-mix(in srgb, var(--gf, var(--accent)) 34%, var(--bg2));
+  border-color: color-mix(in srgb, var(--gf, var(--accent)) 80%, var(--text));
+  font-weight: 700;
+}
+.gl-qf-k {
+  display: inline-grid;
+  place-items: center;
+  min-width: 16px; height: 16px;
+  border: 1px solid color-mix(in srgb, var(--text) 22%, transparent);
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  color: var(--text3);
+}
+@media (hover: none) { .gl-qf-k, .gl-qf-keys { display: none; } }
+.gl-qf-btns { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--sp-2); }
+.gl-qf-none {
+  border: 0;
+  background: none;
+  padding: 2px 4px;
+  font: inherit;
+  font-size: var(--fs-xs);
+  color: var(--text3);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.gl-qf-none:hover { color: var(--text); }
+.gl-qf-card.is-done p { margin: 0; color: var(--text2); font-size: var(--fs-sm); max-width: 42ch; }
+.gl-qf-done-ic { font-size: 2.6rem; line-height: 1; }
+.gl-qf-done-t { font-family: var(--font-display); font-size: 1.5rem; }
+
+.gl-qf-side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-3);
+  padding: var(--sp-4);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  background: var(--bg2);
+}
+.gl-ring { position: relative; display: grid; place-items: center; }
+.gl-ring-svg { display: block; transform: rotate(-90deg); }
+.gl-ring-bg { fill: none; stroke: color-mix(in srgb, var(--text) 10%, transparent); stroke-width: 12; }
+.gl-ring-fg { fill: none; stroke: var(--green); stroke-width: 12; stroke-linecap: round; transition: stroke-dashoffset 600ms var(--ease); }
+.gl-ring-lbl { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 0 22px; }
+.gl-ring-lbl strong { font-family: var(--font-mono); font-size: 1.75rem; font-variant-numeric: tabular-nums; line-height: 1; }
+.gl-ring-lbl span { margin-top: 4px; font-size: 0.6875rem; line-height: 1.25; color: var(--text3); }
+.gl-qf-streak { font-size: var(--fs-sm); color: var(--text3); text-align: center; }
+.gl-qf-streak.is-on { color: var(--text); font-weight: 700; }
+.gl-badges { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; width: 100%; }
+.gl-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 2px;
+  border: 1px dashed var(--border);
+  border-radius: var(--r-md);
+  color: var(--text3);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+}
+.gl-badge-ic { font-size: 1.1rem; filter: grayscale(1); opacity: 0.45; }
+.gl-badge.is-got { border: 1px solid color-mix(in srgb, var(--amber) 60%, var(--border)); background: color-mix(in srgb, var(--amber) 12%, var(--bg2)); color: var(--text); }
+.gl-badge.is-got .gl-badge-ic { filter: none; opacity: 1; }
+.gl-badge.is-new { animation: glBadgePop 700ms var(--ease); }
+@keyframes glBadgePop { 0% { transform: scale(0.6); } 60% { transform: scale(1.15); } 100% { transform: scale(1); } }
+.gl-qf-keys { margin: 0; font-size: 0.6875rem; color: var(--text3); text-align: center; }
+
+/* The colour burst on save (put on <body>, so a redraw can't cut it short) */
+.gl-burst { position: fixed; z-index: 4000; width: 0; height: 0; pointer-events: none; }
+.gl-burst span {
+  position: absolute;
+  left: -4px; top: -4px;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  animation: glBurst 800ms cubic-bezier(0.15, 0.7, 0.3, 1) forwards;
+}
+@keyframes glBurst { to { transform: translate(var(--dx), var(--dy)) scale(0.3); opacity: 0; } }
+
+@media (max-width: 760px) {
+  .gl-qf-grid { grid-template-columns: minmax(0, 1fr); }
+  .gl-qf-side { flex-direction: row; flex-wrap: wrap; justify-content: center; }
+  .gl-qf-side .gl-ring-svg { width: 104px; height: 104px; }
+  .gl-ring-lbl strong { font-size: 1.4rem; }
+  .gl-badges { width: auto; flex: 1 1 200px; }
+  .gl-qf-card { min-height: 0; }
+  .gl-qf-art { width: 96px; height: 96px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gl-qf-card, .gl-badge.is-new { animation: none; transition: none; }
+  .gl-ring-fg { transition: none; }
+}
