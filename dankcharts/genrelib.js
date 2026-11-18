@@ -112,7 +112,36 @@
       qf_badge_got: "Reached: {n}% of your plays have a genre",
       qf_badge_todo: "Unlocks when {n}% of your plays have a genre",
       qf_badge_new: "Badge unlocked: {n}% of your plays have a genre!",
-      qf_keys: "1–6 pick · Enter save · → skip"
+      qf_keys: "1–6 pick · Enter save · → skip",
+      gp_back: "Genre Library",
+      gp_open: "Open the {name} page",
+      gp_plays: "Plays",
+      gp_share: "Of your listening",
+      gp_first: "First heard",
+      gp_artists: "Artists",
+      gp_songs: "Songs",
+      gp_rank: "your #{n} genre",
+      rar_common: "Common",
+      rar_rare: "Rare",
+      rar_deep: "Deep cut",
+      rar_common_tip: "One of the genres most people listen to",
+      rar_rare_tip: "A branch of a well-known genre",
+      rar_deep_tip: "Off the beaten track: not related to any of the big genres",
+      gp_none: "You haven't played any {name} yet. Try something next to it below.",
+      gp_mix: "Play a mix",
+      gp_sp: "Make Smart Playlist",
+      gp_share_card: "Share card",
+      gp_fix: "Fix genres here",
+      gp_mix_on: "Playing a {name} mix: {n} songs in the queue",
+      gp_sp_name: "{name} mix",
+      gp_top_artists: "Your top artists",
+      gp_top_songs: "Your top songs",
+      gp_top_albums: "Your top albums",
+      gp_months: "The last 12 months",
+      gp_peak: "Your biggest month: {m}, {n} plays",
+      gp_next: "Next to it",
+      gp_new: "new",
+      gp_second: "{name} is never the main genre of a song you play, but {n} songs have it as another genre ({p})."
     },
     es: {
       title: 'Biblioteca de géneros',
@@ -197,7 +226,36 @@
       qf_badge_got: "Conseguido: el {n}% de tus reproducciones tiene género",
       qf_badge_todo: "Se desbloquea cuando el {n}% de tus reproducciones tenga género",
       qf_badge_new: "¡Insignia desbloqueada: el {n}% de tus reproducciones tiene género!",
-      qf_keys: "1–6 elegir · Enter guardar · → saltar"
+      qf_keys: "1–6 elegir · Enter guardar · → saltar",
+      gp_back: "Biblioteca de géneros",
+      gp_open: "Abrir la página de {name}",
+      gp_plays: "Reproducciones",
+      gp_share: "De lo que escuchas",
+      gp_first: "Primera vez",
+      gp_artists: "Artistas",
+      gp_songs: "Canciones",
+      gp_rank: "tu género n.º {n}",
+      rar_common: "Común",
+      rar_rare: "Raro",
+      rar_deep: "Joya oculta",
+      rar_common_tip: "Uno de los géneros que más gente escucha",
+      rar_rare_tip: "Una rama de un género conocido",
+      rar_deep_tip: "Fuera de lo común: no tiene que ver con ninguno de los grandes géneros",
+      gp_none: "Aún no has escuchado nada de {name}. Prueba algo parecido aquí abajo.",
+      gp_mix: "Escuchar una mezcla",
+      gp_sp: "Crear lista inteligente",
+      gp_share_card: "Tarjeta para compartir",
+      gp_fix: "Corregir géneros aquí",
+      gp_mix_on: "Sonando una mezcla de {name}: {n} canciones en la cola",
+      gp_sp_name: "Mezcla de {name}",
+      gp_top_artists: "Tus artistas principales",
+      gp_top_songs: "Tus canciones principales",
+      gp_top_albums: "Tus álbumes principales",
+      gp_months: "Los últimos 12 meses",
+      gp_peak: "Tu mejor mes: {m}, {n} reproducciones",
+      gp_next: "Parecidos",
+      gp_new: "nuevo",
+      gp_second: "{name} nunca es el género principal de una canción que escuchas, pero {n} canciones lo tienen como otro género ({p})."
     },
     'pt-BR': {
       title: 'Biblioteca de gêneros',
@@ -282,7 +340,36 @@
       qf_badge_got: "Conquistado: {n}% dos seus plays têm gênero",
       qf_badge_todo: "Desbloqueia quando {n}% dos seus plays tiverem gênero",
       qf_badge_new: "Medalha desbloqueada: {n}% dos seus plays têm gênero!",
-      qf_keys: "1–6 escolher · Enter salvar · → pular"
+      qf_keys: "1–6 escolher · Enter salvar · → pular",
+      gp_back: "Biblioteca de gêneros",
+      gp_open: "Abrir a página de {name}",
+      gp_plays: "Plays",
+      gp_share: "Do que você ouve",
+      gp_first: "Primeira vez",
+      gp_artists: "Artistas",
+      gp_songs: "Músicas",
+      gp_rank: "seu gênero nº {n}",
+      rar_common: "Comum",
+      rar_rare: "Raro",
+      rar_deep: "Pérola escondida",
+      rar_common_tip: "Um dos gêneros que mais gente ouve",
+      rar_rare_tip: "Um ramo de um gênero conhecido",
+      rar_deep_tip: "Fora do comum: não tem a ver com nenhum dos grandes gêneros",
+      gp_none: "Você ainda não ouviu nada de {name}. Experimente algo parecido aqui embaixo.",
+      gp_mix: "Tocar um mix",
+      gp_sp: "Criar playlist inteligente",
+      gp_share_card: "Cartão para compartilhar",
+      gp_fix: "Corrigir gêneros aqui",
+      gp_mix_on: "Tocando um mix de {name}: {n} músicas na fila",
+      gp_sp_name: "Mix de {name}",
+      gp_top_artists: "Seus principais artistas",
+      gp_top_songs: "Suas principais músicas",
+      gp_top_albums: "Seus principais álbuns",
+      gp_months: "Os últimos 12 meses",
+      gp_peak: "Seu maior mês: {m}, {n} plays",
+      gp_next: "Parecidos",
+      gp_new: "novo",
+      gp_second: "{name} nunca é o gênero principal de uma música que você ouve, mas {n} músicas têm ele como outro gênero ({p})."
     },
     'pt-PT': {
       title: 'Biblioteca de géneros',
@@ -367,7 +454,36 @@
       qf_badge_got: "Conseguido: {n}% das tuas reproduções têm género",
       qf_badge_todo: "Desbloqueia quando {n}% das tuas reproduções tiverem género",
       qf_badge_new: "Medalha desbloqueada: {n}% das tuas reproduções têm género!",
-      qf_keys: "1–6 escolher · Enter guardar · → saltar"
+      qf_keys: "1–6 escolher · Enter guardar · → saltar",
+      gp_back: "Biblioteca de géneros",
+      gp_open: "Abrir a página de {name}",
+      gp_plays: "Reproduções",
+      gp_share: "Do que ouves",
+      gp_first: "Primeira vez",
+      gp_artists: "Artistas",
+      gp_songs: "Músicas",
+      gp_rank: "o teu género n.º {n}",
+      rar_common: "Comum",
+      rar_rare: "Raro",
+      rar_deep: "Pérola escondida",
+      rar_common_tip: "Um dos géneros que mais gente ouve",
+      rar_rare_tip: "Um ramo de um género conhecido",
+      rar_deep_tip: "Fora do comum: não tem a ver com nenhum dos grandes géneros",
+      gp_none: "Ainda não ouviste nada de {name}. Experimenta algo parecido aqui em baixo.",
+      gp_mix: "Tocar uma mistura",
+      gp_sp: "Criar playlist inteligente",
+      gp_share_card: "Cartão para partilhar",
+      gp_fix: "Corrigir géneros aqui",
+      gp_mix_on: "A tocar uma mistura de {name}: {n} músicas na fila",
+      gp_sp_name: "Mistura de {name}",
+      gp_top_artists: "Os teus principais artistas",
+      gp_top_songs: "As tuas principais músicas",
+      gp_top_albums: "Os teus principais álbuns",
+      gp_months: "Os últimos 12 meses",
+      gp_peak: "O teu maior mês: {m}, {n} reproduções",
+      gp_next: "Parecidos",
+      gp_new: "novo",
+      gp_second: "{name} nunca é o género principal de uma música que ouves, mas {n} músicas têm-no como outro género ({p})."
     }
   };
   function tx(k, vars) {
@@ -957,6 +1073,12 @@
       root.innerHTML = head() + `<div class="gl-empty-page"><span class="gl-spin" aria-hidden="true"></span>${H(tx('nodata'))}</div>`;
       return;
     }
+    // A genre's own page (step 2) instead of the library
+    if (GP.id) {
+      root.innerHTML = head() + (G.list.length ? genrePageHtml(GP.id) : `<div class="gl-empty-page"><span class="gl-spin" aria-hidden="true"></span>${H(tx('pk_loading'))}</div>`);
+      gpPaint(root);
+      return;
+    }
     // Keep focus and caret in the search box while typing
     const qEl = document.getElementById('glLibQ');
     const hadFocus = qEl && document.activeElement === qEl, caret = qEl ? qEl.selectionStart : 0;
@@ -1032,6 +1154,7 @@
         return `<button type="button" class="gl-chip gl-chip-top${S.genre === id ? ' is-on' : ''}" aria-pressed="${S.genre === id}" data-gll="genre" data-v="${H(S.genre === id ? '' : id)}" style="--gf:${FAM_HUE[fam] || FAM_HUE.world}"><span class="gl-dot" aria-hidden="true"></span>${H(nameOf(id))}</button>`;
       }).join('') + (S.genre && !top.some(([id]) => id === S.genre)
         ? `<button type="button" class="gl-chip gl-chip-top is-on" aria-pressed="true" data-gll="genre" data-v=""><span class="gl-dot" aria-hidden="true"></span>${H(nameOf(S.genre))}</button>` : '') +
+        (S.genre ? `<button type="button" class="gl-clear gl-open-g" data-gll="gp-go" data-id="${H(S.genre)}">${H(tx('gp_open', { name: nameOf(S.genre) }))}${ico('next')}</button>` : '') +
         (S.genre ? `<button type="button" class="gl-clear" data-gll="genre" data-v="">${ico('x')}${H(tx('clear_genre'))}</button>` : '') + `</div></div>`;
     }
 
@@ -1074,10 +1197,13 @@
   // A genre chip for a row or the side panel. A tag that isn't in the list
   // (a free-typed sheet tag like "female vocalists", a Last.fm tag like
   // "2015") is drawn dashed, without a family dot, so it reads as one to fix.
-  function tagChip(tg, j, cls) {
+  // asBtn: a genre that is in the list becomes a button to its page (side panel)
+  function tagChip(tg, j, cls, asBtn) {
     const e = entryOfTag(tg), free = !e && G.list.length > 0, fam = e ? e.fam : 'world';
-    return `<span class="gl-chip ${cls}${j === 0 ? ' is-main' : ''}${free ? ' is-free' : ''}" style="--gf:${FAM_HUE[fam] || FAM_HUE.world}"${free ? ` title="${H(tx('free_tip'))}"` : ''}>` +
-      `<span class="gl-dot" aria-hidden="true"></span>${H(e ? e.name : nameOf(tg))}</span>`;
+    const btn = asBtn && e, tag = btn ? 'button' : 'span';
+    return `<${tag}${btn ? ' type="button"' : ''} class="gl-chip ${cls}${j === 0 ? ' is-main' : ''}${free ? ' is-free' : ''}" style="--gf:${FAM_HUE[fam] || FAM_HUE.world}"` +
+      (free ? ` title="${H(tx('free_tip'))}"` : '') + (btn ? ` data-gid="${H(e.id)}" title="${H(tx('gp_open', { name: e.name }))}"` : '') + `>` +
+      `<span class="gl-dot" aria-hidden="true"></span>${H(e ? e.name : nameOf(tg))}</${tag}>`;
   }
 
   function rowHtml(x, i) {
@@ -1140,7 +1266,7 @@
     const b = ev.target.closest('[data-gll]');
     if (!b) return;
     const a = b.dataset.gll, v = b.dataset.v;
-    if (qfClick(a, b)) return;
+    if (qfClick(a, b) || gpClick(a, b)) return;
     if (a === 'tab') { S.tab = v; S.shown = PAGE; S.genre = ''; savePrefs(); renderPage(); return; }
     if (a === 'filter') { S.filter = v; S.shown = PAGE; savePrefs(); renderPage(); return; }
     if (a === 'genre') { S.genre = v || ''; S.shown = PAGE; renderPage(); return; }
@@ -1181,7 +1307,7 @@
       dcBoard.checkAdmin().then(ok => { if (ok !== _admin) { _admin = ok; renderPage(); } }).catch(() => {});
     }
   }
-  function hide() { _pageOn = false; if (_artObs) { _artObs.disconnect(); _artObs = null; } }
+  function hide() { _pageOn = false; GP.id = ''; if (_artObs) { _artObs.disconnect(); _artObs = null; } }
 
   /* ── 6. Genres in the side panel ───────────────────────────────────────
      Under the name in the song / album / artist panel: the genres it has
@@ -1199,9 +1325,11 @@
       const info = genreInfo(kind, p);
       const g = info.g || [];
       el.innerHTML = `<span class="gl-dp-l">${H(tx('dp_genres'))}</span>` +
-        (g.length ? g.slice(0, 4).map((tg, j) => tagChip(tg, j, 'gl-chip-dp')).join('') : `<span class="gl-dp-none">${H(tx(waiting(info, p) ? 'looking' : 'none_yet'))}</span>`) +
+        (g.length ? g.slice(0, 4).map((tg, j) => tagChip(tg, j, 'gl-chip-dp', true)).join('') : `<span class="gl-dp-none">${H(tx(waiting(info, p) ? 'looking' : 'none_yet'))}</span>`) +
         `<button type="button" class="gl-dp-edit" title="${H(tx(g.length ? 'edit' : 'add'))}">${ico(g.length ? 'edit' : 'plus')}<span>${H(tx(g.length ? 'dp_edit' : 'dp_add'))}</span></button>`;
       el.querySelector('.gl-dp-edit').onclick = ev => { ev.stopPropagation(); open(kind, p); };
+      // A genre chip opens that genre's page in the library (step 2)
+      el.querySelectorAll('[data-gid]').forEach(b => { b.onclick = ev => { ev.stopPropagation(); openGenre(b.dataset.gid); }; });
     };
     paint();
     el._glPaint = paint;
@@ -1374,15 +1502,23 @@
     const byId = new Map(), fam = {}, songMain = new Map();
     const blank = (id) => {
       const e = G.byId.get(id);
-      const g = { id, fam: e ? e.fam : 'world', n: 0, n30: 0, n365: 0, nRecent: 0, nPrev: 0, first: 0, songs: [], artists: new Map(), albums: new Map() };
+      const g = { id, fam: e ? e.fam : 'world', n: 0, n30: 0, n365: 0, nRecent: 0, nPrev: 0, first: 0, m: new Array(12).fill(0), songs: [], artists: new Map(), albums: new Map() };
       byId.set(id, g);
       return g;
     };
     // Songs first: their main genre, and who / what they belong to
+    // sec: genres that are only a song's 2nd–5th genre, with their plays, so
+    // a genre page can say "on 12 songs as a second genre" instead of "new"
+    const sec = new Map();
     for (const r of all.song) {
-      const id = G.list.length ? mainOf(genreInfo('song', r.p)) : null;
+      const info = G.list.length ? genreInfo('song', r.p) : null;
+      const id = info ? mainOf(info) : null;
       songMain.set(r.key, id);
       if (!id) continue;
+      for (const tg of info.g) {
+        const e = entryOfTag(tg);
+        if (e && e.id !== id) { const x = sec.get(e.id) || { n: 0, songs: 0 }; x.n += r.n; x.songs++; sec.set(e.id, x); }
+      }
       const g = byId.get(id) || blank(id);
       g.songs.push(r);
       const pk = _pk(r.p);
@@ -1398,7 +1534,7 @@
     const nowD = typeof tzNow === 'function' ? tzNow() : new Date();
     const yms = [];
     for (let i = 11; i >= 0; i--) yms.push(ymOf(new Date(nowD.getFullYear(), nowD.getMonth() - i, 1)));
-    const ymSet = new Set(yms), months = new Map(yms.map(ym => [ym, {}]));
+    const ymSet = new Set(yms), months = new Map(yms.map(ym => [ym, {}])), ymIdx = new Map(yms.map((ym, i) => [ym, i]));
     let tagged = 0;
     for (const p of P) {
       const id = songMain.get(_sk(p));
@@ -1413,13 +1549,13 @@
         if (t >= t30) { g.n30++; fa.n30++; }
         if (t >= t90) g.nRecent++; else if (t >= t180) g.nPrev++;
         const ym = ymOf(typeof tzDateOf === 'function' ? tzDateOf(p) : p.date);
-        if (ymSet.has(ym)) { const m = months.get(ym); m[f] = (m[f] || 0) + 1; }
+        if (ymSet.has(ym)) { const m = months.get(ym); m[f] = (m[f] || 0) + 1; g.m[ymIdx.get(ym)]++; }
       }
       if (!g.first || t < g.first) g.first = t;
     }
     for (const g of byId.values()) g.songs.sort((a, b) => b.n - a.n);
     const rank = [...byId.values()].filter(g => g.n > 0).sort((a, b) => b.n - a.n).map(g => g.id);
-    _st = { byId, fam, rank, tagged, total: P.length, months: yms.map(ym => ({ ym, fam: months.get(ym) })) };
+    _st = { byId, fam, rank, sec, tagged, total: P.length, yms, months: yms.map(ym => ({ ym, fam: months.get(ym) })) };
     _stTag = tag;
     return _st;
   }
@@ -1730,6 +1866,180 @@
   }
   window.addEventListener('keydown', qfKeys, true);
 
+  /* ── 10. Genre pages (step 2) ──────────────────────────────────────────
+     Tap a genre (the map, the shelf, a side panel chip, "Open its page" by
+     the list's top chips) → its own page inside the library. GP.id is the
+     genre on screen ('' = the library itself); GP.back is where the library
+     was scrolled to, for Back. */
+  const GP = { id: '', back: 0, art: [] };
+  // Rarity: Common = in the popular set; Rare = shares a word with a popular
+  // genre ("Deep House" ← House); Deep cut = shares none ("Piseiro")
+  const STOPW = new Set(['and', 'the', 'music', 'new', 'old', 'style']);
+  let _popWords = null, _popTag = -1;
+  function rarity(id) {
+    const e = G.byId.get(id);
+    if (!e) return 'rare';
+    if (e.pop) return 'common';
+    if (!_popWords || _popTag !== G.list.length) {
+      _popWords = new Set(); _popTag = G.list.length;
+      for (const pid of G.popular) { const p = G.byId.get(pid); if (p) for (const w of p.n.split(' ')) if (w.length > 2 && !STOPW.has(w)) _popWords.add(w); }
+    }
+    return e.n.split(' ').some(w => _popWords.has(w)) ? 'rare' : 'deep';
+  }
+  const lang = () => (typeof currentLang !== 'undefined' && currentLang) || 'en';
+  const pct1 = v => (v >= 0.995 ? 100 : v < 0.01 && v > 0 ? '<1' : Math.round(v * 100)) + '%';
+
+  function openGenre(id) {
+    id = String(id || '').toLowerCase();
+    const e = entryOfTag(id);
+    if (e) id = e.id;
+    if (!id) return;
+    // From a side panel: close it first (it sits over every page)
+    ['artistModal', 'albumModal', 'songModal'].forEach(m => { const el = document.getElementById(m); if (el) el.classList.remove('open'); });
+    if (!_pageOn) {
+      GP.id = id; GP.back = 0;
+      if (typeof dcGoTab === 'function') dcGoTab('genrelib');
+    } else {
+      if (!GP.id) GP.back = window.scrollY;
+      GP.id = id;
+      renderPage();
+    }
+    window.scrollTo(0, 0);
+  }
+  function closeGenre() {
+    GP.id = '';
+    renderPage();
+    window.scrollTo(0, GP.back || 0);
+  }
+
+  function genrePageHtml(id) {
+    const s = stats(), g = s.byId.get(id), e = G.byId.get(id);
+    const name = e ? e.name : nameOf(id), fam = e ? e.fam : 'world', hue = FAM_HUE[fam] || FAM_HUE.world;
+    const rk = s.rank.indexOf(id) + 1, rar = rarity(id);
+    GP.art = [];
+    let h = `<div class="gl-gp" style="--gf:${hue}">`;
+    h += `<button type="button" class="dc-btn dc-btn-plain dc-btn-sm gl-gp-back" data-gll="gp-back">${ico('back')}${H(tx('gp_back'))}</button>`;
+    const facts = g && g.n ? [
+      [num(g.n), tx('gp_plays')],
+      [pct1(g.n / (s.tagged || 1)), tx('gp_share')],
+      [new Date(g.first).toLocaleDateString(lang(), { month: 'short', year: 'numeric' }), tx('gp_first')],
+      [num(g.artists.size), tx('gp_artists')],
+      [num(g.songs.length), tx('gp_songs')]
+    ] : [];
+    h += `<header class="gl-gp-hero">
+      <span class="gl-gp-eyebrow"><span class="gl-dot" aria-hidden="true"></span>${H(tx('fam_' + fam))}${rk ? ' · ' + H(tx('gp_rank', { n: num(rk) })) : ''}</span>
+      <h2 class="gl-gp-name">${H(name)}</h2>
+      <span class="gl-rar gl-rar-${rar}" title="${H(tx('rar_' + rar + '_tip'))}">${H(tx('rar_' + rar))}</span>
+      ${facts.length ? `<dl class="gl-gp-facts">${facts.map(([v, l]) => `<div><dt>${H(l)}</dt><dd>${H(v)}</dd></div>`).join('')}</dl>`
+        : s.sec.has(id) ? `<p class="gl-gp-none">${H(tx('gp_second', { name, n: num(s.sec.get(id).songs), p: plays(s.sec.get(id).n) }))}</p>`
+        : `<p class="gl-gp-none">${H(tx('gp_none', { name }))}</p>`}
+      <div class="gl-gp-actions">` +
+        (g && g.n ? `<button type="button" class="dc-btn dc-btn-main" data-gll="gp-mix">${ico('play')}${H(tx('gp_mix'))}</button>` +
+          `<button type="button" class="dc-btn dc-btn-normal" data-gll="gp-sp">${ico('wand')}${H(tx('gp_sp'))}</button>` +
+          `<button type="button" class="dc-btn dc-btn-normal" data-gll="gp-share">${ico('share')}${H(tx('gp_share_card'))}</button>` +
+          `<button type="button" class="dc-btn dc-btn-plain" data-gll="gp-fix">${ico('edit')}${H(tx('gp_fix'))}</button>` : '') +
+      `</div>
+    </header>`;
+    if (g && g.n) {
+      const artRow = (kind, p, i, label, sub, n, act) => {
+        GP.art.push({ kind, p });
+        return `<li><button type="button" class="gl-gp-row" data-gll="${act}" data-i="${i}">` +
+          `<span class="gl-gp-rk">${i + 1}</span>` +
+          `<span class="gl-art${kind === 'artist' ? ' is-round' : ''}" data-gpart="${GP.art.length - 1}" aria-hidden="true">${H(typeof initials === 'function' ? initials(label) : '')}</span>` +
+          `<span class="gl-gp-row-t"><span class="gl-gp-row-n">${H(label)}</span>${sub ? `<span class="gl-gp-row-s">${H(sub)}</span>` : ''}</span>` +
+          `<span class="gl-gp-row-p">${H(num(n))}</span></button></li>`;
+      };
+      const artists = [...g.artists.values()].sort((a, b) => b.n - a.n).slice(0, 6);
+      const albums = [...g.albums.values()].sort((a, b) => b.n - a.n).slice(0, 6);
+      GP.lists = { artists, songs: g.songs.slice(0, 8), albums };
+      h += `<div class="gl-gp-body">
+        <section class="gl-gp-col"><h3 class="gl-gp-h">${H(tx('gp_top_artists'))}</h3><ol class="gl-gp-list">${artists.map((a, i) => artRow('artist', a.p, i, a.name, '', a.n, 'gp-artist')).join('')}</ol></section>
+        <section class="gl-gp-col"><h3 class="gl-gp-h">${H(tx('gp_top_songs'))}</h3><ol class="gl-gp-list">${GP.lists.songs.map((r, i) => artRow('song', r.p, i, r.name, r.sub, r.n, 'gp-song')).join('')}</ol></section>
+        ${albums.length ? `<section class="gl-gp-col"><h3 class="gl-gp-h">${H(tx('gp_top_albums'))}</h3><ol class="gl-gp-list">${albums.map((a, i) => artRow('album', a.p, i, a.name, a.artist, a.n, 'gp-album')).join('')}</ol></section>` : ''}
+        <section class="gl-gp-col">${monthBars(g, s)}</section>
+      </div>`;
+    }
+    h += nextToHtml(id, fam);
+    h += `</div>`;
+    return h;
+  }
+  // Plays per month for the last 12 months, as small bars
+  function monthBars(g, s) {
+    const max = Math.max(1, ...g.m);
+    const peak = g.m.indexOf(Math.max(...g.m));
+    const label = ym => { const [y, m] = ym.split('-'); return new Date(+y, +m - 1, 1).toLocaleDateString(lang(), { month: 'short' }); };
+    return `<h3 class="gl-gp-h">${H(tx('gp_months'))}</h3>
+      <div class="gl-gp-bars" role="img" aria-label="${H(tx('gp_months'))}">` + g.m.map((v, i) =>
+        `<div class="gl-gp-bar${i === peak && v ? ' is-peak' : ''}" title="${H(label(s.yms[i]) + ' · ' + plays(v))}"><span style="height:${Math.round(v * 100 / max)}%"></span><em>${H(label(s.yms[i]).slice(0, 3))}</em></div>`).join('') +
+      `</div>` + (g.m[peak] ? `<p class="gl-gp-note">${H(tx('gp_peak', { m: new Date(+s.yms[peak].slice(0, 4), +s.yms[peak].slice(5) - 1, 1).toLocaleDateString(lang(), { month: 'long', year: 'numeric' }), n: num(g.m[peak]) }))}</p>` : '');
+  }
+  // Same-family genres: the ones you play, then a few you don't yet
+  function nextToHtml(id, fam) {
+    const s = stats();
+    // Played = a main genre, then genres you only have as a second one
+    const played = s.rank.filter(x => x !== id && G.byId.get(x) && G.byId.get(x).fam === fam)
+      .concat([...s.sec].filter(([x]) => x !== id && !s.byId.has(x) && G.byId.get(x) && G.byId.get(x).fam === fam).sort((a, b) => b[1].n - a[1].n).map(x => x[0]))
+      .slice(0, 10);
+    const fresh = G.list.filter(e => e.fam === fam && e.id !== id && !s.byId.has(e.id) && !s.sec.has(e.id))
+      .sort((a, b) => (b.pop - a.pop) || a.n.length - b.n.length).slice(0, 6);
+    if (!played.length && !fresh.length) return '';
+    const chip = (gid, isNew) => { const e = G.byId.get(gid);
+      return `<button type="button" class="gl-chip gl-gp-chip${isNew ? ' is-new' : ''}" data-gll="gp-open" data-id="${H(gid)}" style="--gf:${FAM_HUE[e.fam] || FAM_HUE.world}"><span class="gl-dot" aria-hidden="true"></span>${H(e.name)}${isNew ? `<span class="gl-gp-new">${H(tx('gp_new'))}</span>` : ''}</button>`; };
+    return `<section class="gl-gp-next"><h3 class="gl-gp-h">${H(tx('gp_next'))}</h3><div class="gl-gp-chips">` +
+      played.map(x => chip(x, false)).join('') + fresh.map(e => chip(e.id, true)).join('') + `</div></section>`;
+  }
+  function gpPaint(root) {
+    root.querySelectorAll('[data-gpart]').forEach(el => {
+      const a = GP.art[+el.dataset.gpart];
+      if (!a) return;
+      artFor(a.kind, a.p).then(url => {
+        if (!url || !el.isConnected) return;
+        el.style.backgroundImage = `url("${String(typeof sizedArtUrl === 'function' ? sizedArtUrl(url, 96) : url).replace(/"/g, '%22')}")`;
+        el.classList.add('has-img');
+        el.textContent = '';
+      });
+    });
+  }
+  function playMix(id) {
+    const g = stats().byId.get(id);
+    if (!g || !g.songs.length || typeof openYtPlayer !== 'function') return;
+    // A shuffle of the genre's 60 most played songs, 25 of them
+    const pool = g.songs.slice(0, 60).map(r => r.p);
+    for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
+    const list = pool.slice(0, 25);
+    openYtPlayer(list[0].title, list[0].artist, list[0].album || '', null);
+    if (typeof _ytQueue !== 'undefined' && Array.isArray(_ytQueue)) {
+      for (const p of list.slice(1)) _ytQueue.push({ title: p.title, artist: p.artist, album: p.album || '', btn: null });
+      if (typeof _ytUpdateQueueDisplay === 'function') _ytUpdateQueueDisplay();
+      if (typeof _ytSaveQueue === 'function') _ytSaveQueue();
+    }
+    toast(tx('gp_mix_on', { n: num(list.length), name: nameOf(id) }));
+  }
+  function makeSmart(id) {
+    if (typeof spOpenBuilder !== 'function') return;
+    const name = nameOf(id);
+    spOpenBuilder(null, { name: tx('gp_sp_name', { name }), def: { match: 'all', rules: [{ f: 'genre', op: 'has', v: name }], sort: { f: 'plays' }, limit: 50 } });
+  }
+  function gpClick(a, b) {
+    if (a === 'gp-back') { closeGenre(); return true; }
+    if (a === 'gp-open' || a === 'gp-go') { openGenre(b.dataset.id); return true; }
+    if (a === 'gp-mix') { playMix(GP.id); return true; }
+    if (a === 'gp-sp') { makeSmart(GP.id); return true; }
+    if (a === 'gp-share') { if (typeof shareGenre === 'function') shareGenre(GP.id); return true; }
+    if (a === 'gp-fix') {
+      const id = GP.id;
+      GP.id = ''; S.genre = id; S.filter = 'all'; S.q = ''; S.shown = PAGE;
+      renderPage();
+      scrollToSec('glLib');
+      return true;
+    }
+    const L = GP.lists || {}, i = +b.dataset.i;
+    if (a === 'gp-artist' && L.artists && L.artists[i]) { if (typeof openArtistModal === 'function') openArtistModal(L.artists[i].name); return true; }
+    if (a === 'gp-song' && L.songs && L.songs[i]) { if (typeof openSongModal === 'function' && typeof songKey === 'function') openSongModal(songKey(L.songs[i].p)); return true; }
+    if (a === 'gp-album' && L.albums && L.albums[i]) { if (typeof openAlbumModal === 'function') openAlbumModal(L.albums[i].p.album + '|||' + L.albums[i].artist); return true; }
+    return false;
+  }
+
   /* ── Keeping things in step ──────────────────────────────────────────── */
   let _spTimer = null;
   window.addEventListener('dc-genres-changed', () => {
@@ -1748,7 +2058,7 @@
 
   // Esc closes the picker / the add window on top (popups.js presses their ✕)
   window.dcGenreLib = {
-    open, close: closePick, show, hide, tx, addFromPost,
+    open, close: closePick, show, hide, tx, addFromPost, openGenre,
     // For tests and other files: the list itself
     ready: loadList, search: (q, o) => search(q, o), nameOf, entryOfTag,
     // The ⋮ menu (app.js _eaRunAction): { title, artist, album } from a chart row

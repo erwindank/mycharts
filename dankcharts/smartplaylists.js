@@ -1917,6 +1917,11 @@ function spOpenBuilder(name, preset, copy) {
   } else if (name && spIsSmart(name)) {
     const def = JSON.parse(JSON.stringify(spGet(name)));
     _spB = { orig: name, name, def, mode: 'live', err: '' };
+  } else if (preset && typeof preset === 'object') {
+    // A rule set handed over by another page, e.g. the Genre Library's
+    // "Make Smart Playlist" ({ name, def }): opened unsaved, ready to tweak
+    const def = JSON.parse(JSON.stringify(preset.def || {}));
+    _spB = { orig: null, name: preset.name || '', def, mode: 'live', err: '', preset: '' };
   } else {
     const def = preset ? spReadyDef(preset) : { match: 'all', rules: [_spBNewRule('plays')], sort: { f: 'plays' }, limit: 50 };
     if (def) { delete def.ready; delete def.readyOpt; }

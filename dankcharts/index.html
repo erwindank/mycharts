@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=1053">
+  <link rel="stylesheet" href="style.css?v=1054">
   <!-- The Charts Guide's lessons (guide.js, GUIDE-PLAN.md) -->
   <link rel="stylesheet" href="guide.css?v=5">
   <!-- All scripts are deferred so the page paints without waiting on them.
@@ -4714,7 +4714,7 @@
   <!-- Automatic chart playlists: a finished period's chart → a playlist (SCHEDULED-PLAYLISTS-PLAN.md); reads app.js + daily.js -->
   <script defer src="autoplaylists.js?v=5"></script>
   <!-- Smart playlists: playlists built from saved rules (SMART-PLAYLISTS-PLAN.md); reads app.js -->
-  <script defer src="smartplaylists.js?v=36"></script>
+  <script defer src="smartplaylists.js?v=37"></script>
   <!-- Listening Scores: automatic scores from how you listen (AUTO-SCORE-PLAN.md) -->
   <script defer src="autoscore.js?v=7"></script>
   <!-- Notifications under the profile picture (any feature calls dcNotify); reads app.js + firebase.js -->
@@ -4733,7 +4733,7 @@
        The genre list itself (genres.js, ~85 KB) loads only when the page or picker opens:
        bump its ?v= in the meta tag when genres.js changes. -->
   <meta name="dc-genres-src" content="genres.js?v=1">
-  <script defer src="genrelib.js?v=2"></script>
+  <script defer src="genrelib.js?v=3"></script>
   <!-- The Charts Guide: lessons, the picture explorer, step player and challenges
        (GUIDE-PLAN.md). Loaded on every page because challenges are noticed
        anywhere in the app; the lessons themselves (guide-lessons*.js) and the
