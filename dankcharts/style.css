@@ -47833,8 +47833,10 @@ html.lsx-open { overflow: hidden; }
 .plx-total { margin: 0; font-size: var(--fs-sm); color: var(--text3); }
 .plx-tools { display: flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap; }
 .plx-search { position: relative; display: block; width: 240px; max-width: 100%; }
-.plx-search > svg { position: absolute; left: 11px; top: 50%; width: 15px; height: 15px; margin-top: -7.5px; color: var(--text3); pointer-events: none; }
-.plx-search > .dc-input { height: 34px; padding-left: 33px; }
+/* the Add songs box looks the same but has its own class (the guide watches .plx-search) */
+.plx-add-search { position: relative; display: block; }
+.plx-search > svg, .plx-add-search > svg { position: absolute; left: 11px; top: 50%; width: 15px; height: 15px; margin-top: -7.5px; color: var(--text3); pointer-events: none; }
+.plx-search > .dc-input, .plx-add-search > .dc-input { height: 34px; padding-left: 33px; }
 
 /* ── The grid of playlists ── */
 .plx-grid {
@@ -48090,6 +48092,75 @@ html.lsx-open { overflow: hidden; }
 .plx-track.menu-open .plx-tr-btn { opacity: 1; }
 .plx-more-btn svg { width: 16px; height: 16px; }
 .plx-more-menu { min-width: 220px; }
+
+/* ── "Add songs" on a hand-made playlist (_dcPlAddHtml, 2026-11-18):
+   a search bar + 💡 Ideas, then results or idea cards under it ── */
+.plx-add {
+  margin-top: var(--sp-4);
+  padding: var(--sp-3);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  background: color-mix(in srgb, var(--text) 2.5%, transparent);
+}
+.plx-add-empty { margin: 0 0 var(--sp-3); color: var(--text2); font-size: var(--fs-sm); }
+.plx-add-bar { display: flex; gap: var(--sp-2); align-items: center; }
+.plx-add-search { flex: 1 1 auto; min-width: 0; }
+.plx-add-search > .dc-input { width: 100%; height: 38px; }
+.plx-add-ideas-btn { flex-shrink: 0; height: 38px; }
+.plx-add-note { margin: var(--sp-3) 0 0; color: var(--text3); font-size: var(--fs-sm); }
+.plx-add-list { margin-top: var(--sp-2); display: flex; flex-direction: column; gap: 1px; max-height: 420px; overflow-y: auto; }
+.plx-add-row {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) auto 32px;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: 5px var(--sp-2);
+  border-radius: var(--r-md);
+}
+.plx-add-row:hover { background: var(--hover); }
+.plx-add-row > .dc-pl-art { width: 38px; height: 38px; border-radius: var(--r-sm); }
+.plx-add-main { min-width: 0; display: flex; flex-direction: column; line-height: 1.3; }
+.plx-add-t, .plx-add-a { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.plx-add-t { color: var(--text1); font-weight: 500; font-size: var(--fs-sm); }
+.plx-add-a { color: var(--text3); font-size: var(--fs-xs); }
+.plx-add-n { color: var(--text3); font-size: var(--fs-xs); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.plx-add-btn { width: 32px; height: 32px; }
+.plx-add-in { width: 32px; display: grid; place-items: center; color: var(--accent); }
+.plx-add-in svg, .plx-add-btn svg { width: 16px; height: 16px; }
+.plx-add-row.is-in .plx-add-t { color: var(--text2); }
+/* Ideas */
+.plx-ideas-head { display: flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap; margin-top: var(--sp-3); }
+.plx-ideas-head .plx-kicker { margin-right: auto; }
+.plx-ideas-head .dc-btn svg { width: 14px; height: 14px; }
+.plx-idea-title { margin-right: auto; font-family: var(--font-display); font-weight: 600; color: var(--text); }
+.plx-ideas { margin-top: var(--sp-2); display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: var(--sp-2); }
+.plx-idea {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-2) var(--sp-3);
+  min-width: 0;
+  text-align: left;
+  color: var(--text);
+  background: var(--surface2, var(--bg2));
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  cursor: pointer;
+  transition: border-color var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
+}
+.plx-idea:hover, .plx-idea:focus-visible { border-color: color-mix(in srgb, var(--accent) 55%, var(--border)); background: color-mix(in srgb, var(--accent) 8%, var(--surface2, var(--bg2))); }
+.plx-idea-ic { font-size: 22px; line-height: 1; flex-shrink: 0; }
+.plx-idea-txt { min-width: 0; display: flex; flex-direction: column; line-height: 1.3; }
+.plx-idea-txt b { font-size: var(--fs-sm); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.plx-idea-txt span { font-size: var(--fs-xs); color: var(--text3); }
+.plx-hero-actions .dc-btn:disabled { opacity: 0.45; cursor: default; }
+@media (max-width: 560px) {
+  .plx-add { padding: var(--sp-2); }
+  .plx-add-ideas-btn span { display: none; }   /* just 💡 next to the search on phones */
+  .plx-add-row { grid-template-columns: 38px minmax(0, 1fr) 32px; }
+  .plx-add-n { display: none; }
+  .plx-ideas { grid-template-columns: 1fr; }
+}
 
 /* ── Smart playlists (smartplaylists.js) ──
    The label on a library card's cover, the kicker and the rules sentence on

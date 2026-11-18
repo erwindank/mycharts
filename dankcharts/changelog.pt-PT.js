@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Empty playlists, a library search to add songs, and playlist ideas":
+    ["Playlists vazias, pesquisa na biblioteca para adicionar músicas e ideias de playlist",
+     "A página de Playlists tem um novo cartão Playlist vazia: dá-lhe um nome e ela abre pronta a encher. Cada playlist feita por ti tem agora uma barra Adicionar músicas para pesquisar em toda a tua biblioteca e adicionar com +. O botão 💡 Ideias sugere temas a partir das tuas audições, como Mais como esta, Em repeat ultimamente, Descobertas recentes, Favoritas esquecidas, Músicas da madrugada, O melhor de um artista ou de um ano passado, e adiciona uma ideia inteira ou música a música. Remover a última música já não apaga a playlist."],
   "Songs in a playlist have their own menu":
     ["As músicas de uma playlist têm o seu próprio menu",
      "Cada música de uma playlist aberta tem agora um botão ⋮ com Ouvir agora, Ouvir a seguir, Adicionar à fila, Adicionar a uma playlist e Adicionar a uma nova playlist. O ⋮ ao lado do nome da playlist faz o mesmo com a lista inteira. Se nada estiver a tocar, Ouvir a seguir e Adicionar à fila começam a música logo."],

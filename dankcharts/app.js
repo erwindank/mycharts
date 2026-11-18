@@ -41322,6 +41322,19 @@ function _dcPlLibraryHtml() {
     `</div>` +
     `<span id="dcPlStatus" class="dc-pl-status" role="status"></span>` +
     `</div>` +
+    // An empty playlist to fill by hand: search the library or take an idea
+    // (dcPlCreateEmpty, asked for 2026-11-18)
+    `<div class="plx-new plx-new-empty">` +
+    `<div class="plx-new-ico" aria-hidden="true">${_DC_PL_SVG.save}</div>` +
+    `<div class="plx-new-title">${esc(t('pl_new_empty_title'))}</div>` +
+    `<div class="plx-new-sub">${esc(t('pl_new_empty_sub'))}</div>` +
+    `<div class="plx-new-form">` +
+    `<input id="dcPlEmptyName" class="dc-input" type="text" placeholder="${esc(t('pl_x_new_ph'))}" aria-label="${esc(t('pl_new_empty_title'))}" maxlength="40" ` +
+    `onkeydown="if(event.key==='Enter'){dcPlCreateEmpty(this.value.trim());}">` +
+    `<button class="dc-btn dc-btn-main dc-btn-sm" onclick="dcPlCreateEmpty(document.getElementById('dcPlEmptyName').value.trim())">${esc(t('pl_new_empty_btn'))}</button>` +
+    `</div>` +
+    `<span id="dcPlEmptyStatus" class="dc-pl-status" role="status"></span>` +
+    `</div>` +
     // "New smart playlist" opens the rules builder (smartplaylists.js)
     (typeof spNewCardHtml === 'function' ? spNewCardHtml() : '');
 
@@ -41386,13 +41399,13 @@ function _dcPlDetailHtml(name) {
     (top ? `<p class="plx-hero-artists">${esc(top)}${moreArtists > 0 ? ' ' + esc(t('pl_x_more_artists', { n: moreArtists })) : ''}</p>` : '') +
     `<p class="plx-hero-meta">${esc(tCount('songs', tracks.length))} · ${esc(tCount('artists', artists.length))}${when ? ' · ' + esc(t('pl_x_updated', { when })) : ''}</p>` +
     `<div class="plx-hero-actions">` +
-    `<button type="button" class="dc-btn dc-btn-main plx-play" onclick="dcPlPlayFromStart(${nameJson})">${_DC_PL_SVG.play}<span>${esc(t('pl_x_play'))}</span></button>` +
-    `<button type="button" class="dc-btn dc-btn-normal plx-shuffle" onclick="dcPlPlayShuffled(${nameJson})">${_DC_PL_SVG.shuffle}<span>${esc(t('pl_x_shuffle'))}</span></button>` +
+    `<button type="button" class="dc-btn dc-btn-main plx-play" ${tracks.length ? '' : 'disabled '}onclick="dcPlPlayFromStart(${nameJson})">${_DC_PL_SVG.play}<span>${esc(t('pl_x_play'))}</span></button>` +
+    `<button type="button" class="dc-btn dc-btn-normal plx-shuffle" ${tracks.length ? '' : 'disabled '}onclick="dcPlPlayShuffled(${nameJson})">${_DC_PL_SVG.shuffle}<span>${esc(t('pl_x_shuffle'))}</span></button>` +
     // Smart playlists: change the rules in the builder (smartplaylists.js)
     (smart ? spEditBtnHtml(name) : '') +
     `<span class="plx-hero-tools">` +
     // ⋮ the whole list: Play next / Add to queue / Add to a playlist / new playlist
-    `<button type="button" class="dc-btn dc-btn-plain dc-btn-icon plx-more-btn" onclick="dcPlMoreMenu(${nameJson},-1,this)" title="${esc(t('pl_more_list'))}" aria-label="${esc(t('pl_more_list'))}" aria-haspopup="menu">${_DC_PL_SVG.more}</button>` +
+    (tracks.length ? `<button type="button" class="dc-btn dc-btn-plain dc-btn-icon plx-more-btn" onclick="dcPlMoreMenu(${nameJson},-1,this)" title="${esc(t('pl_more_list'))}" aria-label="${esc(t('pl_more_list'))}" aria-haspopup="menu">${_DC_PL_SVG.more}</button>` : '') +
     // Smart playlists: save today's songs as a normal playlist (smartplaylists.js)
     (smart ? spCopyBtnHtml(name) : '') +
     // Smart playlists: share the rules on the Community Board (smartplaylists.js)
@@ -41406,6 +41419,10 @@ function _dcPlDetailHtml(name) {
 
   // Smart playlists: which songs came in / dropped out since last time (smartplaylists.js)
   if (smart) html += spChangesHtml(name);
+
+  // Hand-made playlists: search the library to add songs, or take an idea
+  // (smart ones fill themselves from their rules)
+  if (!smart) html += _dcPlAddHtml(name);
 
   // The songs, numbered; the number turns into a drag grip on hover
   html += `<div class="plx-tracks" role="list">`;
@@ -41743,6 +41760,347 @@ function dcPlMoreAction(name, idx, act) {
   }
 }
 
+// ── Empty playlists + "Add songs" (asked for 2026-11-18) ──
+// A playlist can start empty (the "Empty playlist" card on the library
+// page). Every hand-made playlist then has an "Add songs" bar: search the
+// whole library, or press 💡 Ideas for topics built from the user's own
+// listening (On repeat lately, Forgotten favorites, Best of <artist>…).
+// Works for every data source: it only reads allPlays.
+
+// Makes the playlist and opens it, ready to fill
+function dcPlCreateEmpty(name) {
+  const status = msg => {
+    const el = document.getElementById('dcPlEmptyStatus');
+    if (!el) return;
+    el.textContent = msg; el.style.opacity = '1';
+    clearTimeout(el._hideTimer);
+    el._hideTimer = setTimeout(() => { el.style.opacity = '0'; }, 2500);
+  };
+  if (!name) { status(t('pl_view_need_name')); document.getElementById('dcPlEmptyName')?.focus(); return; }
+  // Never replace a playlist that's already there (Favorites included)
+  if (_ytPlaylists[name] || _ytIsFavName(name)) { status(t('pl_new_empty_exists', { name })); return; }
+  _ytPlaylists[name] = [];
+  _ytTouchPlaylist(name);
+  _ytSavePlaylists();
+  _ytRenderPlaylists();
+  _dcPlAdd = { name, q: '', view: '', idea: '', seed: 0 };
+  dcPlToast(t('pl_new_empty_made', { name }));
+  dcPlToggleExpand(name);
+  // straight into the search box
+  setTimeout(() => document.getElementById('dcPlAddQ')?.focus({ preventScroll: true }), 120);
+}
+
+// What the "Add songs" bar shows. Kept across redraws (adding a song redraws
+// the page) so the search and the open idea stay where they were.
+// view: '' (just the bar) | 'search' | 'ideas' | 'idea'
+let _dcPlAdd = { name: '', q: '', view: '', idea: '', seed: 0 };
+function _dcPlAddFor(name) {
+  if (_dcPlAdd.name !== name) _dcPlAdd = { name, q: '', view: '', idea: '', seed: 0 };
+  return _dcPlAdd;
+}
+
+// One record per song in the library, built once per data load:
+// plays, first/last play, plays per year / in summer, by hour, most in a day
+let _dcPlLibCache = null;
+function _dcPlLib() {
+  const plays = (typeof allPlays !== 'undefined' && allPlays) || [];
+  const gen = plays.length + ':' + (plays.length ? +plays[plays.length - 1].date : 0);
+  if (_dcPlLibCache && _dcPlLibCache.gen === gen) return _dcPlLibCache;
+  const by = new Map();
+  let ref = 0, midnight = 0;
+  // the newest play first: "lately" is counted back from it, not from today
+  // (an old uploaded file has no plays this month)
+  for (let i = 0; i < plays.length; i++) { const ms = +plays[i].date; if (ms > ref) ref = ms; }
+  const recentFrom = ref - 30 * 864e5;
+  for (let i = 0; i < plays.length; i++) {
+    const p = plays[i];
+    if (!p || !p.title) continue;
+    const k = _dcPickKey(p);
+    let s = by.get(k);
+    if (!s) {
+      s = { key: k, title: p.title, artist: p.artist || '', album: '', plays: 0, first: Infinity, last: 0,
+            recent: 0, years: {}, summer: {}, night: 0, morning: 0, days: {}, genres: null };
+      by.set(k, s);
+    }
+    s.plays++;
+    const ms = +p.date;
+    if (ms < s.first) s.first = ms;
+    if (ms > s.last) s.last = ms;
+    if (ms >= recentFrom) s.recent++;
+    if (!s.album && p.album && p.album !== '—') s.album = p.album;
+    if (!s.genres && Array.isArray(p.genres) && p.genres.length) s.genres = p.genres;
+    const d = new Date(ms);
+    const y = d.getFullYear(), m = d.getMonth(), h = d.getHours();
+    s.years[y] = (s.years[y] || 0) + 1;
+    if (m >= 5 && m <= 7) s.summer[y] = (s.summer[y] || 0) + 1;   // June–August
+    if (h < 4) s.night++;
+    else if (h >= 5 && h < 11) s.morning++;
+    if (h === 0 && d.getMinutes() === 0) midnight++;
+    const day = y * 400 + m * 32 + d.getDate();
+    s.days[day] = (s.days[day] || 0) + 1;
+  }
+  const songs = [...by.values()];
+  songs.forEach(s => {
+    let mx = 0;
+    for (const k in s.days) if (s.days[k] > mx) mx = s.days[k];
+    s.maxDay = mx;
+    delete s.days;
+    s.lc = (s.title + ' ' + s.artist + ' ' + s.album).toLowerCase();
+  });
+  songs.sort((a, b) => b.plays - a.plays);
+  // Libraries with dates but no times (all at 00:00) get no time-of-day ideas
+  const hasTimes = plays.length > 0 && midnight / plays.length < 0.5;
+  _dcPlLibCache = { gen, songs, ref, hasTimes };
+  return _dcPlLibCache;
+}
+
+// Search: every word must appear in the title, artist or album; most played first
+function _dcPlSearch(q) {
+  const words = q.toLowerCase().split(/\s+/).filter(Boolean);
+  if (!words.length) return [];
+  const out = [];
+  for (const s of _dcPlLib().songs) {
+    if (words.every(w => s.lc.includes(w))) { out.push(s); if (out.length >= 40) break; }
+  }
+  return out;
+}
+
+// ── Ideas: topics for the playlist, from the user's own listening ──
+const _DC_PL_IDEA_MAX = 30;   // songs per idea
+function _dcPlIdeas(name) {
+  const lib = _dcPlLib();
+  const songs = lib.songs;
+  if (!songs.length) return [];
+  const DAY = 864e5, ref = lib.ref;
+  const ideas = [];
+  const add = (id, icon, label, hint, list) => {
+    list = list.slice(0, _DC_PL_IDEA_MAX);
+    if (list.length >= 5) ideas.push({ id, icon, label, hint, songs: list });
+  };
+  const top = arr => arr.sort((a, b) => b.v - a.v).map(x => x.s);
+  const pick = (fn) => top(songs.map(s => ({ s, v: fn(s) })).filter(x => x.v > 0));
+
+  // More like this: other songs by the artists already in the playlist
+  const pl = _ytPlaylists[name] || [];
+  if (pl.length) {
+    const have = new Set(pl.map(_dcPickKey));
+    const arts = new Set(pl.map(tr => (tr.artist || '').toLowerCase()));
+    add('more', '🧩', t('pl_idea_more'), t('pl_idea_more_hint'),
+      songs.filter(s => arts.has(s.artist.toLowerCase()) && !have.has(s.key)));
+  }
+  // Recent listening, counted back from the newest play in the library
+  add('repeat', '🔁', t('pl_idea_repeat'), t('pl_idea_repeat_hint'),
+    pick(s => s.recent >= 2 ? s.recent : 0));
+  add('new', '🌱', t('pl_idea_new'), t('pl_idea_new_hint'),
+    pick(s => s.first >= ref - 60 * DAY ? s.plays : 0));
+  add('forgotten', '🕰️', t('pl_idea_forgotten'), t('pl_idea_forgotten_hint'),
+    pick(s => s.plays >= 5 && s.last < ref - 365 * DAY ? s.plays : 0));
+  add('binge', '🔥', t('pl_idea_binge'), t('pl_idea_binge_hint'),
+    pick(s => s.maxDay >= 4 ? s.maxDay : 0));
+  // Time of day — only when the plays have real times
+  if (lib.hasTimes) {
+    add('night', '🌙', t('pl_idea_night'), t('pl_idea_night_hint'),
+      pick(s => s.plays >= 3 && s.night / s.plays >= 0.4 ? s.night : 0));
+    add('morning', '☀️', t('pl_idea_morning'), t('pl_idea_morning_hint'),
+      pick(s => s.plays >= 3 && s.morning / s.plays >= 0.4 ? s.morning : 0));
+  }
+  // Best of your top artists
+  const artPlays = new Map();
+  songs.forEach(s => artPlays.set(s.artist, (artPlays.get(s.artist) || 0) + s.plays));
+  const topArtists = [...artPlays.entries()].sort((a, b) => b[1] - a[1]).map(e => e[0]).filter(a => a && a !== VARIOUS_ARTISTS);
+  topArtists.slice(0, 8).forEach(a =>
+    add('artist:' + a, '🎤', t('pl_idea_artist', { name: a }), t('pl_idea_artist_hint'), songs.filter(s => s.artist === a)));
+  // Hidden gems: a few plays only, by artists you love
+  const loved = new Set(topArtists.slice(0, 30));
+  add('gems', '💎', t('pl_idea_gems'), t('pl_idea_gems_hint'),
+    songs.filter(s => loved.has(s.artist) && s.plays >= 2 && s.plays <= 6));
+  // A year, and a summer, from the past
+  const years = [...new Set(songs.flatMap(s => Object.keys(s.years)))].map(Number).sort((a, b) => b - a);
+  const curYear = new Date(ref).getFullYear();
+  years.filter(y => y < curYear).slice(0, 6).forEach(y => {
+    add('year:' + y, '📅', t('pl_idea_year', { year: y }), t('pl_idea_year_hint'), pick(s => s.years[y] || 0));
+    add('summer:' + y, '🏖️', t('pl_idea_summer', { year: y }), t('pl_idea_summer_hint'), pick(s => s.summer[y] || 0));
+  });
+  // Genres, when the sheet / file has them
+  const gPlays = new Map();
+  songs.forEach(s => (s.genres || []).forEach(g => gPlays.set(g, (gPlays.get(g) || 0) + s.plays)));
+  [...gPlays.entries()].sort((a, b) => b[1] - a[1]).slice(0, 4).forEach(([g]) =>
+    add('genre:' + g, '🎧', t('pl_idea_genre', { name: g }), t('pl_idea_genre_hint'), songs.filter(s => (s.genres || []).includes(g))));
+  return ideas;
+}
+
+// Which ideas to show: "More like this" first, then a varied handful.
+// "Other ideas" moves the seed on to show a different handful.
+function _dcPlIdeasShown(name, seed) {
+  const all = _dcPlIdeas(name);
+  const first = all.filter(i => i.id === 'more');
+  // the main kinds before the many artist / year ones, so each handful mixes them
+  const kind = i => i.id.split(':')[0];
+  const rest = all.filter(i => i.id !== 'more');
+  const groups = {};
+  rest.forEach(i => (groups[kind(i)] = groups[kind(i)] || []).push(i));
+  const order = [];
+  for (let r = 0; Object.values(groups).some(g => g.length > r); r++) {
+    Object.values(groups).forEach(g => { if (g[r]) order.push(g[r]); });
+  }
+  const n = 8 - first.length;
+  if (order.length <= n) return first.concat(order);
+  const start = (seed * n) % order.length;
+  const shown = [];
+  for (let i = 0; i < n; i++) shown.push(order[(start + i) % order.length]);
+  return first.concat(shown);
+}
+
+// The bar + whatever it has open
+function _dcPlAddHtml(name) {
+  const st = _dcPlAddFor(name);
+  const nj = esc(JSON.stringify(name));
+  const tracks = _ytPlaylists[name] || [];
+  const noLib = !_dcPlLib().songs.length;
+  let h = `<section class="plx-add" aria-label="${esc(t('pl_add_title'))}">`;
+  if (!tracks.length) h += `<p class="plx-add-empty">${esc(t('pl_add_empty'))}</p>`;
+  h += `<div class="plx-add-bar">` +
+    `<label class="plx-add-search">${_DC_PL_SVG.search}` +
+    `<input type="search" id="dcPlAddQ" class="dc-input" placeholder="${esc(t('pl_add_search_ph'))}" aria-label="${esc(t('pl_add_search_ph'))}" value="${esc(st.q)}" ${noLib ? 'disabled ' : ''}` +
+    `oninput="dcPlAddSearch(${nj},this.value)" onkeydown="if(event.key==='Escape'&&this.value){event.stopPropagation();this.value='';dcPlAddSearch(${nj},'')}"></label>` +
+    `<button type="button" class="dc-btn ${st.view === 'ideas' || st.view === 'idea' ? 'dc-btn-main' : 'dc-btn-normal'} plx-add-ideas-btn" ${noLib ? 'disabled ' : ''}` +
+    `aria-pressed="${st.view === 'ideas' || st.view === 'idea'}" onclick="dcPlAddShowIdeas(${nj})">💡 <span>${esc(t('pl_add_ideas'))}</span></button>` +
+    `</div>`;
+  if (noLib) h += `<p class="plx-add-note">${esc(t('pl_add_no_lib'))}</p>`;
+  else h += `<div id="dcPlAddBody">${_dcPlAddBodyHtml(name)}</div>`;
+  return h + `</section>`;
+}
+
+function _dcPlAddBodyHtml(name) {
+  const st = _dcPlAddFor(name);
+  const nj = esc(JSON.stringify(name));
+  if (st.view === 'search' && st.q.trim()) {
+    const res = _dcPlSearch(st.q);
+    if (!res.length) return `<p class="plx-add-note">${esc(t('pl_add_none', { q: st.q.trim() }))}</p>`;
+    return _dcPlAddRowsHtml(name, res);
+  }
+  if (st.view === 'ideas') {
+    const ideas = _dcPlIdeasShown(name, st.seed);
+    if (!ideas.length) return `<p class="plx-add-note">${esc(t('pl_add_no_ideas'))}</p>`;
+    return `<div class="plx-ideas-head"><span class="plx-kicker">${esc(t('pl_add_ideas_title'))}</span>` +
+      `<button type="button" class="dc-btn dc-btn-plain dc-btn-sm" onclick="dcPlAddOtherIdeas(${nj})">🔀 ${esc(t('pl_add_more_ideas'))}</button></div>` +
+      `<div class="plx-ideas">` + ideas.map(i =>
+        `<button type="button" class="plx-idea" onclick="dcPlAddOpenIdea(${nj},${esc(JSON.stringify(i.id))})">` +
+        `<span class="plx-idea-ic" aria-hidden="true">${i.icon}</span>` +
+        `<span class="plx-idea-txt"><b>${esc(i.label)}</b><span>${esc(i.hint)} · ${esc(tCount('songs', i.songs.length))}</span></span></button>`
+      ).join('') + `</div>`;
+  }
+  if (st.view === 'idea') {
+    const idea = _dcPlIdeas(name).find(i => i.id === st.idea);
+    if (!idea) { st.view = 'ideas'; return _dcPlAddBodyHtml(name); }
+    const have = new Set((_ytPlaylists[name] || []).map(_dcPickKey));
+    const fresh = idea.songs.filter(s => !have.has(s.key)).length;
+    return `<div class="plx-ideas-head">` +
+      `<button type="button" class="dc-btn dc-btn-plain dc-btn-sm" onclick="dcPlAddShowIdeas(${nj},true)">${_DC_PL_SVG.back}${esc(t('pl_add_back'))}</button>` +
+      `<span class="plx-idea-title">${idea.icon} ${esc(idea.label)}</span>` +
+      (fresh ? `<button type="button" class="dc-btn dc-btn-main dc-btn-sm" onclick="dcPlAddIdeaAll(${nj})">${dcIco('plus')}${esc(t('pl_add_all', { n: fresh }))}</button>` : '') +
+      `</div>` + _dcPlAddRowsHtml(name, idea.songs);
+  }
+  return '';
+}
+
+// Result rows: cover, song, plays, and + (or ✓ when it's already in)
+function _dcPlAddRowsHtml(name, list) {
+  const nj = esc(JSON.stringify(name));
+  const have = new Set((_ytPlaylists[name] || []).map(_dcPickKey));
+  return `<div class="plx-add-list" role="list">` + list.map(s => {
+    const inIt = have.has(s.key);
+    return `<div class="plx-add-row${inIt ? ' is-in' : ''}" role="listitem">` +
+      dcPlArtHtml(s) +
+      `<span class="plx-add-main"><span class="plx-add-t">${esc(s.title)}</span><span class="plx-add-a">${esc(s.artist)}${s.album ? ' · ' + esc(s.album) : ''}</span></span>` +
+      `<span class="plx-add-n">${esc(tCount('plays', s.plays))}</span>` +
+      (inIt
+        ? `<span class="plx-add-in" title="${esc(t('pl_add_in'))}" aria-label="${esc(t('pl_add_in'))}">${dcIco('check')}</span>`
+        : `<button type="button" class="dc-btn dc-btn-normal dc-btn-sm dc-btn-icon plx-add-btn" onclick="dcPlAddSong(${nj},${esc(JSON.stringify(s.key))})" title="${esc(t('pl_add_btn'))}" aria-label="${esc(t('pl_add_btn'))}: ${esc(s.title)}">${dcIco('plus')}</button>`) +
+      `</div>`;
+  }).join('') + `</div>`;
+}
+
+// Redraws only the results (typing must not lose the search box)
+function _dcPlAddRedrawBody(name) {
+  const body = document.getElementById('dcPlAddBody');
+  if (!body) return;
+  body.innerHTML = _dcPlAddBodyHtml(name);
+  dcPlLoadArt(body);
+}
+
+let _dcPlAddTimer = null;
+function dcPlAddSearch(name, q) {
+  const st = _dcPlAddFor(name);
+  st.q = q;
+  st.view = q.trim() ? 'search' : '';
+  clearTimeout(_dcPlAddTimer);
+  _dcPlAddTimer = setTimeout(() => {
+    _dcPlAddRedrawBody(name);
+    // the 💡 button shows whether ideas are open
+    const b = document.querySelector('.plx-add-ideas-btn');
+    if (b) { b.classList.toggle('dc-btn-main', false); b.classList.toggle('dc-btn-normal', true); b.setAttribute('aria-pressed', 'false'); }
+  }, 140);
+}
+
+// 💡 opens the ideas (a second press closes them); back = keep them open
+function dcPlAddShowIdeas(name, keepOpen) {
+  const st = _dcPlAddFor(name);
+  st.view = (st.view === 'ideas' || st.view === 'idea') && !keepOpen ? '' : 'ideas';
+  st.q = '';
+  dcRenderPlaylistsView();
+}
+function dcPlAddOtherIdeas(name) {
+  const st = _dcPlAddFor(name);
+  st.seed++;
+  st.view = 'ideas';
+  _dcPlAddRedrawBody(name);
+}
+function dcPlAddOpenIdea(name, id) {
+  const st = _dcPlAddFor(name);
+  st.view = 'idea'; st.idea = id;
+  _dcPlAddRedrawBody(name);
+  document.querySelector('.plx-add')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+}
+
+// Adds songs at the end of the playlist, skipping ones already in it
+function _dcPlAddTracks(name, songs) {
+  const pl = _ytPlaylists[name];
+  if (!pl || (typeof spIsSmart === 'function' && spIsSmart(name))) return 0;
+  const have = new Set(pl.map(_dcPickKey));
+  let n = 0;
+  songs.forEach(s => {
+    if (have.has(s.key)) return;
+    have.add(s.key);
+    pl.push({ title: s.title, artist: s.artist, album: s.album || '' });
+    n++;
+  });
+  if (n) {
+    _ytTouchPlaylist(name);
+    _ytSavePlaylists();
+    _ytRenderPlaylists();
+    // Keep the search box focused (and its caret) through the redraw
+    const box = document.getElementById('dcPlAddQ');
+    const focused = box && document.activeElement === box;
+    const caret = focused ? box.selectionStart : 0;
+    dcRenderPlaylistsView();
+    if (focused) { const b2 = document.getElementById('dcPlAddQ'); if (b2) { b2.focus({ preventScroll: true }); try { b2.setSelectionRange(caret, caret); } catch (e) {} } }
+  }
+  return n;
+}
+function dcPlAddSong(name, key) {
+  const s = _dcPlLib().songs.find(x => x.key === key);
+  if (!s) return;
+  if (_dcPlAddTracks(name, [s])) dcPlToast(t('pl_add_added', { name: s.title }));
+}
+function dcPlAddIdeaAll(name) {
+  const st = _dcPlAddFor(name);
+  const idea = _dcPlIdeas(name).find(i => i.id === st.idea);
+  if (!idea) return;
+  const n = _dcPlAddTracks(name, idea.songs);
+  if (n) dcPlToast(t('pl_add_all_done', { songs: tCount('songs', n) }));
+}
+
 // Resume the last-played track (with queue already loaded from localStorage on startup)
 function dcPlResume() {
   if (!_ytCurrentTrack || !_ytCurrentTrack.title) return;
@@ -41839,12 +42197,10 @@ function dcPlRemoveTrack(name, idx) {
   if (!pl) return;
   if (typeof spIsSmart === 'function' && spIsSmart(name)) { spLockedToast(); return; }
   pl.splice(idx, 1);
-  if (pl.length === 0) {
-    _ytMarkPlaylistDeleted(name);
-    if (_dcPlExpandedName === name) _dcPlExpandedName = null;
-  } else {
-    _ytTouchPlaylist(name);
-  }
+  // Since 2026-11-18 playlists may be empty (made empty on purpose, then
+  // filled from the library), so removing the last song keeps the playlist;
+  // the 🗑 button is still there to delete it
+  _ytTouchPlaylist(name);
   _ytSavePlaylists();
   dcRenderPlaylistsView();
 }

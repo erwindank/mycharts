@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 499;
+const DC_CL_I18N_V = 501;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -419,6 +419,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-18', t: 'feature', a: 'playlists',
+    title: "Empty playlists, a library search to add songs, and playlist ideas",
+    detail: "The Playlists page has a new Empty playlist card: name it and it opens, ready to fill. Every playlist you made yourself now has an Add songs bar to search your whole library and add songs with +. The 💡 Ideas button suggests topics from your own listening, such as More like this, On repeat lately, Fresh finds, Forgotten favorites, Late-night songs, Best of an artist or a past year, and adds a whole idea at once or song by song. Removing the last song now keeps the playlist." },
   { d: '2026-11-17', t: 'feature', a: 'playlists',
     title: "Songs in a playlist have their own menu",
     detail: "Every song in an open playlist now has a ⋮ button with Play now, Play next, Add to queue, Add to a playlist and Add to a new playlist. The ⋮ next to the playlist's name does the same for the whole list. With nothing playing, Play next and Add to queue start the music right away." },
