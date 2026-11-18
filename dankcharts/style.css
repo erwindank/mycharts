@@ -51516,3 +51516,95 @@ button.gl-fact:active { transform: translateY(1px); }
 .gl-gp-try { align-self: center; font-size: var(--fs-sm); color: var(--text2); }
 .gl-gp-actions .gl-smp-now { flex-basis: 100%; }
 @media (prefers-reduced-motion: reduce) { .gl-smp.is-on { animation: none; } }
+
+
+/* ── Smaller touches (step 8) ── */
+/* Genre of the day */
+.gl-god {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-3) var(--sp-4);
+  margin: calc(var(--sp-6) * -0.5) 0 var(--sp-6);
+  padding: var(--sp-3) var(--sp-4);
+  border: 1px solid color-mix(in srgb, var(--gf) 40%, var(--border));
+  border-radius: var(--r-lg);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--gf) 16%, var(--bg2)), var(--bg2) 70%);
+}
+.gl-god-badge { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--gf); color: #0b1220; font-size: 1.2rem; }
+.gl-god-txt { display: flex; flex-direction: column; gap: 1px; flex: 1 1 220px; min-width: 0; }
+.gl-god-l { font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text3); }
+.gl-god-name { align-self: flex-start; padding: 0; border: 0; background: none; color: var(--text); font-family: var(--font-display); font-size: 1.25rem; font-weight: 800; line-height: 1.15; cursor: pointer; text-align: left; }
+.gl-god-name:hover { text-decoration: underline; text-underline-offset: 4px; }
+.gl-god-song { font-size: var(--fs-xs); color: var(--text2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gl-god-acts { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+
+/* Nudge above the list */
+.gl-nudge {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2) var(--sp-3);
+  margin-bottom: var(--sp-3);
+  padding: var(--sp-2) var(--sp-2) var(--sp-2) var(--sp-4);
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--border));
+  border-radius: var(--r-md);
+  background: color-mix(in srgb, var(--accent) 9%, var(--bg2));
+  font-size: var(--fs-sm);
+  color: var(--text);
+}
+
+/* Select mode */
+.gl-sel-btn { flex: 0 0 auto; }
+.gl-tick {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 22px; height: 22px;
+  border: 2px solid var(--border2);
+  border-radius: 6px;
+  color: var(--on-accent);
+}
+.gl-tick svg { width: 14px; height: 14px; }
+.gl-row.is-sel .gl-tick { background: var(--accent); border-color: var(--accent); }
+.gl-row.is-sel .gl-row-btn { background: color-mix(in srgb, var(--accent) 10%, var(--bg2)); border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); }
+.gl-row.is-picking .gl-row-edit { visibility: hidden; }
+.gl-selbar {
+  position: sticky;
+  bottom: calc(var(--sp-3) + env(safe-area-inset-bottom, 0px));
+  z-index: 20;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2) var(--sp-3);
+  margin-top: var(--sp-3);
+  padding: var(--sp-2) var(--sp-2) var(--sp-2) var(--sp-4);
+  border: 1px solid var(--border2);
+  border-radius: var(--r-full);
+  background: var(--bg2);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}
+.gl-selbar > span { margin-right: auto; }
+@media (max-width: 760px) { .gl-selbar { bottom: calc(72px + env(safe-area-inset-bottom, 0px)); } }
+
+/* Family headers when the list is grouped */
+.gl-grp {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: var(--sp-3) 0 2px;
+  padding: 0 4px;
+  list-style: none;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text2);
+}
+.gl-grp:first-child { margin-top: 0; }
+/* The tick sits outside the row's grid, so the row keeps its own layout */
+.gl-row.is-picking .gl-row-btn { position: relative; padding-left: 46px; }
+.gl-row.is-picking .gl-tick { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); }

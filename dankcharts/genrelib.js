@@ -38,7 +38,7 @@
       sort_plays: 'Most played', sort_az: 'A–Z', sort_label: 'Sort',
       top_genres: 'Top genres here', clear_genre: 'Show every genre',
       none_yet: 'No genre yet', looking: 'Looking up…',
-      src_you: 'Yours', src_sheet: 'Sheet', src_mb: 'MusicBrainz', src_web: 'Online tags',
+      src_you: 'Your pick', src_sheet: 'From your sheet', src_mb: 'Voted on MusicBrainz', src_web: 'Guessed online',
       src_you_tip: 'You picked these', src_sheet_tip: 'From your Google Sheet / CSV', src_mb_tip: 'Voted genres from MusicBrainz',
       src_web_tip: 'Tags from Gemini or Last.fm', via_album: 'from its album', via_artist: 'from the artist',
       edit: 'Edit genres', add: 'Add genres', more: 'Show {n} more',
@@ -204,7 +204,24 @@
       nd_loading: "Finding a sample…",
       nd_nosample: "No sample found. Try the YouTube link.",
       nd_now: "♪ {title} · {artist}",
-      nd_try: "Have a listen:"
+      nd_try: "Have a listen:",
+      sort_fam: "Group by family",
+      sel_start: "Select",
+      sel_done: "Done",
+      sel_one: "Select",
+      sel_n: "{n} selected",
+      sel_n1: "1 selected",
+      sel_all: "Select all {n} shown",
+      sel_set: "Set genres",
+      pk_bulk_title: "Genres for {n} items",
+      pk_bulk_sub: "{kind}: every one you selected gets the same genres",
+      pk_bulk_saved: "Genres saved for {n} items",
+      nudge: "{n} of your top 50 artists have no genre yet. Fixing them takes a couple of minutes.",
+      nudge1: "1 of your top 50 artists has no genre yet. Fixing it takes a moment.",
+      god_title: "Genre of the day",
+      god_play: "Play its top song",
+      god_open: "Open its page",
+      god_top: "Your top song: {title} · {artist}"
     },
     es: {
       title: 'Biblioteca de géneros',
@@ -215,7 +232,7 @@
       sort_plays: 'Más escuchados', sort_az: 'A–Z', sort_label: 'Ordenar',
       top_genres: 'Géneros principales aquí', clear_genre: 'Ver todos los géneros',
       none_yet: 'Sin género aún', looking: 'Buscando…',
-      src_you: 'Tuyos', src_sheet: 'Hoja', src_mb: 'MusicBrainz', src_web: 'Etiquetas en línea',
+      src_you: 'Elegido por ti', src_sheet: 'De tu hoja', src_mb: 'Votado en MusicBrainz', src_web: 'Adivinado en línea',
       src_you_tip: 'Los elegiste tú', src_sheet_tip: 'De tu Google Sheet / CSV', src_mb_tip: 'Géneros votados en MusicBrainz',
       src_web_tip: 'Etiquetas de Gemini o Last.fm', via_album: 'de su álbum', via_artist: 'del artista',
       edit: 'Editar géneros', add: 'Añadir géneros', more: 'Ver {n} más',
@@ -381,7 +398,24 @@
       nd_loading: "Buscando una muestra…",
       nd_nosample: "No se encontró muestra. Prueba el enlace de YouTube.",
       nd_now: "♪ {title} · {artist}",
-      nd_try: "Escucha un poco:"
+      nd_try: "Escucha un poco:",
+      sort_fam: "Agrupar por familia",
+      sel_start: "Seleccionar",
+      sel_done: "Listo",
+      sel_one: "Seleccionar",
+      sel_n: "{n} seleccionados",
+      sel_n1: "1 seleccionado",
+      sel_all: "Seleccionar los {n} visibles",
+      sel_set: "Poner géneros",
+      pk_bulk_title: "Géneros para {n} elementos",
+      pk_bulk_sub: "{kind}: cada uno de los que elegiste recibe los mismos géneros",
+      pk_bulk_saved: "Géneros guardados para {n} elementos",
+      nudge: "{n} de tus 50 artistas principales aún no tienen género. Arreglarlos lleva un par de minutos.",
+      nudge1: "1 de tus 50 artistas principales aún no tiene género. Arreglarlo lleva un momento.",
+      god_title: "Género del día",
+      god_play: "Escuchar su mejor canción",
+      god_open: "Abrir su página",
+      god_top: "Tu canción principal: {title} · {artist}"
     },
     'pt-BR': {
       title: 'Biblioteca de gêneros',
@@ -392,7 +426,7 @@
       sort_plays: 'Mais ouvidos', sort_az: 'A–Z', sort_label: 'Ordenar',
       top_genres: 'Principais gêneros aqui', clear_genre: 'Mostrar todos os gêneros',
       none_yet: 'Sem gênero ainda', looking: 'Buscando…',
-      src_you: 'Seus', src_sheet: 'Planilha', src_mb: 'MusicBrainz', src_web: 'Tags online',
+      src_you: 'Escolha sua', src_sheet: 'Da sua planilha', src_mb: 'Votado no MusicBrainz', src_web: 'Adivinhado online',
       src_you_tip: 'Você escolheu', src_sheet_tip: 'Da sua Google Sheet / CSV', src_mb_tip: 'Gêneros votados no MusicBrainz',
       src_web_tip: 'Tags do Gemini ou do Last.fm', via_album: 'do álbum', via_artist: 'do artista',
       edit: 'Editar gêneros', add: 'Adicionar gêneros', more: 'Mostrar mais {n}',
@@ -558,7 +592,24 @@
       nd_loading: "Procurando uma amostra…",
       nd_nosample: "Nenhuma amostra encontrada. Tente o link do YouTube.",
       nd_now: "♪ {title} · {artist}",
-      nd_try: "Dê uma ouvida:"
+      nd_try: "Dê uma ouvida:",
+      sort_fam: "Agrupar por família",
+      sel_start: "Selecionar",
+      sel_done: "Pronto",
+      sel_one: "Selecionar",
+      sel_n: "{n} selecionados",
+      sel_n1: "1 selecionado",
+      sel_all: "Selecionar os {n} visíveis",
+      sel_set: "Definir gêneros",
+      pk_bulk_title: "Gêneros para {n} itens",
+      pk_bulk_sub: "{kind}: cada um que você selecionou recebe os mesmos gêneros",
+      pk_bulk_saved: "Gêneros salvos para {n} itens",
+      nudge: "{n} dos seus 50 principais artistas ainda não têm gênero. Corrigir leva só uns minutos.",
+      nudge1: "1 dos seus 50 principais artistas ainda não tem gênero. Corrigir leva um instante.",
+      god_title: "Gênero do dia",
+      god_play: "Tocar a música principal",
+      god_open: "Abrir a página",
+      god_top: "Sua música principal: {title} · {artist}"
     },
     'pt-PT': {
       title: 'Biblioteca de géneros',
@@ -569,7 +620,7 @@
       sort_plays: 'Mais ouvidos', sort_az: 'A–Z', sort_label: 'Ordenar',
       top_genres: 'Principais géneros aqui', clear_genre: 'Mostrar todos os géneros',
       none_yet: 'Sem género ainda', looking: 'A procurar…',
-      src_you: 'Teus', src_sheet: 'Folha', src_mb: 'MusicBrainz', src_web: 'Etiquetas online',
+      src_you: 'Escolha tua', src_sheet: 'Da tua folha', src_mb: 'Votado no MusicBrainz', src_web: 'Adivinhado online',
       src_you_tip: 'Foste tu que escolheste', src_sheet_tip: 'Da tua Google Sheet / CSV', src_mb_tip: 'Géneros votados no MusicBrainz',
       src_web_tip: 'Etiquetas do Gemini ou do Last.fm', via_album: 'do álbum', via_artist: 'do artista',
       edit: 'Editar géneros', add: 'Adicionar géneros', more: 'Mostrar mais {n}',
@@ -735,7 +786,24 @@
       nd_loading: "À procura de uma amostra…",
       nd_nosample: "Não foi encontrada nenhuma amostra. Experimenta o link do YouTube.",
       nd_now: "♪ {title} · {artist}",
-      nd_try: "Ouve um bocadinho:"
+      nd_try: "Ouve um bocadinho:",
+      sort_fam: "Agrupar por família",
+      sel_start: "Selecionar",
+      sel_done: "Concluído",
+      sel_one: "Selecionar",
+      sel_n: "{n} selecionados",
+      sel_n1: "1 selecionado",
+      sel_all: "Selecionar os {n} visíveis",
+      sel_set: "Definir géneros",
+      pk_bulk_title: "Géneros para {n} itens",
+      pk_bulk_sub: "{kind}: cada um que selecionaste recebe os mesmos géneros",
+      pk_bulk_saved: "Géneros guardados para {n} itens",
+      nudge: "{n} dos teus 50 principais artistas ainda não têm género. Corrigir leva só uns minutos.",
+      nudge1: "1 dos teus 50 principais artistas ainda não tem género. Corrigir leva um instante.",
+      god_title: "Género do dia",
+      god_play: "Tocar a música principal",
+      god_open: "Abrir a página",
+      god_top: "A tua música principal: {title} · {artist}"
     }
   };
   function tx(k, vars) {
@@ -1012,13 +1080,15 @@
     return el;
   }
 
-  function open(kind, p) {
+  // bulk (step 8): { list: [p, …], done() } — one pick saved to every item
+  // in the list (the library's "Select" mode). Starts empty; no reset.
+  function open(kind, p, bulk) {
     if (!p) return;
     const el = mountPick();
-    const label = kind === 'artist' ? _pa(p) : kind === 'album' ? p.album : p.title;
-    const sub = kind === 'artist' ? tx('pk_kind_artist') : tx('pk_kind_' + kind) + ' · ' + (kind === 'album' ? _pa(p) : p.artist);
-    _pick = { kind, p, label, sub, sel: [], start: [], had: false, q: '', fam: '', act: 0, auto: [], artistTags: [], ready: false };
-    el.querySelector('#glPickTitle').textContent = tx('pk_title', { name: label });
+    const label = bulk ? tx('pk_bulk_title', { n: num(bulk.list.length) }) : kind === 'artist' ? _pa(p) : kind === 'album' ? p.album : p.title;
+    const sub = bulk ? tx('pk_bulk_sub', { kind: tx('tab_' + kind + 's') }) : kind === 'artist' ? tx('pk_kind_artist') : tx('pk_kind_' + kind) + ' · ' + (kind === 'album' ? _pa(p) : p.artist);
+    _pick = { kind, p, label, sub, sel: [], start: [], had: false, q: '', fam: '', act: 0, auto: [], artistTags: [], ready: false, bulk: bulk || null };
+    el.querySelector('#glPickTitle').textContent = bulk ? label : tx('pk_title', { name: label });
     el.querySelector('#glPickSub').textContent = sub;
     el.querySelector('[data-gl="close"]').setAttribute('aria-label', typeof t === 'function' ? t('set_close') : 'Close');
     el.querySelectorAll('[data-gl-t]').forEach(b => { b.textContent = tx(b.dataset.glT); });
@@ -1029,8 +1099,8 @@
     renderPick();   // the loading state
     loadList().then(() => {
       if (!_pick || _pick.p !== p) return;
-      const own = typeof genreEditGet === 'function' ? genreEditGet(kind, p) : undefined;
-      const info = typeof genreInfo === 'function' ? genreInfo(kind, p) : { g: [] };
+      const own = bulk ? undefined : typeof genreEditGet === 'function' ? genreEditGet(kind, p) : undefined;
+      const info = bulk ? { g: [] } : typeof genreInfo === 'function' ? genreInfo(kind, p) : { g: [] };
       // What it has now, mapped onto the list (a tag with no match is left out)
       const mapped = [];
       for (const tg of info.g || []) { const e = entryOfTag(tg); if (e && !mapped.includes(e.id)) mapped.push(e.id); }
@@ -1040,7 +1110,7 @@
       _pick.sel = (own ? own.slice() : mapped.slice(0, MAX));
       _pick.start = _pick.sel.slice();
       // A song or album also offers its artist's genres
-      if (kind !== 'artist' && typeof genreInfo === 'function') {
+      if (kind !== 'artist' && !bulk && typeof genreInfo === 'function') {
         const ai = genreInfo('artist', p);
         for (const tg of ai.g || []) { const e = entryOfTag(tg); if (e && !_pick.artistTags.includes(e.id)) _pick.artistTags.push(e.id); }
       }
@@ -1096,7 +1166,7 @@
     save.textContent = (_pick.sel.length || !dirty()) ? tx('pk_save') : tx('pk_save_none');
     // Nothing to save until something changed (an empty pick saved by
     // accident would mark it "no genre")
-    save.disabled = !_pick.ready || !dirty();
+    save.disabled = !_pick.ready || !dirty() || (!!_pick.bulk && !_pick.sel.length);
     const reset = _pickEl.querySelector('.gl-reset');
     reset.textContent = tx('pk_reset');
     reset.hidden = !_pick.had;
@@ -1243,6 +1313,15 @@
       closePick();
       return;
     }
+    if (act === 'save' && _pick.bulk) {
+      if (!_pick.ready || !_pick.sel.length) return;
+      const sel = _pick.sel.slice(), kind = _pick.kind, B = _pick.bulk;
+      genreEditSetMany(B.list.map(p => [kind, p, sel]));
+      toast(tx('pk_bulk_saved', { n: num(B.list.length) }));
+      closePick();
+      if (B.done) B.done();
+      return;
+    }
     if (act === 'save') {
       if (!_pick.ready) return;
       const none = !_pick.sel.length;
@@ -1357,6 +1436,16 @@
     if (S.genre) list = list.filter(x => x.info.g.some(tg => { const e = entryOfTag(tg); return (e ? e.id : String(tg).toLowerCase()) === S.genre; }));
     if (qn) list = list.filter(x => norm(x.r.name + ' ' + x.r.sub + ' ' + x.names.join(' ')).includes(qn));
     if (S.sort === 'az') list = list.slice().sort((a, b) => a.r.name.localeCompare(b.r.name));
+    // Group by family (step 8): families by plays, items by plays inside;
+    // no genre goes last
+    const famOfRow = x => { const id = mainOf(x.info); return id && G.byId.get(id) ? G.byId.get(id).fam : ''; };
+    if (S.sort === 'fam') {
+      const ft = {};
+      for (const x of list) { const f = famOfRow(x); ft[f] = (ft[f] || 0) + x.r.n; }
+      list = list.slice().sort((a, b) => { const fa = famOfRow(a), fb = famOfRow(b);
+        if (fa !== fb) return (!fa) - (!fb) || ft[fb] - ft[fa] || fa.localeCompare(fb);
+        return b.r.n - a.r.n; });
+    }
 
     // Top genres among what's on this tab (before the genre filter), by plays
     const tally = new Map();
@@ -1401,8 +1490,13 @@
         `<button type="button" class="gl-seg-btn${S.filter === f ? ' is-on' : ''}" aria-pressed="${S.filter === f}" data-gll="filter" data-v="${f}">${H(tx('f_' + f))}</button>`).join('')}</div>
       <label class="gl-sort"><select class="dc-input" data-gll="sort" aria-label="${H(tx('sort_label'))}">
         <option value="plays"${S.sort === 'plays' ? ' selected' : ''}>${H(tx('sort_plays'))}</option>
-        <option value="az"${S.sort === 'az' ? ' selected' : ''}>${H(tx('sort_az'))}</option></select></label>
+        <option value="az"${S.sort === 'az' ? ' selected' : ''}>${H(tx('sort_az'))}</option>
+        <option value="fam"${S.sort === 'fam' ? ' selected' : ''}>${H(tx('sort_fam'))}</option></select></label>
+      <button type="button" class="dc-btn dc-btn-${SEL.on ? 'main' : 'normal'} dc-btn-sm gl-sel-btn" data-gll="sel-mode" aria-pressed="${!!SEL.on}">${ico(SEL.on ? 'x' : 'check')}${H(tx(SEL.on ? 'sel_done' : 'sel_start'))}</button>
     </div>`;
+    // Nudge: top artists still without a genre → Quick Fix (step 8)
+    const top50 = all.artist.slice(0, 50).filter(r => { const inf = genreInfo('artist', r.p); return !realInfo(inf) && inf.src !== 'wait' && !(inf.src === 'you' && !inf.g.length); }).length;
+    if (top50 && G.list.length) h += `<div class="gl-nudge"><span>${H(txn('nudge', top50))}</span><button type="button" class="dc-btn dc-btn-main dc-btn-sm" data-gll="td-none">${H(tx('td_none_btn'))}</button></div>`;
     if (top.length) {
       h += `<div class="gl-top"><span class="gl-top-l">${H(tx('top_genres'))}</span><div class="gl-top-chips">` + top.map(([id]) => {
         const e = G.byId.get(id), fam = e ? e.fam : 'world';
@@ -1417,9 +1511,22 @@
     if (!shown.length) {
       h += `<div class="gl-none">${H(qn ? tx('empty_q', { q: S.q }) : tx('empty_f'))}</div>`;
     } else {
-      h += `<ol class="gl-list">` + shown.map((x, i) => rowHtml(x, i)).join('') + `</ol>`;
+      // Family headers between the groups when grouped
+      let lastFam = null;
+      h += `<ol class="gl-list">` + shown.map((x, i) => {
+        let pre = '';
+        if (S.sort === 'fam') {
+          const f = famOfRow(x);
+          if (f !== lastFam) { lastFam = f; pre = `<li class="gl-grp" style="--gf:${f ? FAM_HUE[f] || FAM_HUE.world : 'var(--border2)'}"><span class="gl-dot" aria-hidden="true"></span>${H(f ? tx('fam_' + f) : tx('none_yet'))}</li>`; }
+        }
+        return pre + rowHtml(x, i);
+      }).join('') + `</ol>`;
       if (list.length > shown.length) h += `<div class="gl-more-wrap"><button type="button" class="dc-btn dc-btn-normal gl-more" data-gll="more">${H(tx('more', { n: num(Math.min(PAGE, list.length - shown.length)) }))}</button></div>`;
     }
+    // Select mode's bar, stuck to the bottom of the screen while it's on
+    if (SEL.on) h += `<div class="gl-selbar" role="region" aria-label="${H(tx('sel_start'))}"><span>${H(txn('sel_n', SEL.keys.size))}</span>` +
+      `<button type="button" class="dc-btn dc-btn-plain dc-btn-sm" data-gll="sel-all">${H(tx('sel_all', { n: num(shown.length) }))}</button>` +
+      `<button type="button" class="dc-btn dc-btn-main dc-btn-sm" data-gll="sel-set"${SEL.keys.size ? '' : ' disabled'}>${ico('tag')}${H(tx('sel_set'))}</button></div>`;
     h += `<p class="gl-order-note">${ico('stack')}${H(tx('order_note'))}</p></section>`;
     if (_admin) h += adminHtml();
     root.innerHTML = h;
@@ -1437,6 +1544,7 @@
     checkBadges();
     let h = '';
     h += soundHtml();
+    h += godHtml();
     h += qfHtml();
     h += tidyHtml();
     h += timelineHtml();
@@ -1475,8 +1583,11 @@
     const badge = g.length
       ? `<span class="gl-src gl-src-${src}" title="${H(tx('src_' + src + '_tip'))}">${H(tx('src_' + src))}${info.from ? `<span class="gl-src-via"> · ${H(tx('via_' + info.from))}</span>` : ''}</span>` : '';
     const empty = !g.length ? `<span class="gl-row-none">${waiting(info, r.p) ? `<span class="gl-spin gl-spin-sm" aria-hidden="true"></span>${H(tx('looking'))}` : H(tx('none_yet'))}</span>` : '';
-    return `<li class="gl-row${src === 'you' ? ' is-yours' : ''}${!g.length ? ' is-empty' : ''}" data-i="${i}">` +
-      `<button type="button" class="gl-row-btn" data-gll="open" data-i="${i}" aria-label="${H((g.length ? tx('edit') : tx('add')) + ': ' + r.name)}">` +
+    // Select mode (step 8): the row ticks itself instead of opening the picker
+    const picking = !!SEL.on, on = picking && SEL.keys.has(r.kind + ':' + r.key);
+    return `<li class="gl-row${src === 'you' ? ' is-yours' : ''}${!g.length ? ' is-empty' : ''}${picking ? ' is-picking' : ''}${on ? ' is-sel' : ''}" data-i="${i}">` +
+      `<button type="button" class="gl-row-btn" data-gll="${picking ? 'sel' : 'open'}" data-i="${i}"${picking ? ` aria-pressed="${on}"` : ''} aria-label="${H((picking ? tx('sel_one') : g.length ? tx('edit') : tx('add')) + ': ' + r.name)}">` +
+      (picking ? `<span class="gl-tick" aria-hidden="true">${on ? ico('check') : ''}</span>` : '') +
       `<span class="gl-art${kind === 'artist' ? ' is-round' : ''}" data-art="${i}" aria-hidden="true">${H(typeof initials === 'function' ? initials(r.name) : '')}</span>` +
       `<span class="gl-row-main"><span class="gl-row-name">${H(r.name)}</span>` +
       `<span class="gl-row-sub">${r.sub ? H(r.sub) + ' · ' : ''}${H(plays(r.n))}</span></span>` +
@@ -1528,10 +1639,10 @@
     const b = ev.target.closest('[data-gll]');
     if (!b) return;
     const a = b.dataset.gll, v = b.dataset.v;
-    if (qfClick(a, b) || gpClick(a, b) || sndClick(a, b) || tidyClick(a)) return;
+    if (qfClick(a, b) || gpClick(a, b) || sndClick(a, b) || tidyClick(a) || selClick(a, b) || godClick(a, b)) return;
     if (a === 'smp') { playSample(b.dataset.id); return; }
     if (a === 'sh-all') { SH.all = !SH.all; renderPage(); if (!SH.all) scrollToSec('glShelf'); return; }
-    if (a === 'tab') { S.tab = v; S.shown = PAGE; S.genre = ''; savePrefs(); renderPage(); return; }
+    if (a === 'tab') { SEL.keys.clear(); S.tab = v; S.shown = PAGE; S.genre = ''; savePrefs(); renderPage(); return; }
     if (a === 'filter') { S.filter = v; S.shown = PAGE; savePrefs(); renderPage(); return; }
     if (a === 'genre') { S.genre = v || ''; S.shown = PAGE; renderPage(); return; }
     if (a === 'more') { S.shown += PAGE; renderPage(); return; }
@@ -2993,6 +3104,65 @@
         </div>`;
       }).join('') + `</div>
     </section>`;
+  }
+
+  /* ── 16. Smaller touches (step 8) ──────────────────────────────────────
+     Select mode: tick rows, then one genre pick for all of them (the picker
+     in bulk mode). Genre of the day: one of your top 30 genres, the same all
+     day, with its top song to play. */
+  const SEL = { on: false, keys: new Set() };
+  function selClick(a, b) {
+    if (a === 'sel-mode') { SEL.on = !SEL.on; SEL.keys.clear(); renderPage(); return true; }
+    if (a === 'sel') {
+      const x = _shownRows[+b.dataset.i];
+      if (!x) return true;
+      const k = x.r.kind + ':' + x.r.key;
+      if (SEL.keys.has(k)) SEL.keys.delete(k); else SEL.keys.add(k);
+      renderPage();
+      const n = document.querySelector(`.gl-row-btn[data-i="${b.dataset.i}"]`);
+      if (n) n.focus({ preventScroll: true });
+      return true;
+    }
+    if (a === 'sel-all') { for (const x of _shownRows) SEL.keys.add(x.r.kind + ':' + x.r.key); renderPage(); return true; }
+    if (a === 'sel-set') {
+      const kind = kindOfTab(S.tab);
+      const list = rowsOf(kind).filter(x => SEL.keys.has(kind + ':' + x.r.key)).map(x => x.r.p);
+      if (!list.length) return true;
+      open(kind, list[0], { list, done: () => { SEL.on = false; SEL.keys.clear(); renderPage(); } });
+      return true;
+    }
+    return false;
+  }
+
+  function godId() {
+    const s = stats(), pool = s.rank.slice(0, 30);
+    if (!pool.length) return null;
+    const d = typeof localDateStr === 'function' ? localDateStr(new Date()) : new Date().toISOString().slice(0, 10);
+    let h = 0;
+    for (const ch of d) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+    return pool[h % pool.length];
+  }
+  function godHtml() {
+    const id = godId();
+    if (!id) return '';
+    const g = stats().byId.get(id), e = G.byId.get(id), hue = FAM_HUE[e ? e.fam : 'world'] || FAM_HUE.world;
+    const top = g.songs[0];
+    return `<section class="gl-god" style="--gf:${hue}" aria-label="${H(tx('god_title'))}">
+      <span class="gl-god-badge" aria-hidden="true">☀</span>
+      <div class="gl-god-txt"><span class="gl-god-l">${H(tx('god_title'))}</span>
+        <button type="button" class="gl-god-name" data-gll="gp-open" data-id="${H(id)}">${H(nameOf(id))}</button>
+        ${top ? `<span class="gl-god-song">${H(tx('god_top', { title: top.name, artist: top.sub }))}</span>` : ''}</div>
+      <div class="gl-god-acts">
+        ${top ? `<button type="button" class="dc-btn dc-btn-main dc-btn-sm" data-gll="god-play" data-id="${H(id)}">${ico('play')}${H(tx('god_play'))}</button>` : ''}
+        <button type="button" class="dc-btn dc-btn-normal dc-btn-sm" data-gll="gp-open" data-id="${H(id)}">${H(tx('god_open'))}${ico('next')}</button>
+      </div>
+    </section>`;
+  }
+  function godClick(a, b) {
+    if (a !== 'god-play') return false;
+    const g = stats().byId.get(b.dataset.id), top = g && g.songs[0];
+    if (top && typeof openYtPlayer === 'function') openYtPlayer(top.p.title, top.p.artist, top.p.album || '', null);
+    return true;
   }
 
   /* ── Keeping things in step ──────────────────────────────────────────── */
