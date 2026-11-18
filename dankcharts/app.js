@@ -41329,7 +41329,7 @@ function _dcPlLibraryHtml() {
     `<div class="plx-new-title">${esc(t('pl_new_empty_title'))}</div>` +
     `<div class="plx-new-sub">${esc(t('pl_new_empty_sub'))}</div>` +
     `<div class="plx-new-form">` +
-    `<input id="dcPlEmptyName" class="dc-input" type="text" placeholder="${esc(t('pl_x_new_ph'))}" aria-label="${esc(t('pl_new_empty_title'))}" maxlength="40" ` +
+    `<input id="dcPlEmptyName" class="dc-input" type="text" placeholder="${esc(_dcPlDefaultName())}" aria-label="${esc(t('pl_new_empty_title'))}" maxlength="40" ` +
     `onkeydown="if(event.key==='Enter'){dcPlCreateEmpty(this.value.trim());}">` +
     `<button class="dc-btn dc-btn-main dc-btn-sm" onclick="dcPlCreateEmpty(document.getElementById('dcPlEmptyName').value.trim())">${esc(t('pl_new_empty_btn'))}</button>` +
     `</div>` +
@@ -41776,7 +41776,10 @@ function dcPlCreateEmpty(name) {
     clearTimeout(el._hideTimer);
     el._hideTimer = setTimeout(() => { el.style.opacity = '0'; }, 2500);
   };
-  if (!name) { status(t('pl_view_need_name')); document.getElementById('dcPlEmptyName')?.focus(); return; }
+  // No name typed: "Playlist 1" (the next free number), and the name opens
+  // ready to edit so it can be changed straight away (asked for 2026-11-18)
+  const typed = !!name;
+  if (!typed) name = _dcPlDefaultName();
   // Never replace a playlist that's already there (Favorites included)
   if (_ytPlaylists[name] || _ytIsFavName(name)) { status(t('pl_new_empty_exists', { name })); return; }
   _ytPlaylists[name] = [];
@@ -41786,8 +41789,23 @@ function dcPlCreateEmpty(name) {
   _dcPlAdd = { name, q: '', view: '', idea: '', seed: 0 };
   dcPlToast(t('pl_new_empty_made', { name }));
   dcPlToggleExpand(name);
-  // straight into the search box
-  setTimeout(() => document.getElementById('dcPlAddQ')?.focus({ preventScroll: true }), 120);
+  // A typed name goes straight to the search box; a default name opens
+  // selected in the rename box (Enter or a click elsewhere keeps it)
+  setTimeout(() => {
+    if (typed) document.getElementById('dcPlAddQ')?.focus({ preventScroll: true });
+    else dcPlStartRename(name);
+  }, 120);
+}
+
+// "Playlist 1", "Playlist 2"… — the first number not taken yet
+function _dcPlDefaultName() {
+  const word = n => {
+    const w = t('pl_new_default', { n });
+    return w === 'pl_new_default' ? 'Playlist ' + n : w;   // words not loaded yet
+  };
+  let n = 1;
+  while (_ytPlaylists[word(n)] !== undefined || _ytIsFavName(word(n))) n++;
+  return word(n);
 }
 
 // What the "Add songs" bar shows. Kept across redraws (adding a song redraws
