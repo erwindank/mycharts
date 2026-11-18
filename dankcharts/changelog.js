@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 501;
+const DC_CL_I18N_V = 502;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
