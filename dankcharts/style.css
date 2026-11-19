@@ -25377,6 +25377,110 @@ body.ytp-stage-open { overflow: hidden; }
 .ytp-tvhow-link button:hover { border-color: var(--accent); color: var(--accent); }
 .ytp-tvhow-note { margin: 12px 2px 0; font-size: var(--fs-xs); line-height: 1.45; color: var(--text3); }
 
+/* ── TV-PLAN.md steps 6–8: phone as the TV's remote (tvremote.js) ── */
+/* In TV mode: a small line on how to use the phone, shown with the controls */
+.ytp-tv-remote-note { display: none; }
+.yt-mini-player.ytp-stage.ytp-tv .ytp-tv-remote-note:not(:empty) {
+  display: block;
+  position: absolute;
+  left: 50%;
+  top: 3vh;
+  transform: translateX(-50%);
+  max-width: 50vw;
+  font: 600 1.6vh var(--font-sans);
+  color: var(--text2);
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.4s var(--ease);
+}
+.yt-mini-player.ytp-stage.ytp-tv.ytp-tv-awake .ytp-tv-remote-note:not(:empty) { opacity: 1; }
+
+/* The pill: "On your TV · song" at the bottom while a TV plays */
+.tvr-pill {
+  position: fixed;
+  left: 50%;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  z-index: 940;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  max-width: min(460px, calc(100vw - 24px));
+  padding: 6px 6px 6px 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--bg3) 94%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--border));
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(10px);
+}
+/* Above the player bar when that is open too */
+body.ytp-bar-open .tvr-pill { bottom: calc(100px + env(safe-area-inset-bottom, 0px)); }
+.tvr-pill-main { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1; padding: 0 6px 0 0; border: 0; background: none; color: var(--text); text-align: left; cursor: pointer; font-family: var(--font-sans); }
+.tvr-pill-art { width: 40px; height: 40px; flex-shrink: 0; border-radius: 50%; overflow: hidden; background: var(--bg2); }
+.tvr-pill-art img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.tvr-pill-txt { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.tvr-pill-txt small { display: flex; align-items: center; gap: 5px; font: 700 10px var(--font-mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); }
+.tvr-pill-txt small svg { width: 13px; height: 13px; }
+.tvr-pill-txt b { font: 700 var(--fs-sm) var(--font-sans); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tvr-pill-btn { width: 40px; height: 40px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border-radius: 50%; border: 0; background: transparent; color: var(--text2); cursor: pointer; }
+.tvr-pill-btn:hover { color: var(--text); background: var(--bg2); }
+.tvr-pill-btn svg { width: 18px; height: 18px; }
+.tvr-pill-play { background: var(--accent); color: var(--on-accent); }
+.tvr-pill-play:hover { background: var(--accent); color: var(--on-accent); filter: brightness(1.08); }
+
+/* The remote: full screen on a phone, a window on bigger screens */
+body.tvr-open { overflow: hidden; }
+.tvr-sheet { position: fixed; inset: 0; z-index: 990; display: flex; align-items: center; justify-content: center; background: rgba(4, 6, 12, 0.6); backdrop-filter: blur(4px); }
+.tvr-box { width: min(440px, 100%); max-height: min(860px, 100dvh); overflow-y: auto; padding: 14px 18px 18px; border-radius: var(--r-lg); background: var(--bg2); border: 1px solid var(--border); box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5); overscroll-behavior: contain; }
+.tvr-head { display: flex; align-items: center; gap: 10px; }
+.tvr-head-ic { width: 34px; height: 34px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border-radius: 10px; background: color-mix(in srgb, var(--accent) 15%, var(--bg3)); color: var(--accent); }
+.tvr-head-ic svg { width: 19px; height: 19px; }
+.tvr-head-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.tvr-head b { font: 800 var(--fs-md) var(--font-display); }
+.tvr-head > b { flex: 1; }
+.tvr-head small { font-size: var(--fs-xs); color: var(--text3); }
+.tvr-icon-btn { width: 40px; height: 40px; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; border: 0; background: transparent; color: var(--text2); cursor: pointer; }
+.tvr-icon-btn:hover:not(:disabled) { background: var(--bg3); color: var(--text); }
+.tvr-icon-btn:disabled { opacity: 0.3; cursor: default; }
+.tvr-icon-btn svg { width: 18px; height: 18px; }
+.tvr-now { display: flex; align-items: center; gap: 14px; margin-top: 16px; }
+.tvr-art { width: 96px; height: 96px; flex-shrink: 0; border-radius: 14px; overflow: hidden; background: var(--bg3); display: flex; align-items: center; justify-content: center; color: var(--text3); box-shadow: 0 10px 24px rgba(0, 0, 0, 0.3); }
+.tvr-art img { width: 100%; height: 100%; object-fit: cover; }
+.tvr-art svg { width: 34px; height: 34px; }
+.tvr-song { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.tvr-song b { font: 800 1.35rem/1.15 var(--font-display); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.tvr-song span { font-size: var(--fs-sm); color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tvr-seek { margin-top: 16px; }
+.tvr-seek input { width: 100%; accent-color: var(--accent); height: 22px; cursor: pointer; }
+.tvr-times { display: flex; justify-content: space-between; font: 500 var(--fs-xs) var(--font-mono); color: var(--text3); font-variant-numeric: tabular-nums; }
+.tvr-ctrls { display: flex; align-items: center; justify-content: center; gap: 22px; margin-top: 8px; }
+.tvr-ctrl { width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; border-radius: 50%; border: 0; background: var(--bg3); color: var(--text); cursor: pointer; }
+.tvr-ctrl:hover { filter: brightness(1.15); }
+.tvr-ctrl svg { width: 22px; height: 22px; }
+.tvr-ctrl.tvr-play { width: 74px; height: 74px; background: var(--accent); color: var(--on-accent); }
+.tvr-ctrl.tvr-play svg { width: 28px; height: 28px; }
+.tvr-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+.tvr-vol { display: flex; align-items: center; gap: 2px; padding: 2px; border-radius: 999px; border: 1px solid var(--border); }
+.tvr-vol span { min-width: 32px; text-align: center; font: 600 var(--fs-sm) var(--font-mono); font-variant-numeric: tabular-nums; }
+.tvr-qh { display: flex; align-items: center; gap: 8px; margin: 18px 0 6px; font: 700 11px var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--text3); }
+.tvr-qh span { color: var(--accent); }
+.tvr-q { list-style: none; margin: 0; padding: 0; }
+.tvr-q li { display: flex; align-items: center; gap: 2px; padding: 4px 0; border-top: 1px solid var(--border); }
+.tvr-q-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; padding: 6px 4px; border: 0; background: none; color: var(--text); text-align: left; cursor: pointer; font-family: var(--font-sans); border-radius: var(--r-sm); }
+.tvr-q-main:hover { background: var(--bg3); }
+.tvr-q-main b, .tvr-q-main small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tvr-q-main b { font: 700 var(--fs-sm) var(--font-sans); }
+.tvr-q-main small { font-size: var(--fs-xs); color: var(--text2); }
+.tvr-empty, .tvr-gone { margin: 6px 0 0; font-size: var(--fs-sm); line-height: 1.45; color: var(--text2); }
+.tvr-gone { margin: 18px 0 6px; }
+.tvr-exit { display: block; width: 100%; margin-top: 18px; padding: 11px 14px; border-radius: 999px; border: 1px solid var(--border2); background: transparent; color: var(--text2); font: 600 var(--fs-sm) var(--font-sans); cursor: pointer; }
+.tvr-exit:hover { color: var(--text); border-color: var(--text3); }
+@media (max-width: 520px) {
+  .tvr-sheet { align-items: stretch; }
+  .tvr-box { width: 100%; max-height: none; height: 100dvh; border-radius: 0; border: 0; padding: calc(10px + env(safe-area-inset-top, 0px)) 16px calc(18px + env(safe-area-inset-bottom, 0px)); }
+  .tvr-art { width: 120px; height: 120px; }
+}
+
 /* ── Step 12: tour + first-visit hint ── */
 .yt-mini-player .ytp-foot .ytp-help-btn { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border); font: 700 var(--fs-sm) var(--font-sans); color: var(--text2); }
 .yt-mini-player .ytp-foot .ytp-help-btn:hover { border-color: var(--border2); color: var(--text); }

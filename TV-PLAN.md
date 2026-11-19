@@ -4,7 +4,7 @@ The Now Playing player (`#ytMiniPlayer`) works well upright on phones and as a
 card or Stage on big screens. Two things are missing: a good **sideways**
 layout, and a way to enjoy it **on a TV**.
 
-**Status: in progress** — steps 1–5 done 2026-11-18 (1–4 pushed). This round = steps 1–8
+**Status: in progress** — steps 1–8 done 2026-11-18 (1–4 pushed). Left: step 10. This round = steps 1–8
 and step 10. Step 9 (Play queue on YouTube) is saved for later.
 
 Decisions so far (2026-11-18):
@@ -115,22 +115,28 @@ Decisions so far (2026-11-18):
 
 ## Part C — Phone as remote
 
-### Step 6. Pairing
+### Step 6. Pairing — DONE 2026-11-18
 - TV mode shows a short code (and a QR code) when nobody is paired.
 - On the phone: Tools → "Control a TV" → type the code (or scan).
 - Firestore doc `playerRemotes/{code}` holds the TV's now playing state and the
   phone's commands. Codes expire after a few hours. Rules: only signed-in
   users, only the two paired devices write.
-- **Needs a firestore.rules change + deploy** (will ask before deploying).
+- **Changed while building (2026-11-18): no code and no rules change.**
+  Both devices are signed in to the same account (the TV needs that anyway
+  for your library), so they share users/{uid}/data/tvRemote, which the
+  existing rule already allows. The phone finds the TV by itself — a pill
+  "On your TV · song" at the bottom opens the remote. The last device to
+  open TV mode is the TV. All in tvremote.js. Check: C:/tmp/tv6.mjs (fakes
+  the shared doc between two pages), tv6m.mjs (song menu items).
 
-### Step 7. Remote screen on the phone
+### Step 7. Remote screen on the phone — DONE 2026-11-18
 - Phone shows a remote view: song, cover, progress, Previous / Play / Next,
   volume, Up Next (drag to reorder, remove).
 - "Play on TV" / "Add to TV queue" appear in the row menus while paired.
 - Song lookup (YouTube search) happens on the TV, so the phone only sends
   artist + title — works for all three sources.
 
-### Step 8. One scrobble only
+### Step 8. One scrobble only — DONE 2026-11-18
 - While paired, only the TV scrobbles and sends Live on Last.fm; the phone
   never does. No double scrobbles.
 - Unpair button on both sides; closing TV mode ends the pairing.

@@ -23907,6 +23907,8 @@ const _EA_MI = {
   cover:    _EA_MI_SVG('<rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/>'),
   // Genres (Genre Library, 2026-11-18): a tag
   genres:   _EA_MI_SVG('<path d="M3 12V4a1 1 0 0 1 1-1h8l9 9-9 9z"/><circle cx="7.5" cy="7.5" r="1.5"/>'),
+  // A TV in TV mode on this account (TV-PLAN.md step 7, tvremote.js)
+  tv:       _EA_MI_SVG('<rect x="2" y="5" width="20" height="13" rx="2"/><path d="M8 21h8"/><path d="M12 18v3"/>'),
   yt:       '<svg class="ea-mi-brand" viewBox="0 0 24 24" aria-hidden="true"><path fill="#FF0033" d="M22.6 7.2a2.8 2.8 0 0 0-2-2C18.9 4.7 12 4.7 12 4.7s-6.9 0-8.6.5a2.8 2.8 0 0 0-2 2A29 29 0 0 0 1 12a29 29 0 0 0 .4 4.8 2.8 2.8 0 0 0 2 2c1.7.5 8.6.5 8.6.5s6.9 0 8.6-.5a2.8 2.8 0 0 0 2-2A29 29 0 0 0 23 12a29 29 0 0 0-.4-4.8z"/><path fill="#fff" d="M9.8 15.1 15.5 12 9.8 8.9z"/></svg>',
   get spotify() { return '<span class="ea-mi-brand ea-mi-sp">' + _msSvg() + '</span>'; }, // or Apple Music / Deezer
 };
@@ -23952,6 +23954,11 @@ function _eaOpenMenu(el, x, y, alignRight) {
   }
   if (d.type === 'songs' && playerActive) h += _eaMenuItem('similar', '♪', t('ea_play_similar'));
   if (d.type !== 'songs') h += _eaMenuItem('pick', '☰', t('ea_pick_song'));
+  // Your TV is in TV mode (tvremote.js): send the song there
+  if (window.dcTvRemote && dcTvRemote.live()) {
+    h += _eaMenuItem('tvplay', '▶', t('yt_np_tvr_play_on_tv'), '', 'tv');
+    h += _eaMenuItem('tvqueue', '＋', t('yt_np_tvr_add_tv_queue'), '', 'tv');
+  }
   h += _eaMenuItem('playlist', '≡', t('ea_add_playlist'));
   h += sep;
   h += _eaMenuItem('details', 'ⓘ', t('ea_details'));
@@ -23993,6 +24000,12 @@ function _eaRunAction(action, el, arg) {
     if (action === 'next') _ytQueue.unshift(q); else _ytQueue.push(q);
     _ytUpdateQueueDisplay(); _ytSaveQueue();
     _eaQueueToast(t('ea_queued', { name: tr.title }), true);
+  } else if (action === 'tvplay' || action === 'tvqueue') {
+    // To the TV (tvremote.js) — the phone's own player stays as it is
+    const tr = _eaPlayTarget(d);
+    if (!tr) { _eaQueueToast(t('ea_nothing_to_play'), false); return; }
+    _eaStopSample();
+    if (window.dcTvRemote) dcTvRemote.sendSong(action === 'tvplay' ? 'play' : 'addQueue', tr);
   } else if (action === 'similar') {
     // Other songs by the same artist on the chart on screen
     const pool = (fullData && fullData.songs) || [];
