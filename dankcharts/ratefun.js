@@ -136,6 +136,7 @@ function _rfHistPush(hk, s) {
    toward today's goal, and lets the rest of this file react. */
 let _rfAfterTimer = null;
 function rfScored(kind, key) {
+  _rfRev++;   // anything worked out from the scores is out of date now
   try {
     const s = rfOwnScore(kind, key);
     _rfHistPush((kind === 'album' ? 'a:' : 's:') + key, s);
@@ -185,6 +186,7 @@ function rfAfterScoring() { for (const f of _rfAfterHooks) { try { f(); } catch 
 // whichever side changed last.
 function rfMerge(remote) {
   let changed = false;
+  if (typeof _rfRev === 'number') _rfRev++;   // scores may have come in from another device
   if (remote && remote.hist && typeof remote.hist === 'object') {
     const H = _rfHistStore();
     for (const [k, arr] of Object.entries(remote.hist)) {
@@ -1158,4 +1160,120 @@ function rfLevelHTML() {
       </div>`;
     }).join('')}</div>
   </div>`;
+}
+
+// ── Discography plaques (8) ──────────────────────────────────────────────
+/* Each artist shows "7 of 9 albums rated". Score them all and they get a
+   plaque on the Ratings page's wall. A discography is the artist's own
+   albums (the album artist, not features), counted as albums (not singles
+   or EPs, ratingReleaseKind), with RF_DISCO_PLAYS plays or more — a
+   compilation you once played a song from shouldn't stand in the way. An
+   album is rated when it is really yours: its aspects, or at least half of
+   the tracks you play from it. Two albums at least for a plaque. */
+const RF_DISCO_PLAYS = 3;
+const RF_DISCO_MIN = 2;
+let _rfDiscoMemo = null;   // { plays, len, rev, list }
+let _rfRev = 0;            // bumped on every score change (rfScored)
+
+function _rfAlbumYours(ak) {
+  const r = ratingAlbumScore(ak);
+  return !!r && (r.aspectAvg != null || r.ratedTracks >= r.totalTracks / 2);
+}
+
+// Every artist's discography: [{ artist, keys, total, rated, done, avg }]
+function rfDiscos() {
+  if (!allPlays || !allPlays.length) return [];
+  const m = _rfDiscoMemo;
+  if (m && m.plays === allPlays && m.len === allPlays.length && m.rev === _rfRev && m.rel === _releaseEpoch) return m.list;
+  const plays = new Map();
+  for (const p of allPlays) {
+    if (!p.album || p.album === '—') continue;
+    const k = albumKeyOf(p);
+    plays.set(k, (plays.get(k) || 0) + 1);
+  }
+  const by = new Map();
+  for (const [k, n] of plays) {
+    if (n < RF_DISCO_PLAYS) continue;
+    const artist = k.split('|||')[1] || '';
+    if (!artist || ratingReleaseKind(k).kind !== 'album') continue;
+    let d = by.get(artist);
+    if (!d) by.set(artist, d = { artist, keys: [] });
+    d.keys.push(k);
+  }
+  const list = [];
+  for (const d of by.values()) {
+    if (d.keys.length < RF_DISCO_MIN) continue;
+    d.keys.sort((a, b) => plays.get(b) - plays.get(a));
+    const yours = d.keys.filter(_rfAlbumYours);
+    d.total = d.keys.length;
+    d.rated = yours.length;
+    d.done = d.rated === d.total;
+    d.avg = yours.length ? Math.round(yours.reduce((a, k) => a + ratingAlbumScore(k).score, 0) / yours.length * 10) / 10 : null;
+    list.push(d);
+  }
+  _rfDiscoMemo = { plays: allPlays, len: allPlays.length, rev: _rfRev, rel: _releaseEpoch, list };
+  return list;
+}
+function rfDiscoOf(artist) {
+  const low = String(artist || '').toLowerCase();
+  return rfDiscos().find(d => d.artist.toLowerCase() === low) || null;
+}
+
+// A small cover strip: each album in its verdict colour, grey while unrated
+function _rfCoversHTML(d, idp, max) {
+  return `<span class="rf-covers">${d.keys.slice(0, max).map((k, i) => {
+    const r = _rfAlbumYours(k) ? ratingAlbumScore(k) : null;
+    const b = r ? ratingBand(r.score) : null;
+    return `<button type="button" class="rf-cover ${b ? b.cls + ' is-on' : ''}" id="${idp}${i}" onclick="openAlbumModal(${esc(JSON.stringify(k))})" title="${esc(k.split('|||')[0])}${r ? ' · ' + ratingFmt(r.score) : ' · ' + esc(t('rtp_unrated'))}"><span class="thumb-initials">${esc(initials(k.split('|||')[0]))}</span></button>`;
+  }).join('')}${d.keys.length > max ? `<span class="rf-cover-more">+${d.keys.length - max}</span>` : ''}</span>`;
+}
+function _rfCoversArt(d, idp, max) {
+  d.keys.slice(0, max).forEach((k, i) => { const [a, ar] = k.split('|||'); rfArt(document.getElementById(idp + i), 'album', a, ar || d.artist); });
+}
+
+// The artist Rating tab: progress, or the plaque once it's all done
+function rfDiscoArtistHTML(artist) {
+  const d = rfDiscoOf(artist);
+  if (!d) return '';
+  return `<div class="rf-card rf-disco${d.done ? ' is-done' : ''}">
+    <div class="rf-card-k">${d.done ? '🏅' : '💿'}<span>${esc(t(d.done ? 'rf_disco_done_k' : 'rf_disco_k'))}</span><span class="rf-card-n">${d.rated} / ${d.total}</span></div>
+    <b class="rf-disco-h">${esc(d.done ? t('rf_disco_done', { n: d.total }) : t('rf_disco_prog', { n: d.rated, of: d.total }))}</b>
+    <span class="rf-prog"><i style="width:${(d.rated / d.total * 100).toFixed(1)}%"></i></span>
+    ${_rfCoversHTML(d, 'rfDiscoA', 14)}
+  </div>`;
+}
+function rfDiscoArtistFill(artist) {
+  const d = rfDiscoOf(artist);
+  if (d) _rfCoversArt(d, 'rfDiscoA', 14);
+}
+
+// The Ratings page: the wall of finished ones, and the closest to finished
+function rfDiscoWallHTML() {
+  const all = rfDiscos();
+  const done = all.filter(d => d.done).sort((a, b) => b.total - a.total || (b.avg || 0) - (a.avg || 0));
+  const near = all.filter(d => !d.done && d.rated > 0).sort((a, b) => (b.rated / b.total) - (a.rated / a.total) || b.rated - a.rated).slice(0, 4);
+  if (!done.length && !near.length) return '';
+  const key = k => esc(JSON.stringify(k));
+  return `<div class="rp-block rf-wall">
+    <div class="ao-head rk-head">${esc(t('rf_wall_title'))}</div>
+    <p class="rp-block-sub">${esc(t('rf_wall_sub'))}</p>
+    ${done.length ? `<div class="rf-plaques">${done.map((d, i) => `<button type="button" class="rf-plaque" onclick="rpOpenArtist(${key(d.artist)})">
+        <span class="rf-plaque-bolt" aria-hidden="true"></span><span class="rf-plaque-bolt" aria-hidden="true"></span>
+        <span class="rf-plaque-art" id="rfPlq${i}"><span class="thumb-initials">${esc(initials(d.artist))}</span></span>
+        <span class="rf-plaque-k">${esc(t('rf_disco_done_k'))}</span>
+        <b class="rf-plaque-name">${esc(d.artist)}</b>
+        <span class="rf-plaque-sub">${esc(t('rf_wall_albums', { n: d.total }))} · ${ratingChip(d.avg)}</span>
+      </button>`).join('')}</div>` : `<p class="rf-wall-empty">${esc(t('rf_wall_none'))}</p>`}
+    ${near.length ? `<div class="rf-near-h">${esc(t('rf_wall_near'))}</div><div class="rf-near">${near.map((d, i) => `<div class="rf-near-row">
+        <button type="button" class="rf-near-name" onclick="rpOpenArtist(${key(d.artist)})"><b>${esc(d.artist)}</b><span>${esc(t('rf_disco_prog', { n: d.rated, of: d.total }))}</span></button>
+        ${_rfCoversHTML(d, 'rfNear' + i + '_', 10)}
+      </div>`).join('')}</div>` : ''}
+  </div>`;
+}
+function rfDiscoWallFill() {
+  const all = rfDiscos();
+  const done = all.filter(d => d.done).sort((a, b) => b.total - a.total || (b.avg || 0) - (a.avg || 0));
+  done.forEach((d, i) => { const el = document.getElementById('rfPlq' + i); if (el && typeof fetchAndInjectImage === 'function') fetchAndInjectImage(el, { imgId: el.id, name: d.artist, artist: d.artist, prefKey: 'artist:' + d.artist.toLowerCase() }, 'artist'); });
+  const near = all.filter(d => !d.done && d.rated > 0).sort((a, b) => (b.rated / b.total) - (a.rated / a.total) || b.rated - a.rated).slice(0, 4);
+  near.forEach((d, i) => _rfCoversArt(d, 'rfNear' + i + '_', 10));
 }

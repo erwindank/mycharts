@@ -68232,7 +68232,9 @@ function renderArtistRatingSection(artistName) {
     </button>`;
   }).join('')}</div>` : '';
 
-  el.innerHTML = `<div class="ar">${hero}${share}${next}${highs}<div class="ar-body"></div></div>`;
+  // Discography progress / plaque (ratefun.js) under the score box
+  el.innerHTML = `<div class="ar">${hero}${typeof rfDiscoArtistHTML === 'function' ? rfDiscoArtistHTML(artistName) : ''}${share}${next}${highs}<div class="ar-body"></div></div>`;
+  if (typeof rfDiscoArtistFill === 'function') rfDiscoArtistFill(artistName);
   if (nk) {
     const [an, aa] = nk.split('|||');
     fetchAndInjectImage(document.getElementById('arNextArt'), { imgId: 'arNextArt', name: an, title: an, album: an, artist: aa || artistName, prefKey: 'album:' + (aa || artistName).toLowerCase() + '|||' + an.toLowerCase() }, 'album');
@@ -69592,7 +69594,7 @@ function renderRatingsPage() {
     ? `<div class="rp-block"><div class="ao-head rk-head">${esc(t('rtg_unrated'))}</div>${_ratingsUnratedHTML()}</div>` : '';
 
   // .dp-body: the details window's styles for these parts apply here too
-  view.innerHTML = `${head}<div class="dp-body rp-page"><div class="ar rp" id="ratingsPageBody">${hero}${srcBar}${typeof rfGoalCardHTML === 'function' ? rfGoalCardHTML() : ''}${next}${typeof rfRushPromoHTML === 'function' ? rfRushPromoHTML() : ''}${typeof rfAgreeCardHTML === 'function' ? rfAgreeCardHTML() : ''}${empty}${highs}${vsHtml}${typeof rfScaleHTML === 'function' ? rfScaleHTML(sum) : ''}${typeof rfLevelHTML === 'function' ? rfLevelHTML() : ''}${recsHtml}${duo}<div class="ar-body"></div></div></div>`;
+  view.innerHTML = `${head}<div class="dp-body rp-page"><div class="ar rp" id="ratingsPageBody">${hero}${srcBar}${typeof rfGoalCardHTML === 'function' ? rfGoalCardHTML() : ''}${next}${typeof rfRushPromoHTML === 'function' ? rfRushPromoHTML() : ''}${typeof rfAgreeCardHTML === 'function' ? rfAgreeCardHTML() : ''}${empty}${highs}${vsHtml}${typeof rfScaleHTML === 'function' ? rfScaleHTML(sum) : ''}${typeof rfLevelHTML === 'function' ? rfLevelHTML() : ''}${typeof rfDiscoWallHTML === 'function' ? rfDiscoWallHTML() : ''}${recsHtml}${duo}<div class="ar-body"></div></div></div>`;
   if (vs) {
     const vsItems = [...vs.love, ...vs.play];
     const va = [], vso = [];
@@ -69621,6 +69623,7 @@ function renderRatingsPage() {
   _rpHiStart();
   // Rating fun (ratefun.js): fill the cards it put on the page
   if (typeof rfAgreeCardRender === 'function') rfAgreeCardRender();
+  if (typeof rfDiscoWallFill === 'function') rfDiscoWallFill();
 }
 
 /* The sliding highs and lows. Every RP_HI_EVERY ms each card with more than

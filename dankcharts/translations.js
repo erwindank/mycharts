@@ -6984,6 +6984,16 @@ const TRANSLATIONS = {
     rf_b_changed_d: "Change 5 scores you gave before",
     rf_b_settle: "Peacemaker",
     rf_b_settle_d: "Settle 10 gaps with your listening",
+    // Step 10: discography plaques
+    rf_disco_k: "Discography",
+    rf_disco_done_k: "Full discography",
+    rf_disco_prog: "{{n}} of {{of}} albums rated",
+    rf_disco_done: "All {{n}} albums rated. It's on your plaque wall!",
+    rf_wall_title: "Discography plaques",
+    rf_wall_sub: "Rate every album of an artist (the ones you've played 3 times or more) and they get a plaque here.",
+    rf_wall_albums: "{{n}} albums",
+    rf_wall_none: "No full discographies yet. The closest ones are below.",
+    rf_wall_near: "Closest to a plaque",
     // ── end rating fun ──
   },
 
