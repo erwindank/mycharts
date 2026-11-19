@@ -6927,6 +6927,22 @@ const TRANSLATIONS = {
     rf_streak_risk: "Rate today to keep it",
     nt_cat_ratings: "Ratings",
     nt_rt_streak: "Your {{n}}-day rating streak ends tonight. {{left}} more to keep it going.",
+    // Step 8: your personal scale
+    rf_scale_title: "Your scale",
+    rf_scale_sub_albums: "How you use the 0–10 scale, from the {{n}} albums you scored",
+    rf_scale_sub_songs: "How you use the 0–10 scale, from the {{n}} songs you scored",
+    rf_scale_avg: "Your average",
+    rf_scale_harsh: "Harsh",
+    rf_scale_generous: "Generous",
+    rf_scale_t_harsh: "A harsh critic",
+    rf_scale_t_tough: "Tough but fair",
+    rf_scale_t_fair: "Right down the middle",
+    rf_scale_t_generous: "A generous critic",
+    rf_scale_t_kind: "Very generous",
+    rf_scale_top9_albums: "of albums get 9 or more",
+    rf_scale_top9_songs: "of songs get 9 or more",
+    rf_scale_low5: "get less than 5",
+    rf_scale_tip: "Most of your scores ({{pct}}%) are {{range}}. Try using the whole scale, so your favourites stand out.",
     // ── end rating fun ──
   },
 

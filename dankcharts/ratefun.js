@@ -988,3 +988,61 @@ function rfFollow(link) {
   if (typeof dcGoTab === 'function') dcGoTab('ratings');
 }
 window.rfFollow = rfFollow;
+
+// ── Your personal scale (18) ─────────────────────────────────────────────
+/* How you use the 0–10 scale: a harsh ↔ generous meter from the average of
+   your own scores, how many get 9 or more, and a tip when your scores bunch
+   up in one point of the scale. Albums when you have scored RF_SCALE_MIN of
+   them, else songs. Your own scores only: Listening Scores are spread
+   evenly on purpose, so they would say nothing about you. */
+const RF_SCALE_MIN = 5;
+const RF_SCALE_TYPES = [   // by average, lowest first
+  { max: 5.5, key: 'harsh' }, { max: 6.5, key: 'tough' }, { max: 7.5, key: 'fair' },
+  { max: 8.3, key: 'generous' }, { max: 99, key: 'kind' }
+];
+
+// From ratingLibrarySummary(): { kind, n, mean, pos 0–1, type, top9 %, low5 %, bunch } or null
+function rfScale(sum) {
+  const yours = sum && sum.yours ? sum.yours : sum;
+  if (!yours) return null;
+  let kind = 'albums', rows = yours.albums || [];
+  if (rows.length < RF_SCALE_MIN) { kind = 'songs'; rows = yours.songs || []; }
+  if (rows.length < RF_SCALE_MIN) return null;
+  const sc = rows.map(r => r.score);
+  const n = sc.length, mean = sc.reduce((a, b) => a + b, 0) / n;
+  // 4.0 average reads as the harsh end, 9.0 as the generous end
+  const pos = Math.max(0, Math.min(1, (mean - 4) / 5));
+  const type = RF_SCALE_TYPES.find(x => mean < x.max).key;
+  const top9 = Math.round(sc.filter(s => s >= 9).length / n * 100);
+  const low5 = Math.round(sc.filter(s => s < 5).length / n * 100);
+  // The busiest whole point (7.0–7.9…): a tip when half or more sit there
+  const bins = new Array(11).fill(0);
+  for (const s of sc) bins[Math.min(10, Math.floor(s))]++;
+  const bi = bins.indexOf(Math.max(...bins));
+  const bunch = n >= 8 && bins[bi] / n >= 0.5 ? { from: bi, pct: Math.round(bins[bi] / n * 100) } : null;
+  return { kind, n, mean: Math.round(mean * 10) / 10, pos, type, top9, low5, bunch };
+}
+
+function rfScaleHTML(sum) {
+  const s = rfScale(sum);
+  if (!s) return '';
+  const range = s.bunch ? (s.bunch.from >= 10 ? '10.0' : `${s.bunch.from}.0–${s.bunch.from}.9`) : '';
+  return `<div class="rp-block rf-scale">
+    <div class="ao-head rk-head">${esc(t('rf_scale_title'))}</div>
+    <p class="rp-block-sub">${esc(t('rf_scale_sub_' + s.kind, { n: s.n.toLocaleString() }))}</p>
+    <div class="rf-scale-top">
+      <b class="rf-scale-type">${esc(t('rf_scale_t_' + s.type))}</b>
+      <span class="rf-scale-avg">${esc(t('rf_scale_avg'))} ${ratingChip(s.mean)}</span>
+    </div>
+    <div class="rf-scale-meter" role="img" aria-label="${esc(t('rf_scale_t_' + s.type))}">
+      <span class="rf-scale-bar"></span>
+      <span class="rf-scale-pin" style="left:${(s.pos * 100).toFixed(1)}%"></span>
+    </div>
+    <div class="rf-scale-ends"><span>${esc(t('rf_scale_harsh'))}</span><span>${esc(t('rf_scale_generous'))}</span></div>
+    <div class="rf-scale-facts">
+      <span><b>${s.top9}%</b> ${esc(t('rf_scale_top9_' + s.kind))}</span>
+      <span><b>${s.low5}%</b> ${esc(t('rf_scale_low5'))}</span>
+    </div>
+    ${s.bunch ? `<p class="rf-scale-tip">💡 ${esc(t('rf_scale_tip', { pct: s.bunch.pct, range }))}</p>` : ''}
+  </div>`;
+}
