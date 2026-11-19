@@ -1277,3 +1277,153 @@ function rfDiscoWallFill() {
   const near = all.filter(d => !d.done && d.rated > 0).sort((a, b) => (b.rated / b.total) - (a.rated / a.total) || b.rated - a.rated).slice(0, 4);
   near.forEach((d, i) => _rfCoversArt(d, 'rfNear' + i + '_', 10));
 }
+
+// ── Settle the gap (17) ──────────────────────────────────────────────────
+/* A queue built from "You vs. your listening": your scores furthest from
+   your plays (a point or more apart), biggest gap first. For each one: keep
+   it, move it, or hear the preview again. Kept gaps are remembered
+   (fun.settled, key → the gap kept) and not asked again unless the gap
+   changes. Moving an album opens its speed-run, since an album's score is
+   made from its tracks. */
+const RF_GAP_MIN = 1;
+
+function rfGapPairs(sum) {
+  if (!sum || !sum.lsOn || typeof asAlbumLs !== 'function') return [];
+  const settled = _rfFun().settled, out = [];
+  const add = (kind, key, name, artist, own, ls) => {
+    const d = Math.round((own - ls) * 10) / 10, id = (kind === 'album' ? 'a:' : 's:') + key;
+    if (Math.abs(d) < RF_GAP_MIN || settled[id] === d) return;
+    out.push({ kind, key, id, name, artist, own, ls, d });
+  };
+  // Albums only once really yours (see _rfAlbumYours), not every edition one rated song sits on
+  for (const x of sum.allRel) if (x.own != null && _rfAlbumYours(x.key)) { const ls = asAlbumLs(x.key); if (ls != null) add('album', x.key, x.name, x.artist, x.own, ls); }
+  for (const x of sum.allSongs) if (x.own != null) { const ls = asSong(x.key); if (ls) add('song', x.key, x.title, x.artist, x.own, ls.score); }
+  return out.sort((a, b) => Math.abs(b.d) - Math.abs(a.d));
+}
+
+let _rfGap = null;   // { list, at, kept, moved }
+function rfSettlePromoHTML(sum) {
+  const n = rfGapPairs(sum).length;
+  if (!n) return '';
+  return `<button type="button" class="rf-promo rf-promo--gap" onclick="rfSettleOpen()">
+    <span class="rf-promo-ico" aria-hidden="true">⚖️</span>
+    <span class="rf-promo-txt"><b>${esc(t('rf_gap_title'))}</b><span>${esc(t(n === 1 ? 'rf_gap_desc_one' : 'rf_gap_desc', { n }))}</span></span>
+    <span class="rf-promo-go">${esc(t('rf_rush_go'))} ▸</span>
+  </button>`;
+}
+
+function rfSettleOpen() {
+  const list = rfGapPairs(ratingLibrarySummary('yours'));
+  if (!list.length) return;
+  _rfGap = { list, at: 0, kept: 0, moved: 0, moving: false };
+  rfStageOpen('', { cls: 'rf-stage--gap', label: t('rf_gap_title'),
+    keys: e => { if (_rfGap && _rfGap.moving) rfTenKeys(rfGapMove)(e); },
+    onClose: () => { _rfGap = null; if (document.getElementById('ratingsView')?.offsetParent) renderRatingsPage(); if (typeof _ratingsRefreshWhenUncovered === 'function') _ratingsRefreshWhenUncovered(); } });
+  _rfGapCard();
+}
+
+function _rfGapCard() {
+  const G = _rfGap;
+  if (!G) return;
+  const x = G.list[G.at];
+  if (!x) {
+    rfStopPreview();
+    rfStageSet(`<div class="rf-end">
+      <div class="rf-end-burst" aria-hidden="true">⚖️</div>
+      <h2 class="rf-end-h">${esc(t('rf_gap_end'))}</h2>
+      <p class="rf-end-sub">${esc(t('rf_gap_end_sub', { k: G.kept, m: G.moved }))}</p>
+      <div class="rf-end-btns"><button type="button" class="dc-btn dc-btn-main" data-rf-focus onclick="rfStageClose()">${esc(t('rte_done'))}</button></div>
+    </div>`);
+    return;
+  }
+  const up = x.d > 0;
+  rfStageSet(`<div class="rf-gap">
+    <div class="rf-rush-top"><span class="rf-kicker">⚖️ ${esc(t('rf_gap_title'))}</span><span class="rf-rush-count">${esc(t('rf_rush_of', { n: G.at + 1, of: G.list.length }))}</span></div>
+    <div class="rf-prog"><i style="width:${(G.at / G.list.length * 100).toFixed(1)}%"></i></div>
+    <div class="rf-rush-card">
+      <span class="rf-rush-art rf-gap-art" id="rfGapArt"><span class="thumb-initials">${esc(initials(x.name))}</span></span>
+      <div class="rf-rush-name">${esc(x.name)}</div>
+      <div class="rf-rush-artist">${x.kind === 'album' ? '💿 ' : ''}${esc(x.artist)}</div>
+      <div class="rf-gap-vs">
+        <span class="rf-gap-side"><span class="rf-kicker">${esc(t('rf_gap_you'))}</span><span class="rf-gap-big ${ratingBand(x.own).cls}">${ratingFmt(x.own)}</span></span>
+        <b class="rf-gap-d ${up ? 'is-up' : 'is-down'}">${up ? '+' : '−'}${ratingFmt(Math.abs(x.d))}</b>
+        <span class="rf-gap-side is-ls"><span class="rf-kicker">${esc(t('rf_gap_ls'))}</span><span class="rf-gap-big ${ratingBand(x.ls).cls}">${ratingFmt(x.ls)}</span></span>
+      </div>
+      <p class="rf-gap-say">${esc(t(up ? 'rf_gap_say_up' : 'rf_gap_say_down'))}</p>
+    </div>
+    <div id="rfGapActs">${_rfGapActs(x)}</div>
+  </div>`);
+  rfArt(document.getElementById('rfGapArt'), x.kind, x.name, x.artist, x.kind === 'song' ? rfSongAlbum(x.key) : '');
+}
+function _rfGapActs(x) {
+  if (_rfGap.moving) return `<p class="rf-gap-move-q">${esc(t('rf_gap_move_q'))}</p>${rfTenHTML('rfGapMove', Math.round(x.own))}
+    <div class="rf-rush-foot"><button type="button" class="dc-btn dc-btn-plain" onclick="rfGapMoveCancel()">← ${esc(t('rf_gap_back'))}</button><span class="rf-rush-hint">${esc(t('rf_keys_hint'))}</span></div>`;
+  return `<div class="rf-gap-acts">
+    <button type="button" class="dc-btn dc-btn-main" data-rf-focus onclick="rfGapKeep()">✓ ${esc(t('rf_gap_keep', { score: ratingFmt(x.own) }))}</button>
+    <button type="button" class="dc-btn dc-btn-normal" onclick="rfGapMoveStart()">↕ ${esc(t('rf_gap_move'))}</button>
+    ${x.kind === 'song' ? `<button type="button" class="rf-play" id="rfGapPlay" onclick="rfGapListen()">▶ <span>${esc(t('rf_gap_listen'))}</span></button>` : ''}
+    <button type="button" class="dc-btn dc-btn-plain" onclick="rfGapSkip()">${esc(t('rf_skip'))} →</button>
+  </div>`;
+}
+function rfGapKeep() {
+  const G = _rfGap, x = G && G.list[G.at];
+  if (!x) return;
+  _rfFun().settled[x.id] = x.d;
+  _rfFunTouch();
+  ratingsPersist();
+  G.kept++; G.at++; G.moving = false;
+  rfStopPreview();
+  _rfGapCard();
+  clearTimeout(_rfAfterTimer);
+  _rfAfterTimer = setTimeout(() => { try { rfAfterScoring(); } catch (e) {} }, 900);
+}
+function rfGapMoveStart() {
+  const G = _rfGap, x = G && G.list[G.at];
+  if (!x) return;
+  // An album's score comes from its tracks: move it there
+  if (x.kind === 'album') { rfStageClose(); rfSpeedOpen(x.key); return; }
+  G.moving = true;
+  const box = document.getElementById('rfGapActs');
+  if (box) { box.innerHTML = _rfGapActs(x); box.querySelector('.rf-ten-b')?.focus(); }
+}
+function rfGapMoveCancel() {
+  const G = _rfGap, x = G && G.list[G.at];
+  if (!x) return;
+  G.moving = false;
+  const box = document.getElementById('rfGapActs');
+  if (box) box.innerHTML = _rfGapActs(x);
+}
+function rfGapMove(n) {
+  const G = _rfGap, x = G && G.list[G.at];
+  if (!x || x.kind !== 'song') return;
+  rfSetSong(x.key, n);
+  // Moved is settled too, at the new gap
+  _rfFun().settled[x.id] = Math.round((n - x.ls) * 10) / 10;
+  _rfFunTouch();
+  ratingsPersist();
+  G.moved++; G.at++; G.moving = false;
+  rfStopPreview();
+  if (typeof dcPlToast === 'function') dcPlToast(t('rf_agree_done', { score: ratingFmt(n) }));
+  _rfGapCard();
+}
+function rfGapSkip() {
+  const G = _rfGap;
+  if (!G) return;
+  G.at++; G.moving = false;
+  rfStopPreview();
+  _rfGapCard();
+}
+function rfGapListen() {
+  const G = _rfGap, x = G && G.list[G.at];
+  if (!x) return;
+  const btn = document.getElementById('rfGapPlay');
+  if (btn && btn.dataset.state === 'playing') { rfStopPreview(); _rfPlayBtn(btn, 'ended'); return; }
+  rfPreview(x.name, x.artist, rfSongAlbum(x.key), s => _rfPlayBtn(document.getElementById('rfGapPlay'), s));
+}
+window.rfSettleOpen = rfSettleOpen;
+window.rfGapKeep = rfGapKeep;
+window.rfGapMoveStart = rfGapMoveStart;
+window.rfGapMoveCancel = rfGapMoveCancel;
+window.rfGapMove = rfGapMove;
+window.rfGapSkip = rfGapSkip;
+window.rfGapListen = rfGapListen;

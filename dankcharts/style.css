@@ -52497,3 +52497,16 @@ body.rf-stage-on { overflow: hidden; }
 .rf-near-name { display: flex; flex-direction: column; min-width: 140px; text-align: left; background: none; border: 0; padding: 0; color: var(--text); font: inherit; cursor: pointer; }
 .rf-near-name span { font-size: var(--fs-xs); color: var(--text3); }
 .rf-near .rf-cover { width: 30px; height: 30px; }
+
+/* Settle the gap (step 11) */
+.rf-gap-art { width: min(160px, 40vw); }
+.rf-gap-vs { display: flex; align-items: center; justify-content: center; gap: var(--sp-4); margin: var(--sp-2) 0; }
+.rf-gap-side { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 14px; border-radius: var(--r-md); border: 2px solid var(--border2); }
+.rf-gap-side.is-ls { border-style: dashed; }
+.rf-gap-big { font: 800 1.9rem var(--font-display); color: var(--rt-c, var(--text)); line-height: 1.1; }
+.rf-gap-d { font: 800 var(--fs-md) var(--font-mono); }
+.rf-gap-d.is-up { color: var(--green); }
+.rf-gap-d.is-down { color: var(--rose); }
+.rf-gap-say { margin: 0; color: var(--text2); font-size: var(--fs-sm); max-width: 42ch; }
+.rf-gap-acts { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--sp-2); }
+.rf-gap-move-q { text-align: center; font-weight: 700; margin: 0 0 var(--sp-2); }

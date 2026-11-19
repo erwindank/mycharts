@@ -6994,6 +6994,21 @@ const TRANSLATIONS = {
     rf_wall_albums: "{{n}} albums",
     rf_wall_none: "No full discographies yet. The closest ones are below.",
     rf_wall_near: "Closest to a plaque",
+    // Step 11: settle the gap
+    rf_gap_title: "Settle the gap",
+    rf_gap_desc: "{{n}} of your scores are far from how you listen. Keep them, or move them.",
+    rf_gap_desc_one: "1 of your scores is far from how you listen. Keep it, or move it.",
+    rf_gap_say_up: "You score it well above how much you play it.",
+    rf_gap_say_down: "You play it a lot more than your score says.",
+    rf_gap_you: "Your score",
+    rf_gap_ls: "Your listening",
+    rf_gap_keep: "Keep {{score}}",
+    rf_gap_move: "Move it",
+    rf_gap_move_q: "Your new score",
+    rf_gap_back: "Back",
+    rf_gap_listen: "Listen",
+    rf_gap_end: "All settled",
+    rf_gap_end_sub: "{{k}} kept, {{m}} moved",
     // ── end rating fun ──
   },
 

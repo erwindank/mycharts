@@ -69558,6 +69558,7 @@ function renderRatingsPage() {
         ${vs.love.length ? `<div class="rp-col"><div class="rp-vs-h">${ic('trend')}${esc(t('rp_vs_love'))}</div><ol class="rp-rank">${vs.love.map((x, i) => vsRow(x, i)).join('')}</ol></div>` : ''}
         ${vs.play.length ? `<div class="rp-col"><div class="rp-vs-h">${ic('headphones')}${esc(t('rp_vs_play'))}</div><ol class="rp-rank">${vs.play.map((x, i) => vsRow(x, i + vs.love.length)).join('')}</ol></div>` : ''}
       </div>
+      ${/* Settle the gap (ratefun.js) */ typeof rfSettlePromoHTML === 'function' ? rfSettlePromoHTML(sum) : ''}
     </div>` : '';
 
   // ── Top rated artists · recently rated
