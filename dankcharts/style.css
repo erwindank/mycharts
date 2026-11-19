@@ -52214,3 +52214,22 @@ button.gl-fact:active { transform: translateY(1px); }
 button.gl-fact:hover { background: color-mix(in srgb, var(--gf) 14%, var(--bg3)); }
 .gl-bub-leaf circle { stroke: none; }
 .gl-bub-grp:hover .gl-bub-ring > circle, .gl-bub-ring:focus-visible > circle { stroke-width: 2.2; }
+
+/* ════════════════════════════════════════════════════════════════════════
+   RATING FUN (ratefun.js, RATING-FUN-PLAN.md, 2026-11-19)
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* Score history line on the song / album Rating tab (step 1) */
+.rf-hist { margin-top: var(--sp-3); }
+.rt-al-card > .rf-hist { margin-top: 0; }
+.rf-hist-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); flex-wrap: wrap; margin-bottom: var(--sp-2); }
+.rf-hist-sum { display: inline-flex; align-items: center; gap: 6px; }
+.rf-hist-arrow { color: var(--text3); }
+.rf-hist-d { font: 700 var(--fs-xs) var(--font-mono); color: var(--text2); }
+.rf-hist-d.is-up { color: var(--green); }
+.rf-hist-d.is-down { color: var(--rose); }
+.rf-hist-svg { display: block; width: 100%; height: auto; max-height: 90px; overflow: visible; }
+.rf-hist-mid { stroke: var(--border); stroke-dasharray: 3 4; stroke-width: 1; }
+.rf-hist-line { stroke: var(--accent); stroke-width: 2.4; stroke-linejoin: round; stroke-linecap: round; }
+.rf-hist-dot { fill: var(--rt-c, var(--accent)); stroke: var(--bg2); stroke-width: 1.5; }
+.rf-hist-dates { display: flex; justify-content: space-between; gap: var(--sp-2); font-size: var(--fs-xs); color: var(--text3); margin-top: 4px; }

@@ -65004,6 +65004,9 @@ let _ratings = { v: 1, songs: {}, albums: {}, cfg: _ratingsDefaultCfg(), cfgTs: 
       _ratings.albums = raw.albums && typeof raw.albums === 'object' ? raw.albums : {};
       _ratings.cfg    = Object.assign(_ratingsDefaultCfg(), raw.cfg || {});
       _ratings.cfgTs  = raw.cfgTs || 0;
+      // Rating fun (ratefun.js): score history and the game side
+      if (raw.hist && typeof raw.hist === 'object') _ratings.hist = raw.hist;
+      if (raw.fun && typeof raw.fun === 'object') _ratings.fun = raw.fun;
       // A criterion id that no longer exists would otherwise be scored against
       // forever; drop ghosts, and never leave the rubric completely empty.
       _ratings.cfg.enabled = (_ratings.cfg.enabled || []).filter(id => _songCritById[id]);
@@ -65062,6 +65065,8 @@ function dcMergeRatings(remote) {
     _ratings.cfgTs = remote.cfgTs;
     changed = true;
   }
+  // Score history and the rating games (ratefun.js) merge their own way
+  if (typeof rfMerge === 'function' && rfMerge(remote)) changed = true;
   ratingsPersist(true);
   if (changed) ratingsRefreshUI();
 }
@@ -65766,10 +65771,12 @@ function ratingSwitchTab(tab) {
 }
 
 function ratingSetSongMode(key, mode) {
+  if (typeof rfBefore === 'function') rfBefore('song', key);
   const e = _ratingEnsureEntry('song', key);
   e.m = mode;
   e.ts = Date.now();
   ratingsPersist();
+  if (typeof rfScored === 'function') rfScored('song', key);
   renderRatingModal();
 }
 
@@ -65798,6 +65805,8 @@ function ratingClearEntry(kind, key) {
 function _ratingBindInputs(root) {
   const write = (kind, key, crit, raw) => {
     const val = ratingClamp(raw);
+    // Rating fun (ratefun.js): the score before this change starts its history
+    if (typeof rfBefore === 'function') rfBefore(crit === '__quick' ? 'song' : kind, key);
     if (crit === '__quick') {
       const e = _ratingEnsureEntry('song', key);
       // Typing a quick score against a track that has no rubric yet should put
@@ -65810,6 +65819,8 @@ function _ratingBindInputs(root) {
       e.ts = Date.now();
     }
     ratingsPersist();
+    // …and the new score is added to it, and counts toward today's goal
+    if (typeof rfScored === 'function') rfScored(crit === '__quick' ? 'song' : kind, key);
   };
 
   root.querySelectorAll('.rt-slider[data-crit]').forEach(sl => {
@@ -65844,10 +65855,12 @@ function _ratingBindInputs(root) {
     btn.addEventListener('click', () => {
       const key = btn.dataset.naKey, crit = btn.dataset.naCrit;
       const e = _ratingEnsureEntry('song', key);
+      if (typeof rfBefore === 'function') rfBefore('song', key);
       e.c[crit] = e.c[crit] === 'na' ? undefined : 'na';
       if (e.c[crit] === undefined) delete e.c[crit];
       e.ts = Date.now();
       ratingsPersist();
+      if (typeof rfScored === 'function') rfScored('song', key);
       renderRatingModal();
     });
   });
@@ -65992,6 +66005,7 @@ function renderSongRatingSection(key) {
       </div>
     </div>
     <div class="rt-critbars">${bars}</div>
+    ${typeof rfHistHTML === 'function' ? rfHistHTML('song', key) : ''}
   </div>${albumLink}`;
 }
 
@@ -66250,6 +66264,7 @@ function renderAlbumRatingSection(albumKey) {
     </div>
     ${acts}
     ${insightStrip}
+    ${/* score history (ratefun.js), once the score has changed */ (() => { const h = typeof rfHistHTML === 'function' ? rfHistHTML('album', albumKey) : ''; return h ? `<div class="rt-al-card">${h}</div>` : ''; })()}
     ${aspectBars ? card(t('rtp_aspects'), `<div class="rt-critbars">${aspectBars}</div>`) : ''}
     ${hiHTML || skHTML ? card(t('rt_al_standouts'), `<div class="rt-al-stcols${hiHTML && skHTML ? '' : ' rt-al-stcols--one'}">${hiHTML}${skHTML}</div>`) : ''}
     ${trackTable ? card(t('rtp_track_scores'), trackTable) : ''}

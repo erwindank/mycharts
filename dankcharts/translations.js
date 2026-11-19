@@ -6858,6 +6858,14 @@ const TRANSLATIONS = {
     as_set_count_note: "Off: Rating Records, Awards, smart playlists and an artist's verdict use only your own scores. On: they use Listening Scores too.",
     as_set_weights: "What counts, and how much",
     as_set_hint: "Each part ranks the song or release against the rest of your library. Set a part to 0 to leave it out.",
+
+    // ── Rating fun (ratefun.js, RATING-FUN-PLAN.md, 2026-11-19) ──
+    // Step 1: score history
+    rf_hist_title: "Score history",
+    rf_hist_aria: "How this score changed, {{n}} points",
+    rf_hist_changes: "{{n}} changes",
+    rf_hist_change_one: "1 change",
+    // ── end rating fun ──
   },
 
   // ── SPANISH ───────────────────────────────────────────────────────────────────
