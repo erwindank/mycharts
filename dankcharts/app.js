@@ -65636,7 +65636,8 @@ function _ratingCritRowHTML(kind, key, crit, v) {
 }
 
 function _ratingNoteHTML(kind, key, e, ph) {
-  return `<div class="rt-note-wrap">
+  // One-line review + emoji (ratefun.js) sit above the longer note
+  return `${typeof rfLineEditHTML === 'function' ? rfLineEditHTML(kind, key, e) : ''}<div class="rt-note-wrap">
       <label class="rt-note-label" for="rtNote">${esc(t('rte_note'))} <span class="rt-note-opt">${esc(t('rte_note_opt'))}</span></label>
       <textarea id="rtNote" class="rt-note dc-input" rows="3" placeholder="${esc(ph)}"
                 data-note-kind="${kind}" data-note-key="${esc(key)}">${esc(e.note || '')}</textarea>
@@ -65865,6 +65866,7 @@ function _ratingBindInputs(root) {
     });
   });
 
+  if (typeof rfBindLine === 'function') rfBindLine(root);
   const note = root.querySelector('[data-note-key]');
   if (note) {
     note.addEventListener('input', () => {
@@ -65999,6 +66001,7 @@ function renderSongRatingSection(key) {
       ${ratingRing(score)}
       <div class="rt-block-meta">
         <div class="rt-block-verdict ${ratingBand(score).cls}">${esc(ratingBand(score).label)}</div>
+        ${typeof rfLineHTML === 'function' ? rfLineHTML(e) : ''}
         ${e.note ? `<blockquote class="rt-block-note">${esc(e.note)}</blockquote>` : ''}
         ${ls ? `<div class="as-said">${esc(t('as_said'))} ${asChip({ score: ls.score, state: 'listening' })}</div>` : ''}
         <button class="dc-btn dc-btn-normal" onclick="openRatingModal('song', ${esc(JSON.stringify(key))})">${btnLabel}</button>
@@ -66259,6 +66262,7 @@ function renderAlbumRatingSection(albumKey) {
           <div class="ar-meter-top"><span>${esc(t('rt_al_tracks_rated'))}</span><b>${res.ratedTracks}<span> / ${res.totalTracks}</span></b></div>
           <div class="ar-meter-track"><span style="width:${(res.totalTracks ? res.ratedTracks / res.totalTracks * 100 : 0).toFixed(1)}%"></span></div>
         </div></div>
+        ${typeof rfLineHTML === 'function' ? rfLineHTML(e) : ''}
         ${e?.note ? `<blockquote class="rt-al-note">${esc(e.note)}</blockquote>` : ''}
       </div>
     </div>
@@ -66380,7 +66384,9 @@ function rtCardContext(albumKey, opts) {
     album, artist, art, anyArt, res, ins, tracks, aspects,
     score: res.score,
     bandLabel: band ? band.label : '',
-    note: opts.showNote && e?.note ? String(e.note).trim() : '',
+    // A one-line review (ratefun.js) is made for sharing, so it goes on the
+    // picture before the longer note
+    note: !opts.showNote ? '' : e?.line ? ((e.emo ? e.emo + ' ' : '') + String(e.line).trim()) : e?.note ? String(e.note).trim() : '',
   };
 }
 
@@ -69564,9 +69570,11 @@ function renderRatingsPage() {
         const isAlbum = r.kind === 'album';
         const nm = isAlbum ? { title: r.key.split('|||')[0], artist: r.key.split('|||')[1] || '' } : ratingSongNames(r.key);
         const score = isAlbum ? ratingAlbumScore(r.key)?.score : ratingSongScore(r.key);
+        // One-line review (ratefun.js), when there is one
+        const re = isAlbum ? _ratings.albums[r.key] : _ratings.songs[r.key];
         return `<li><button type="button" class="rp-rank-row" onclick="openRatingModal('${r.kind}', ${key(r.key)})">
           <span class="am-art rp-rank-art" id="rpRec-${i}"><span class="thumb-initials">${esc(initials(nm.title))}</span></span>
-          <span class="rp-rank-txt"><span class="rp-rank-name">${esc(nm.title)}</span><span class="rp-rank-sub">${esc(nm.artist)} · ${esc(fmt(new Date(r.ts)))}</span></span>
+          <span class="rp-rank-txt"><span class="rp-rank-name">${esc(nm.title)}</span><span class="rp-rank-sub">${esc(nm.artist)} · ${esc(fmt(new Date(r.ts)))}</span>${typeof rfLineHTML === 'function' ? rfLineHTML(re, true) : ''}</span>
           ${score != null ? ratingChip(score) : ''}
         </button></li>`;
       }).join('')}</ol>

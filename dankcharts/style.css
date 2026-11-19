@@ -52233,3 +52233,20 @@ button.gl-fact:hover { background: color-mix(in srgb, var(--gf) 14%, var(--bg3))
 .rf-hist-line { stroke: var(--accent); stroke-width: 2.4; stroke-linejoin: round; stroke-linecap: round; }
 .rf-hist-dot { fill: var(--rt-c, var(--accent)); stroke: var(--bg2); stroke-width: 1.5; }
 .rf-hist-dates { display: flex; justify-content: space-between; gap: var(--sp-2); font-size: var(--fs-xs); color: var(--text3); margin-top: 4px; }
+
+/* One-line reviews (step 2) */
+.rf-line { display: flex; align-items: baseline; gap: 6px; margin: 6px 0 2px; font-size: var(--fs-sm); color: var(--text); line-height: 1.4; }
+.rf-line q { font-style: italic; quotes: "“" "”"; }
+.rf-line-emo { font-style: normal; font-size: 1.1em; }
+.rf-line--sm { margin: 2px 0 0; font-size: var(--fs-xs); color: var(--text2); min-width: 0; }
+.rf-line--sm q { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.rf-line-edit { margin-top: var(--sp-4); }
+.rf-emo-row { display: flex; flex-wrap: wrap; gap: 4px; margin: 6px 0 8px; }
+.rf-emo { width: 34px; height: 34px; border-radius: var(--r-sm); border: 1px solid var(--border); background: var(--bg2); font-size: 18px; line-height: 1; cursor: pointer; transition: transform var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease); }
+.rf-emo:hover { transform: translateY(-1px); border-color: var(--border2); }
+.rf-emo.is-on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 18%, var(--bg2)); box-shadow: 0 0 0 1px var(--accent); }
+.rf-emo:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.rf-line-box { position: relative; }
+.rf-line-in { width: 100%; padding-right: 44px; }
+.rf-line-left { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font: 600 var(--fs-xs) var(--font-mono); color: var(--text3); pointer-events: none; }
+.rf-line-left.is-low { color: var(--amber); }

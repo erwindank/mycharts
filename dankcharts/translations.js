@@ -6865,6 +6865,11 @@ const TRANSLATIONS = {
     rf_hist_aria: "How this score changed, {{n}} points",
     rf_hist_changes: "{{n}} changes",
     rf_hist_change_one: "1 change",
+    // Step 2: one-line reviews
+    rf_line_label: "One-line review",
+    rf_line_emo: "Pick an emoji",
+    rf_line_ph_song: "Your take in a line, e.g. \"The bridge ruined me.\"",
+    rf_line_ph_album: "Your take in a line, e.g. \"No skips, all killer.\"",
     // ── end rating fun ──
   },
 

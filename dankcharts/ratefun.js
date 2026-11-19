@@ -247,3 +247,55 @@ window.rfBefore = rfBefore;
 window.rfScored = rfScored;
 window.rfMerge = rfMerge;
 window.rfSetSong = rfSetSong;
+
+// ── One-line reviews (16) ───────────────────────────────────────────────
+// A short take (RF_LINE_MAX characters) and an emoji beside a score, on the
+// song or album entry as line / emo. Shown on the Rating tabs, in Recently
+// rated, on the album score picture and on the critic card.
+const RF_LINE_MAX = 140;
+const RF_EMOJIS = ['😭', '🔥', '😍', '🤯', '✨', '🎧', '💃', '😌', '🤔', '😴', '💀', '👎'];
+
+// The line as shown: emoji + quoted text. small = one line, cut with …
+function rfLineHTML(e, small) {
+  if (!e || !(e.line || '').trim()) return '';
+  return `<span class="rf-line${small ? ' rf-line--sm' : ''}">${e.emo ? `<span class="rf-line-emo" aria-hidden="true">${esc(e.emo)}</span>` : ''}<q>${esc(String(e.line).trim())}</q></span>`;
+}
+
+// The editor part: emoji row + the line, above the longer note
+function rfLineEditHTML(kind, key, e) {
+  const line = e.line || '';
+  return `<div class="rf-line-edit">
+    <label class="rt-note-label" for="rfLine">${esc(t('rf_line_label'))} <span class="rt-note-opt">${esc(t('rte_note_opt'))}</span></label>
+    <div class="rf-emo-row" role="group" aria-label="${esc(t('rf_line_emo'))}">
+      ${RF_EMOJIS.map(m => `<button type="button" class="rf-emo${e.emo === m ? ' is-on' : ''}" data-rf-emo="${m}" aria-pressed="${e.emo === m}">${m}</button>`).join('')}
+    </div>
+    <div class="rf-line-box">
+      <input id="rfLine" class="dc-input rf-line-in" maxlength="${RF_LINE_MAX}" placeholder="${esc(t(kind === 'album' ? 'rf_line_ph_album' : 'rf_line_ph_song'))}"
+             data-rf-kind="${kind}" data-rf-key="${esc(key)}" value="${esc(line)}">
+      <span class="rf-line-left" id="rfLineLeft">${RF_LINE_MAX - line.length}</span>
+    </div>
+  </div>`;
+}
+
+// Wires the emoji buttons and the line (called from _ratingBindInputs)
+function rfBindLine(root) {
+  const inp = root.querySelector('.rf-line-in');
+  if (!inp) return;
+  const entry = () => _ratingEnsureEntry(inp.dataset.rfKind, inp.dataset.rfKey);
+  inp.addEventListener('input', () => {
+    const e = entry();
+    e.line = inp.value.slice(0, RF_LINE_MAX);
+    e.ts = Date.now();
+    const left = root.querySelector('#rfLineLeft');
+    if (left) { left.textContent = RF_LINE_MAX - e.line.length; left.classList.toggle('is-low', e.line.length > RF_LINE_MAX - 15); }
+    ratingsPersist();
+    _rfFunTouch();
+  });
+  root.querySelectorAll('[data-rf-emo]').forEach(btn => btn.addEventListener('click', () => {
+    const e = entry(), m = btn.dataset.rfEmo;
+    e.emo = e.emo === m ? '' : m;   // a second tap takes it off
+    e.ts = Date.now();
+    root.querySelectorAll('[data-rf-emo]').forEach(b => { const on = b.dataset.rfEmo === e.emo; b.classList.toggle('is-on', on); b.setAttribute('aria-pressed', on); });
+    ratingsPersist();
+  }));
+}
