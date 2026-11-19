@@ -66132,6 +66132,7 @@ function renderAlbumRatingSection(albumKey) {
         </div>
       </div>
       ${/* lower / agree / higher (ratefun.js) */ typeof rfAgreeHTML === 'function' ? rfAgreeHTML('album', albumKey, asView.score) : ''}
+      ${/* album speed-run (ratefun.js) */ typeof rfSpeedPromoHTML === 'function' ? rfSpeedPromoHTML(albumKey) : ''}
       ${/* the release breakdown only explains the number when the score came
            from it; a songs' average is explained by the track list below */
         asRel && asView.fromRel ? `<div class="rt-al-card">${asWhyHTML(asRel, 'album')}</div>` : ''}
@@ -66148,7 +66149,7 @@ function renderAlbumRatingSection(albumKey) {
         <div class="rt-empty-sub">${t('rtp_album_sub', { n: tracks.length, unit: tUnit('tracks', tracks.length) })}</div>
         <button class="dc-btn dc-btn-main" onclick="openRatingModal('album', ${esc(JSON.stringify(albumKey))})">${t('rtp_rate_album')}</button>
       </div>
-    </div>`;
+    </div>${/* album speed-run (ratefun.js) */ typeof rfSpeedPromoHTML === 'function' ? rfSpeedPromoHTML(albumKey) : ''}`;
     return;
   }
 
@@ -66271,6 +66272,7 @@ function renderAlbumRatingSection(albumKey) {
       </div>
     </div>
     ${acts}
+    ${/* album speed-run (ratefun.js) */ typeof rfSpeedPromoHTML === 'function' ? rfSpeedPromoHTML(albumKey) : ''}
     ${insightStrip}
     ${/* score history (ratefun.js), once the score has changed */ (() => { const h = typeof rfHistHTML === 'function' ? rfHistHTML('album', albumKey) : ''; return h ? `<div class="rt-al-card">${h}</div>` : ''; })()}
     ${aspectBars ? card(t('rtp_aspects'), `<div class="rt-critbars">${aspectBars}</div>`) : ''}

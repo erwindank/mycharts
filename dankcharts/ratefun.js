@@ -714,3 +714,152 @@ window.rfRushOpen = rfRushOpen;
 window.rfRushPick = rfRushPick;
 window.rfRushSkip = rfRushSkip;
 window.rfRushPlay = rfRushPlay;
+
+// ── Album speed-run (4) ──────────────────────────────────────────────────
+/* The whole tracklist on one screen: each track a row of 1–10 taps with its
+   preview. The album score fills in live as you go, and when the last track
+   is scored there's a "Fully yours" moment. Album order when the official
+   tracklist is known (the share card's Deezer lookup), else most played
+   first. Tracks you never played can't be scored (they aren't part of your
+   album score), so they show greyed out. */
+let _rfRun = null;   // { key, rows: [{key, title, count}], wasFull }
+
+function rfSpeedPromoHTML(albumKey) {
+  const tracks = ratingAlbumTrackKeys(albumKey);
+  if (tracks.length < 2) return '';
+  const left = tracks.filter(tr => ratingSongScore(tr.key) == null).length;
+  return `<button type="button" class="rf-promo rf-promo--run" onclick="rfSpeedOpen(${esc(JSON.stringify(albumKey))})">
+    <span class="rf-promo-ico" aria-hidden="true">🏁</span>
+    <span class="rf-promo-txt"><b>${esc(t('rf_run_title'))}</b><span>${esc(left ? t('rf_run_desc', { n: left }) : t('rf_run_desc_done'))}</span></span>
+    <span class="rf-promo-go">${esc(t(left ? 'rf_rush_go' : 'rf_run_again'))} ▸</span>
+  </button>`;
+}
+
+async function rfSpeedOpen(albumKey) {
+  const [album, artist = ''] = albumKey.split('|||');
+  rfStageOpen(`<div class="rf-run-load">${esc(t('rf_run_loading'))}</div>`, { cls: 'rf-stage--wide rf-stage--run', label: t('rf_run_title'),
+    onClose: () => {
+      const k = _rfRun && _rfRun.key;
+      _rfRun = null;
+      if (k && document.getElementById('albumModal')?.classList.contains('open') && typeof renderAlbumRatingSection === 'function') renderAlbumRatingSection(k);
+      if (typeof _ratingsRefreshWhenUncovered === 'function') _ratingsRefreshWhenUncovered();
+    } });
+  // Album order: wait a moment for the official tracklist, never long
+  if (typeof rtPrefetchTracklist === 'function') {
+    try { await Promise.race([rtPrefetchTracklist(albumKey), new Promise(r => setTimeout(r, 2500))]); } catch (e) {}
+  }
+  if (!document.getElementById('rfStage')?.classList.contains('open')) return;
+  const lib = ratingAlbumTrackKeys(albumKey);
+  let rows;
+  if (typeof _rtGridTracks === 'function') {
+    const g = _rtGridTracks(albumKey);
+    const byKey = new Map(lib.map(tr => [tr.key, tr]));
+    rows = g.tracks.map(x => x.key ? byKey.get(x.key) || { key: x.key, title: x.title, count: 0 } : { key: null, title: x.title, count: 0 });
+    // Played tracks the tracklist didn't know about go on the end
+    const have = new Set(rows.map(r => r.key));
+    for (const tr of lib) if (!have.has(tr.key)) rows.push(tr);
+  } else rows = lib.slice();
+  _rfRun = { key: albumKey, album, artist, rows, wasFull: rows.every(r => !r.key || ratingSongScore(r.key) != null) };
+  rfStageSet(_rfRunHTML());
+  rfArt(document.getElementById('rfRunArt'), 'album', album, artist);
+}
+
+function _rfRunHTML() {
+  const R = _rfRun;
+  const res = ratingAlbumScore(R.key);
+  // Tracks you never played fold into one line under the list (a deluxe
+  // edition can have a dozen); the numbers stay the album's own
+  const off = R.rows.filter(r => !r.key);
+  const rows = R.rows.map((r, i) => r.key ? `<li class="rf-run-row" data-k="${esc(r.key)}">${_rfRunRowInner(r, i)}</li>` : '').join('');
+  return `<div class="rf-run">
+    <div class="rf-run-head">
+      <span class="rf-run-art" id="rfRunArt"><span class="thumb-initials">${esc(initials(R.album))}</span></span>
+      <div class="rf-run-titles">
+        <span class="rf-kicker">🏁 ${esc(t('rf_run_title'))}</span>
+        <h2 class="rf-run-h">${esc(R.album)}</h2>
+        <span class="rf-run-artist">${esc(R.artist)}</span>
+        <div class="rf-run-prog" id="rfRunProg">${_rfRunProgHTML()}</div>
+      </div>
+      <div class="rf-run-ring" id="rfRunRing">${ratingRing(res ? res.score : null, { size: 92, label: t('rf_run_so_far') })}</div>
+    </div>
+    <div id="rfRunFull">${_rfRunFullHTML()}</div>
+    <ol class="rf-run-list">${rows}</ol>
+    ${off.length ? `<p class="rf-run-off"><b>${esc(t('rf_run_unplayed_n', { n: off.length }))}</b> ${esc(off.map(r => r.title).join(' · '))}</p>` : ''}
+  </div>`;
+}
+function _rfRunRowInner(r, i) {
+  const s = ratingSongScore(r.key);
+  const ls = s == null && typeof asSong === 'function' ? asSong(r.key) : null;
+  const k = esc(JSON.stringify(r.key));
+  return `<span class="rf-run-n">${i + 1}</span>
+    <span class="rf-run-t"><b>${esc(r.title)}</b><span>${r.count.toLocaleString()} ${esc(tUnit('plays', r.count))}</span></span>
+    <button type="button" class="rf-run-play" onclick="rfRunPlay(this, ${k})" aria-label="${esc(t('rf_preview_play'))}">▶</button>
+    <span class="rf-run-ten">${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => `<button type="button" class="rf-ten-b ${ratingBand(n).cls}${s != null && Math.round(s) === n ? ' is-on' : ''}" onclick="rfRunPick(${k}, ${n}, this)" aria-label="${n}">${n}</button>`).join('')}</span>
+    <span class="rf-run-s">${s != null ? ratingChip(s) : ls ? asChip({ score: ls.score, state: 'listening' }) : '<span class="rf-run-dash">–</span>'}</span>`;
+}
+function _rfRunCounts() {
+  const R = _rfRun, play = R.rows.filter(r => r.key);
+  return { done: play.filter(r => ratingSongScore(r.key) != null).length, of: play.length };
+}
+function _rfRunProgHTML() {
+  const c = _rfRunCounts();
+  // The album so far as a chip too: phones hide the ring to make room
+  const res = ratingAlbumScore(_rfRun.key);
+  return `<span>${esc(t('rf_run_prog', { n: c.done, of: c.of }))}</span><span class="rf-prog"><i style="width:${(c.of ? c.done / c.of * 100 : 0).toFixed(1)}%"></i></span>${res ? `<span class="rf-run-chip">${ratingChip(res.score)}</span>` : ''}`;
+}
+function _rfRunFullHTML(justNow) {
+  const c = _rfRunCounts();
+  if (!c.of || c.done < c.of) return '';
+  const res = ratingAlbumScore(_rfRun.key);
+  return `<div class="rf-run-full${justNow ? ' is-new' : ''}">
+    <span class="rf-run-full-e" aria-hidden="true">🎉</span>
+    <span><b>${esc(t('rf_run_full'))}</b> ${esc(t('rf_run_full_sub', { score: ratingFmt(res ? res.score : null) }))}</span>
+    <button type="button" class="dc-btn dc-btn-normal dc-btn-sm" onclick="rfStageClose();openRatingModal('album', ${esc(JSON.stringify(_rfRun.key))})">${esc(t('rf_run_aspects'))}</button>
+  </div>`;
+}
+
+function rfRunPick(key, n, btn) {
+  const R = _rfRun;
+  if (!R) return;
+  rfSetSong(key, n);
+  const li = btn && btn.closest('.rf-run-row');
+  const i = R.rows.findIndex(r => r.key === key);
+  if (li && i >= 0) { li.innerHTML = _rfRunRowInner(R.rows[i], i); li.classList.add('is-done'); }
+  const res = ratingAlbumScore(R.key);
+  const ring = document.getElementById('rfRunRing');
+  if (ring && typeof _ratingSetRing === 'function') { _ratingSetRing(ring, res ? res.score : null); }
+  const prog = document.getElementById('rfRunProg');
+  if (prog) prog.innerHTML = _rfRunProgHTML();
+  const c = _rfRunCounts();
+  if (c.done === c.of && !R.wasFull) {
+    R.wasFull = true;
+    // A finished speed-run counts toward its badge (step 9)
+    const f = _rfFun();
+    f.runs = (f.runs || 0) + 1;
+    _rfFunTouch();
+    ratingsPersist();
+    rfStopPreview();
+    const full = document.getElementById('rfRunFull');
+    if (full) { full.innerHTML = _rfRunFullHTML(true); full.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }
+  }
+  // The next unscored row's first button gets focus, so a keyboard can keep going
+  const next = li && [...li.parentElement.querySelectorAll('.rf-run-row')].find(x => ratingSongScore(x.dataset.k) == null);
+  if (next && next !== li) next.querySelector('.rf-ten-b')?.focus({ preventScroll: false });
+}
+
+function rfRunPlay(btn, key) {
+  const R = _rfRun;
+  if (!R) return;
+  if (btn.classList.contains('is-playing')) { rfStopPreview(); btn.classList.remove('is-playing'); btn.textContent = '▶'; return; }
+  document.querySelectorAll('.rf-run-play.is-playing').forEach(b => { b.classList.remove('is-playing'); b.textContent = '▶'; });
+  const nm = ratingSongNames(key);
+  rfPreview(nm.title, nm.artist, R.album, s => {
+    btn.classList.toggle('is-playing', s === 'playing' || s === 'loading');
+    btn.textContent = s === 'loading' ? '…' : s === 'playing' ? '■' : s === 'none' ? '✕' : '▶';
+    btn.disabled = s === 'none';
+  });
+}
+
+window.rfSpeedOpen = rfSpeedOpen;
+window.rfRunPick = rfRunPick;
+window.rfRunPlay = rfRunPlay;

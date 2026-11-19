@@ -6902,6 +6902,18 @@ const TRANSLATIONS = {
     rf_preview_play: "Play preview",
     rf_preview_stop: "Stop",
     rf_preview_none: "No preview found",
+    // Step 6: album speed-run
+    rf_run_title: "Album speed-run",
+    rf_run_desc: "The whole tracklist on one screen: tap a score for each of its {{n}} unscored songs",
+    rf_run_desc_done: "Every song is scored. Run it again to change any of them",
+    rf_run_again: "Open",
+    rf_run_loading: "Getting the tracklist…",
+    rf_run_unplayed_n: "Not played yet ({{n}}):",
+    rf_run_so_far: "So far",
+    rf_run_prog: "{{n}} of {{of}} scored",
+    rf_run_full: "Fully yours!",
+    rf_run_full_sub: "Every song you play from it has your score. Album: {{score}}",
+    rf_run_aspects: "Add the album aspects",
     // ── end rating fun ──
   },
 
