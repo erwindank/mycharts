@@ -65,3 +65,20 @@ and uploaded files alike.
   least 2 needed for a plaque.
 - Nudges and the streak reminder are signed-in only (that's where the
   Notifications panel lives), like the other notifications.
+
+## What was built (2026-11-19, all 16 steps, not pushed)
+
+461d44b history · e06f863 one-line reviews · 1fa5c67 agree · a707f44 player row ·
+bf441e7 Rate Rush · 5b5330c speed-run · 7b6557a goal + streak · 5f6521c scale ·
+ebe7cde levels + badges · bec34c0 plaques · 1e67af9 settle the gap ·
+f19fcac "Still a 9.5?" · 42b8a52 nudges · 5c668ee weekly report · 7d80369 critic
+card · then languages, changelog and the What's New card (whatsnew/rating-fun.webp).
+
+Notes for later:
+- Album "rated" for levels, plaques, Settle the gap and the report = aspects or
+  at least half its played tracks yours (`_rfAlbumYours`), because one rated song
+  gives every edition it was played from an album score.
+- Notifications (rt_streak, rt_nudge, rt_report) run from `rfWatch`, called by
+  notifications.js `ntWatch`; links are `{ tab: 'rfun', what }` → `rfFollow`.
+- Share pictures use one window (`rfShareOpen({ title, file, draw(fmt) })`).
+- Not done: a Charts Guide lesson for these.

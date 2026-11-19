@@ -13,6 +13,48 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Your critic card":
+    ["Seu cartão de crítico",
+     "Uma nova imagem na página de avaliações mostra o seu gosto: sua média e que tipo de crítico você é, um medidor de rigoroso a generoso, seu nível, seus três melhores álbuns e sua opinião mais polêmica, a nota mais longe da sua escuta."],
+  "Your week in ratings":
+    ["Sua semana de avaliações",
+     "Quando começa uma semana nova, um aviso diz que o resumo da anterior está pronto: quanto você avaliou, sua nota mais alta e a mais dura e a maior surpresa frente à sua escuta. Também está na página de avaliações e dá para compartilhar como imagem."],
+  "Well-timed nudges to rate":
+    ["Avisos na hora certa para avaliar",
+     "Quando uma música sem nota é #1 na sua parada semanal, ou você ouviu um álbum inteiro três vezes numa semana, um aviso pergunta se você quer avaliar. No máximo uma vez por dia."],
+  "Score history, and “Still a 9.5?”":
+    ["Histórico das notas e “Ainda é um 9.5?”",
+     "Cada mudança de nota fica guardada e aparece como uma linha na aba Avaliação de músicas e álbuns. Um ano depois de avaliar algo que você ainda ouve, o site pergunta se a nota continua valendo."],
+  "Settle the gap":
+    ["Resolva a diferença",
+     "Em “Você vs. sua escuta”, passe uma a uma pelas notas mais longe de como você ouve: mantenha, mude ou ouça de novo."],
+  "Discography plaques":
+    ["Placas de discografia",
+     "A aba Avaliação de um artista mostra quantos álbuns dele você avaliou. Avalie todos e ele ganha uma placa na página de avaliações."],
+  "Critic levels and badges":
+    ["Níveis de crítico e conquistas",
+     "Quanto mais você avalia, mais alto o seu nível: Ouvinte, Resenhista, Crítico, Formador de opinião, Lenda. Quinze conquistas marcam momentos como sua primeira obra-prima ou uma sequência de uma semana."],
+  "Your scale: how harsh or generous you are":
+    ["Sua escala: o quanto você é rigoroso ou generoso",
+     "A página de avaliações mostra como você usa a escala de 0 a 10, quantas das suas notas são 9 ou mais e uma dica quando a maioria fica no mesmo ponto."],
+  "Daily rating goal and streak":
+    ["Meta diária e sequência de avaliações",
+     "Escolha uma meta diária de 5, 10 ou 25. Um anel enche enquanto você avalia, uma sequência conta os dias seguidos em que você bate a meta e um aviso à noite alerta quando ela está em risco."],
+  "Album speed-run":
+    ["Álbum a toda velocidade",
+     "Avalie um álbum inteiro numa tela: cada música que você ouve dele com botões de 1 a 10 e um trecho. A nota do álbum vai se completando enquanto você avalia."],
+  "Rate Rush":
+    ["Rate Rush",
+     "Uma rodada rápida com suas músicas mais ouvidas sem nota: toca um trecho, você toca num número e vem a próxima. Nas páginas de avaliações e de jogos."],
+  "Rate the song that's playing":
+    ["Avalie a música que está tocando",
+     "O player tem uma fileira de 1 a 10 embaixo da música, para você avaliar enquanto ela toca."],
+  "Agree with your listening":
+    ["Concorda com a sua escuta",
+     "Embaixo de uma nota de escuta: um pouco menos, Concordo ou um pouco mais. Um toque transforma em nota sua. Num álbum, avalia todas as músicas que ainda não têm nota."],
+  "One-line reviews":
+    ["Resenhas em uma linha",
+     "Adicione uma opinião curta e um emoji a qualquer nota. Aparece nas páginas de músicas e álbuns, em Avaliados recentemente e na imagem da nota do álbum."],
   "The Ratings page keeps your scores and Listening Scores apart":
     ["A p\u00e1gina de avalia\u00e7\u00f5es separa suas notas das notas de escuta",
      "Com as notas de escuta ligadas, a p\u00e1gina de avalia\u00e7\u00f5es as misturava com as suas notas, ent\u00e3o o grande veredicto era quase todo uma nota que voc\u00ea nunca deu. Agora o topo mostra as duas lado a lado: sua m\u00e9dia em um anel s\u00f3lido e a m\u00e9dia de escuta em um tracejado, cada uma com seu veredicto. As barras de avaliados se dividem entre o que voc\u00ea avaliou e o que s\u00f3 tem nota de escuta. Um seletor Suas / De escuta / Ambas decide o que os cart\u00f5es e as listas mostram, e cada cart\u00e3o de mais alta e mais baixa e cada linha diz quem deu a nota. Um novo bloco \u201cVoc\u00ea vs. sua escuta\u201d mostra quanto suas notas se afastam da sua escuta em m\u00e9dia, e o que voc\u00ea avalia muito acima do quanto escuta, e o contr\u00e1rio. Seus recordes cr\u00edticos sempre usam as suas pr\u00f3prias notas."],
@@ -4799,6 +4841,16 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 /* Highlight cards (DC_CL_HIGHLIGHTS in changelog.js), keyed by id. */
 window.DC_CL_HIGHLIGHTS_I18N = window.DC_CL_HIGHLIGHTS_I18N || {};
 window.DC_CL_HIGHLIGHTS_I18N["pt-BR"] = {
+  "rating-fun": {
+    title: "Avaliar ficou mais divertido",
+    intro: "Jeitos mais rápidos de avaliar sua música e motivos para voltar amanhã.",
+    points: [
+      "Rate Rush: uma rodada rápida de músicas com trechos.",
+      "Avalie pelo player ou concorde com a sua escuta.",
+      "Uma meta diária, sequências, níveis, conquistas e placas.",
+      "Um resumo semanal e um cartão de crítico para compartilhar.",
+    ],
+  },
   "tv-mode": {
     title: "O player na sua TV",
     intro: "Um modo TV para tela grande, um visual deitado para o celular e o celular como controle.",

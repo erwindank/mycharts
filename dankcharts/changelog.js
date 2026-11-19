@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 510;
+const DC_CL_I18N_V = 511;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -98,6 +98,16 @@ const DC_CL_AREAS = {
    by id, as { title, intro, points }. A missing one shows in English.
    ------------------------------------------------------------------------- */
 const DC_CL_HIGHLIGHTS = [
+  { id: "rating-fun", d: "2026-11-19", a: "ratings", img: "whatsnew/rating-fun.webp", go: "ratings",
+    title: "Rating is more fun now",
+    intro: "Quicker ways to score your music, and reasons to come back tomorrow.",
+    points: [
+      "Rate Rush: a quick round of songs with previews.",
+      "Tap a score in the player, or agree with your listening.",
+      "A daily goal, streaks, levels, badges and plaques.",
+      "A weekly report and a critic card to share.",
+    ],
+    also: ["Your critic card", "Your week in ratings", "Well-timed nudges to rate", "Score history, and “Still a 9.5?”", "Settle the gap", "Discography plaques", "Critic levels and badges", "Your scale: how harsh or generous you are", "Daily rating goal and streak", "Album speed-run", "Rate Rush", "Rate the song that's playing", "Agree with your listening", "One-line reviews"] },
   { id: "tv-mode", d: "2026-11-18", a: "player", img: "whatsnew/tv-mode.webp", go: "week", then: [["_ytGuideOpen"]],
     title: "The music player on your TV",
     intro: "A big-screen TV mode, a sideways look for phones, and your phone as the remote.",
@@ -449,6 +459,48 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-19', t: 'feature', a: 'ratings',
+    title: "Your critic card",
+    detail: "A new picture on the Ratings page shows your taste: your average and what kind of critic that makes you, a harsh to generous meter, your level, your top three albums and your hottest take, the score furthest from your listening." },
+  { d: '2026-11-19', t: 'feature', a: 'ratings',
+    title: "Your week in ratings",
+    detail: "When a new week starts, a notification says last week's report is ready: how much you scored, your highest and harshest call and your biggest surprise against your listening. It's also on the Ratings page, and you can share it as a picture." },
+  { d: '2026-11-19', t: 'feature', a: 'ratings',
+    title: "Well-timed nudges to rate",
+    detail: "When a song you haven't scored is #1 on your weekly chart, or you've played an album through three times in a week, a notification asks if you're ready to rate it. At most once a day." },
+  { d: '2026-11-19', t: 'feature', a: 'ratings',
+    title: "Score history, and “Still a 9.5?”",
+    detail: "Every change to a score is kept and drawn as a line on the song and album Rating tabs. A year after you scored something you still play, the site asks if the score still stands." },
+  { d: '2026-11-19', t: 'feature', a: 'ratings',
+    title: "Settle the gap",
+    detail: "From “You vs. your listening”, go through the scores furthest from how you listen, one at a time: keep it, move it or listen again." },
+  { d: '2026-11-19', t: 'feature', a: 'ratings',
+    title: "Discography plaques",
+    detail: "An artist's Rating tab shows how many of their albums you've rated. Rate them all and they get a plaque on the Ratings page." },
+  { d: '2026-11-19', t: 'feature', a: 'ratings',
+    title: "Critic levels and badges",
+    detail: "The more you score, the higher your level: Listener, Reviewer, Critic, Tastemaker, Legend. Fifteen badges mark moments like your first Masterpiece or a week-long streak." },
+  { d: '2026-11-19', t: 'feature', a: 'ratings',
+    title: "Your scale: how harsh or generous you are",
+    detail: "The Ratings page shows how you use the 0–10 scale, how many of your scores are 9 or more, and a tip when most of them sit in one spot." },
+  { d: '2026-11-19', t: 'feature', a: 'ratings',
+    title: "Daily rating goal and streak",
+    detail: "Pick a daily goal of 5, 10 or 25. A ring fills as you rate, a streak counts the days in a row you reach it, and an evening notification warns you when it's at risk." },
+  { d: '2026-11-19', t: 'feature', a: 'ratings',
+    title: "Album speed-run",
+    detail: "Score a whole album on one screen: every song you play from it with 1 to 10 buttons and a preview. The album score fills in as you go." },
+  { d: '2026-11-19', t: 'feature', a: 'ratings',
+    title: "Rate Rush",
+    detail: "A quick round of your most played songs without a score: a preview plays, you tap a number, the next one slides in. On the Ratings and Games pages." },
+  { d: '2026-11-19', t: 'feature', a: 'ratings',
+    title: "Rate the song that's playing",
+    detail: "The music player has a row of 1 to 10 under the song, so you can score it while it plays." },
+  { d: '2026-11-19', t: 'feature', a: 'ratings',
+    title: "Agree with your listening",
+    detail: "Under a Listening Score: a bit lower, Agree or a bit higher. One tap makes it your own score. On an album it scores every song you haven't yet." },
+  { d: '2026-11-19', t: 'feature', a: 'ratings',
+    title: "One-line reviews",
+    detail: "Add a short take and an emoji to any score. It shows on the song and album pages, in Recently rated and on the album score picture." },
   { d: '2026-11-19', t: 'change', a: 'ratings',
     title: "The Ratings page keeps your scores and Listening Scores apart",
     detail: "With Listening Scores on, the Ratings page used to fold them in with your own scores, so its big verdict was mostly a number you never gave. Now the top shows the two side by side: your average as a solid ring and the Listening Score average as a dashed one, each with its own verdict. The rated bars are split into what you scored and what only has a Listening Score. A Yours / Listening / Both switch decides what the cards and lists below hold, and every highest and lowest card and every list row says who gave the score. A new \u201cYou vs. your listening\u201d block shows how far your own scores sit from your listening on average, and what you rate far above how much you play it, and the other way round. Your critical records always use your own scores." },

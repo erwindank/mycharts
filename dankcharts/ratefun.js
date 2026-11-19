@@ -1172,6 +1172,7 @@ function rfLevelHTML() {
    the tracks you play from it. Two albums at least for a plaque. */
 const RF_DISCO_PLAYS = 3;
 const RF_DISCO_MIN = 2;
+const RF_DISCO_NEAR = 0.2;   // "closest to a plaque" needs a fifth done (82-album catalogues aren't close)
 let _rfDiscoMemo = null;   // { plays, len, rev, list }
 let _rfRev = 0;            // bumped on every score change (rfScored)
 
@@ -1251,7 +1252,7 @@ function rfDiscoArtistFill(artist) {
 function rfDiscoWallHTML() {
   const all = rfDiscos();
   const done = all.filter(d => d.done).sort((a, b) => b.total - a.total || (b.avg || 0) - (a.avg || 0));
-  const near = all.filter(d => !d.done && d.rated > 0).sort((a, b) => (b.rated / b.total) - (a.rated / a.total) || b.rated - a.rated).slice(0, 4);
+  const near = all.filter(d => !d.done && d.rated > 0 && d.rated / d.total >= RF_DISCO_NEAR).sort((a, b) => (b.rated / b.total) - (a.rated / a.total) || b.rated - a.rated).slice(0, 4);
   if (!done.length && !near.length) return '';
   const key = k => esc(JSON.stringify(k));
   return `<div class="rp-block rf-wall">
@@ -1274,7 +1275,7 @@ function rfDiscoWallFill() {
   const all = rfDiscos();
   const done = all.filter(d => d.done).sort((a, b) => b.total - a.total || (b.avg || 0) - (a.avg || 0));
   done.forEach((d, i) => { const el = document.getElementById('rfPlq' + i); if (el && typeof fetchAndInjectImage === 'function') fetchAndInjectImage(el, { imgId: el.id, name: d.artist, artist: d.artist, prefKey: 'artist:' + d.artist.toLowerCase() }, 'artist'); });
-  const near = all.filter(d => !d.done && d.rated > 0).sort((a, b) => (b.rated / b.total) - (a.rated / a.total) || b.rated - a.rated).slice(0, 4);
+  const near = all.filter(d => !d.done && d.rated > 0 && d.rated / d.total >= RF_DISCO_NEAR).sort((a, b) => (b.rated / b.total) - (a.rated / a.total) || b.rated - a.rated).slice(0, 4);
   near.forEach((d, i) => _rfCoversArt(d, 'rfNear' + i + '_', 10));
 }
 

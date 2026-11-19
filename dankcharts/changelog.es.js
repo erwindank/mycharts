@@ -13,6 +13,48 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Your critic card":
+    ["Tu tarjeta de crítico",
+     "Una nueva imagen en la página de valoraciones muestra tu gusto: tu media y qué tipo de crítico eres, un medidor de duro a generoso, tu nivel, tus tres mejores álbumes y tu opinión más polémica, la nota más lejos de tu escucha."],
+  "Your week in ratings":
+    ["Tu semana puntuando",
+     "Cuando empieza una semana nueva, un aviso te dice que el resumen de la anterior está listo: cuánto puntuaste, tu nota más alta y la más dura y tu mayor sorpresa frente a tu escucha. También está en la página de valoraciones y puedes compartirlo como imagen."],
+  "Well-timed nudges to rate":
+    ["Avisos en el momento justo para puntuar",
+     "Cuando una canción sin nota es el #1 de tu lista semanal, o escuchaste un álbum entero tres veces en una semana, un aviso te pregunta si quieres puntuarlo. Como mucho una vez al día."],
+  "Score history, and “Still a 9.5?”":
+    ["Historial de notas y “¿Sigue siendo un 9.5?”",
+     "Cada cambio de una nota se guarda y se dibuja como una línea en la pestaña Valoración de canciones y álbumes. Un año después de puntuar algo que sigues escuchando, la web te pregunta si la nota sigue valiendo."],
+  "Settle the gap":
+    ["Resuelve la diferencia",
+     "Desde “Tú vs. tu escucha”, repasa una a una las notas más lejos de cómo escuchas: mantenla, cámbiala o vuelve a escucharla."],
+  "Discography plaques":
+    ["Placas de discografía",
+     "La pestaña Valoración de un artista muestra cuántos de sus álbumes puntuaste. Puntúalos todos y tendrá una placa en la página de valoraciones."],
+  "Critic levels and badges":
+    ["Niveles de crítico e insignias",
+     "Cuanto más puntúas, más alto es tu nivel: Oyente, Reseñista, Crítico, Creador de tendencias, Leyenda. Quince insignias marcan momentos como tu primera obra maestra o una racha de una semana."],
+  "Your scale: how harsh or generous you are":
+    ["Tu escala: lo duro o generoso que eres",
+     "La página de valoraciones muestra cómo usas la escala de 0 a 10, cuántas de tus notas son 9 o más y un consejo cuando la mayoría están en el mismo punto."],
+  "Daily rating goal and streak":
+    ["Meta diaria y racha de valoraciones",
+     "Elige una meta diaria de 5, 10 o 25. Un anillo se llena mientras puntúas, una racha cuenta los días seguidos que la cumples y un aviso por la tarde te avisa si está en peligro."],
+  "Album speed-run":
+    ["Álbum a toda velocidad",
+     "Puntúa un álbum entero en una pantalla: cada canción que escuchas de él con botones del 1 al 10 y un fragmento. La nota del álbum se va llenando sobre la marcha."],
+  "Rate Rush":
+    ["Rate Rush",
+     "Una ronda rápida con tus canciones más escuchadas sin nota: suena un fragmento, tocas un número y llega la siguiente. En las páginas de valoraciones y de juegos."],
+  "Rate the song that's playing":
+    ["Puntúa la canción que suena",
+     "El reproductor tiene una fila del 1 al 10 bajo la canción, para puntuarla mientras suena."],
+  "Agree with your listening":
+    ["De acuerdo con tu escucha",
+     "Bajo una puntuación de escucha: un poco menos, De acuerdo o un poco más. Un toque la convierte en tu nota. En un álbum puntúa todas las canciones que aún no tienen nota."],
+  "One-line reviews":
+    ["Reseñas en una línea",
+     "Añade una opinión corta y un emoji a cualquier nota. Se ve en las páginas de canciones y álbumes, en Puntuados hace poco y en la imagen de la nota del álbum."],
   "The Ratings page keeps your scores and Listening Scores apart":
     ["La p\u00e1gina de valoraciones separa tus notas de las puntuaciones de escucha",
      "Con las puntuaciones de escucha activadas, la p\u00e1gina de valoraciones las mezclaba con tus notas, as\u00ed que su gran veredicto era sobre todo una nota que nunca diste. Ahora arriba se ven las dos juntas: tu media en un anillo s\u00f3lido y la media de escucha en uno discontinuo, cada una con su veredicto. Las barras de valorados se dividen entre lo que puntuaste t\u00fa y lo que solo tiene puntuaci\u00f3n de escucha. Un selector Tuyas / De escucha / Ambas decide qu\u00e9 muestran las tarjetas y las listas, y cada tarjeta de m\u00e1s alta y m\u00e1s baja y cada fila dice qui\u00e9n dio la nota. Un nuevo bloque \u201cT\u00fa vs. tu escucha\u201d muestra cu\u00e1nto se separan de media tus notas de tu escucha, y lo que valoras muy por encima de lo que lo escuchas, y al rev\u00e9s. Tus r\u00e9cords cr\u00edticos siempre usan tus propias notas."],
@@ -4803,6 +4845,16 @@ window.DC_CHANGELOG_I18N['es'] = {
 /* Highlight cards (DC_CL_HIGHLIGHTS in changelog.js), keyed by id. */
 window.DC_CL_HIGHLIGHTS_I18N = window.DC_CL_HIGHLIGHTS_I18N || {};
 window.DC_CL_HIGHLIGHTS_I18N["es"] = {
+  "rating-fun": {
+    title: "Puntuar ahora es más divertido",
+    intro: "Formas más rápidas de puntuar tu música y motivos para volver mañana.",
+    points: [
+      "Rate Rush: una ronda rápida de canciones con fragmentos.",
+      "Puntúa desde el reproductor o ponte de acuerdo con tu escucha.",
+      "Una meta diaria, rachas, niveles, insignias y placas.",
+      "Un resumen semanal y una tarjeta de crítico para compartir.",
+    ],
+  },
   "tv-mode": {
     title: "El reproductor en tu tele",
     intro: "Un modo TV para pantalla grande, una vista girada para el m\u00f3vil y tu m\u00f3vil como mando.",
