@@ -7020,6 +7020,21 @@ const TRANSLATIONS = {
     // Step 13: well-timed nudges
     nt_rt_nudge_no1: "{{title}} by {{artist}} is #1 on your chart this week. Ready to rate it?",
     nt_rt_nudge_thrice: "You've played {{title}} through {{n}} times this week. Ready to rate it?",
+    // Step 14: weekly critic's report
+    rf_rep_title: "Your week in ratings",
+    rf_rep_none: "Nothing rated that week",
+    rf_rep_rated: "rated",
+    rf_rep_rated_one: "rated",
+    rf_rep_split: "{{s}} songs · {{a}} albums",
+    rf_rep_high: "Highest",
+    rf_rep_low: "Harshest",
+    rf_rep_surprise: "Biggest surprise vs your listening",
+    rf_rep_goal: "Goal reached on {{n}} days",
+    rf_rep_streak: "{{n}}-day streak",
+    rf_rep_share: "Share as a picture",
+    rf_rep_open: "Open",
+    rf_rep_promo: "{{n}} scored, {{range}}: your highest, your harshest and your biggest surprise",
+    nt_rt_report: "Your week in ratings is ready: {{n}} scored last week.",
     // ── end rating fun ──
   },
 

@@ -1636,3 +1636,299 @@ _rfFollowers.rate = link => {
     openRatingModal('song', link.key);
   }
 };
+
+// ── Shared: share pictures (weekly report, critic card) ──────────────────
+/* One preview window for the rating pictures, built like the site's other
+   share windows (cert-plaque.js): the card is drawn at full size into a
+   hidden node, the same markup is scaled into the preview, and the picture
+   is made from the hidden node with shCapture (html2canvas). The card
+   markup uses inline styles and fixed colours only (html2canvas can't read
+   color-mix), no letter-spacing on display text, and artwork inlined as
+   data URLs (_rfShArt). */
+let _rfSh = null;   // { title, file, draw(fmt) → html, fmt }
+const RF_SH_FMTS = ['post', 'portrait', 'story'];
+function _rfShEnsure() {
+  if (document.getElementById('rfShareModal')) return;
+  const wrap = document.createElement('div');
+  wrap.innerHTML = `<div class="ig-modal-overlay rf-sh-modal" id="rfShareModal" role="dialog" aria-modal="true" aria-labelledby="rfShareTitle">
+    <div class="dc-modal ig-modal-box">
+      <div class="ig-modal-header">
+        <h3 id="rfShareTitle"></h3>
+        <button class="dc-btn dc-btn-plain dc-btn-icon dc-modal-close ig-modal-close" onclick="rfShareClose()" aria-label="${esc(t('set_close'))}">✕</button>
+      </div>
+      <div class="ig-modal-body">
+        <div class="ig-preview-panel">
+          <div class="ig-preview-label">${esc(t('ig_preview_label'))}</div>
+          <div class="ig-preview-frame" id="rfShFrame"><div class="ig-preview-inner" id="rfShInner"></div></div>
+        </div>
+        <div class="ig-controls-panel">
+          <div class="sh-group">
+            <div class="sh-group-title">${esc(t('ig_format'))}</div>
+            <div class="dc-seg dc-seg-fill sh-seg" id="rfShFmt">${RF_SH_FMTS.map(f => `<button class="sh-seg-btn" data-fmt="${f}" onclick="rfShareFmt('${f}')">${esc(t('sh_fmt_' + f))}</button>`).join('')}</div>
+          </div>
+        </div>
+      </div>
+      <div class="ig-modal-footer">
+        <button class="dc-btn dc-btn-plain" onclick="rfShareClose()">${esc(t('btn_cancel'))}</button>
+        <button class="dc-btn dc-btn-normal" id="rfShCopyBtn" onclick="rfShareCopy()">${esc(t('sh_copy'))}</button>
+        <button class="dc-btn dc-btn-normal ig-share-native-btn" id="rfShShareBtn" onclick="rfShareNative()">${esc(t('sh_share'))}</button>
+        <button class="dc-btn dc-btn-main" id="rfShDownloadBtn" onclick="rfShareDownload()">${esc(t('btn_download_image'))}</button>
+      </div>
+    </div>
+  </div>
+  <div id="rfShareCanvas" class="share-stage"></div>`;
+  while (wrap.firstChild) document.body.appendChild(wrap.firstChild);
+  const m = document.getElementById('rfShareModal');
+  m.addEventListener('click', e => { if (e.target === m) rfShareClose(); });
+  m.addEventListener('keydown', e => { if (e.key === 'Escape') { e.stopPropagation(); rfShareClose(); } });
+}
+function rfShareOpen(opts) {
+  _rfShEnsure();
+  let fmt = 'portrait';
+  try { fmt = localStorage.getItem('dc_rf_sh_fmt') || fmt; } catch (e) {}
+  if (!RF_SH_FMTS.includes(fmt)) fmt = 'portrait';
+  _rfSh = { ...opts, fmt };
+  document.getElementById('rfShareTitle').textContent = opts.title;
+  document.getElementById('rfShareModal').classList.add('open');
+  _rfShRender();
+  setTimeout(() => document.getElementById('rfShDownloadBtn')?.focus(), 40);
+}
+function rfShareClose() {
+  const m = document.getElementById('rfShareModal');
+  if (m) m.classList.remove('open');
+  const c = document.getElementById('rfShareCanvas');
+  if (c) c.innerHTML = '';
+  _rfSh = null;
+}
+function rfShareFmt(f) {
+  if (!_rfSh || !RF_SH_FMTS.includes(f)) return;
+  _rfSh.fmt = f;
+  try { localStorage.setItem('dc_rf_sh_fmt', f); } catch (e) {}
+  _rfShRender();
+}
+function _rfShRender() {
+  if (!_rfSh) return;
+  document.querySelectorAll('#rfShFmt .sh-seg-btn').forEach(b => b.classList.toggle('active', b.dataset.fmt === _rfSh.fmt));
+  const html = _rfSh.draw(_rfSh.fmt);
+  const canvas = document.getElementById('rfShareCanvas'), d = shDims(_rfSh.fmt);
+  canvas.style.width = d.w + 'px'; canvas.style.height = d.h + 'px';
+  canvas.innerHTML = html;
+  shFitPreview('rfShFrame', 'rfShInner', _rfSh.fmt, html);
+  if (typeof shPrepareShare === 'function') shPrepareShare('rfShareCanvas', 'rfShShareBtn', _rfShOpts);
+}
+// Redraw once artwork has arrived
+function rfShareRefresh() { if (_rfSh && document.getElementById('rfShareModal')?.classList.contains('open')) _rfShRender(); }
+function _rfShOpts() { return { format: _rfSh.fmt, quality: 2, fileName: `dankcharts_${_rfSh.file}_${_rfSh.fmt}.png` }; }
+async function rfShareDownload() {
+  if (!_rfSh) return;
+  const btn = document.getElementById('rfShDownloadBtn'), orig = btn.textContent;
+  btn.textContent = '⏳ …'; btn.disabled = true;
+  try {
+    const cvs = await shCapture('rfShareCanvas', _rfSh.fmt, 2);
+    const a = document.createElement('a');
+    a.download = _rfShOpts().fileName;
+    a.href = cvs.toDataURL('image/png');
+    a.click();
+  } catch (e) { console.error('[dankcharts] rating picture failed', e); }
+  btn.textContent = orig; btn.disabled = false;
+}
+async function rfShareCopy() {
+  if (!navigator.clipboard || !navigator.clipboard.write) { rfShareDownload(); return; }
+  const btn = document.getElementById('rfShCopyBtn'), orig = btn.textContent;
+  btn.textContent = '…'; btn.disabled = true;
+  try {
+    const cvs = await shCapture('rfShareCanvas', _rfSh.fmt, 2);
+    const blob = await shCanvasBlob(cvs);
+    await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+    btn.textContent = '✓ ' + t('sh_copied');
+    setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 1800);
+  } catch (e) { btn.textContent = orig; btn.disabled = false; rfShareDownload(); }
+}
+function rfShareNative() { shShareNow('rfShareCanvas', 'rfShShareBtn', _rfShOpts, rfShareDownload); }
+
+// Artwork for a picture, as a data URL (cached for the visit)
+const _rfShArtCache = new Map();
+async function _rfShArt(kind, title, artist) {
+  const id = kind + '|' + title + '|' + artist;
+  if (_rfShArtCache.has(id)) return _rfShArtCache.get(id);
+  let url = null;
+  try {
+    const raw = await _igFetchArtWithFallback(kind === 'album' ? 'albums' : kind === 'artist' ? 'artists' : 'songs',
+      kind === 'album' ? { album: title, artist } : kind === 'artist' ? { name: title } : { title, artist });
+    url = raw ? (await _igToDataUrl(raw)) || null : null;
+  } catch (e) { url = null; }
+  _rfShArtCache.set(id, url);
+  return url;
+}
+
+// Picture parts (inline styles, fixed colours)
+const RF_SH = { bg: '#100e1e', panel: '#1c1932', line: '#34305a', text: '#f1effa', text2: '#b9b5d6', text3: '#8a85ad', accent: '#8d7dff', gold: '#f5c451' };
+function _rfShHex(score) { const b = ratingBand(score); return b ? RT_CARD_BAND_HEX[b.key][0] : RF_SH.text3; }
+function _rfShChip(score, size) {
+  const c = _rfShHex(score), s = size || 30;
+  return `<span style="display:inline-block;min-width:${Math.round(s * 2.6)}px;padding:${Math.round(s * .18)}px ${Math.round(s * .4)}px;border-radius:${Math.round(s * .3)}px;border:3px solid ${c};color:${c};font:800 ${s}px/1.15 ${SH_FONT.mono};text-align:center;background:${c}22;">${ratingFmt(score)}</span>`;
+}
+function _rfShCover(url, label, size) {
+  return url ? `<img src="${url}" alt="" style="width:${size}px;height:${size}px;object-fit:cover;border-radius:${Math.round(size * .12)}px;display:block;flex-shrink:0;">`
+    : `<span style="width:${size}px;height:${size}px;border-radius:${Math.round(size * .12)}px;background:${RF_SH.line};color:${RF_SH.text3};display:flex;align-items:center;justify-content:center;font:800 ${Math.round(size * .3)}px ${SH_FONT.sans};flex-shrink:0;">${esc(initials(label || ''))}</span>`;
+}
+function _rfShFrame(fmt, inner) {
+  const d = shDims(fmt);
+  return `<div style="width:${d.w}px;height:${d.h}px;position:relative;overflow:hidden;background:radial-gradient(120% 70% at 20% 0%, #2a2160 0%, ${RF_SH.bg} 60%);font-family:${SH_FONT.sans};color:${RF_SH.text};">
+    <div style="position:absolute;left:72px;right:72px;top:${shSafeTop(fmt) + 20}px;bottom:${shSafeBottom(fmt) + 90}px;display:flex;flex-direction:column;justify-content:center;gap:${fmt === 'post' ? 26 : 38}px;">${inner}</div>
+    <div style="position:absolute;left:0;right:0;bottom:${shSafeBottom(fmt)}px;display:flex;justify-content:center;">${shBrandLockup({ text: '#ffffff', accent: RF_SH.accent, dark: true }, { size: 30 })}</div>
+  </div>`;
+}
+function _rfShRow(art, kicker, name, sub, right) {
+  return `<div style="display:flex;align-items:center;gap:26px;padding:22px 26px;border-radius:26px;background:${RF_SH.panel};border:2px solid ${RF_SH.line};">
+    ${art}
+    <div style="flex:1;min-width:0;">
+      <div style="font:700 22px ${SH_FONT.mono};color:${RF_SH.text3};text-transform:uppercase;">${esc(kicker)}</div>
+      <div style="font:800 38px/1.15 ${SH_FONT.display};color:${RF_SH.text};overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${esc(name)}</div>
+      <div style="font:500 26px ${SH_FONT.sans};color:${RF_SH.text2};overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${esc(sub)}</div>
+    </div>
+    ${right}
+  </div>`;
+}
+window.rfShareClose = rfShareClose;
+window.rfShareFmt = rfShareFmt;
+window.rfShareDownload = rfShareDownload;
+window.rfShareCopy = rfShareCopy;
+window.rfShareNative = rfShareNative;
+
+// ── Weekly critic's report (9) ───────────────────────────────────────────
+/* Every week (the user's own week start): what you rated last week, your
+   highest and harshest call, and your biggest surprise against your
+   listening. A notification when a new week starts (if last week had any
+   scores), the report itself on the full-screen stage, and a picture to
+   share. Built from the score history (and, for scores from before it
+   existed, when the entry was last edited). */
+function rfWeekStart(offsetWeeks) { return dyShift(playWeekKey(new Date()), -7 * (offsetWeeks || 0)); }
+
+function rfReportData(weekStart) {
+  const end = dyShift(weekStart, 7), inWeek = t => { const d = rfDayOf(t); return d >= weekStart && d < end; };
+  const keys = new Map();   // id → { kind, key }
+  for (const [id, arr] of Object.entries(_ratings.hist || {})) {
+    if (Array.isArray(arr) && arr.some(p => inWeek(p.t))) keys.set(id, { kind: id[0] === 'a' ? 'album' : 'song', key: id.slice(2) });
+  }
+  for (const [k, e] of Object.entries(_ratings.songs)) if (e && e.ts && inWeek(e.ts) && !keys.has('s:' + k)) keys.set('s:' + k, { kind: 'song', key: k });
+  for (const [k, e] of Object.entries(_ratings.albums)) if (e && e.ts && inWeek(e.ts) && !keys.has('a:' + k)) keys.set('a:' + k, { kind: 'album', key: k });
+  const items = [];
+  for (const x of keys.values()) {
+    if (x.kind === 'album' && (!_rfAlbumYours(x.key) || ratingAlbumTrackKeys(x.key).length < 3)) continue;
+    const s = rfOwnScore(x.kind, x.key);
+    if (s == null) continue;
+    const nm = x.kind === 'album' ? { title: x.key.split('|||')[0], artist: x.key.split('|||')[1] || '' } : ratingSongNames(x.key);
+    const lsv = typeof asOn === 'function' && asOn() ? (x.kind === 'album' ? asAlbumLs(x.key) : asSong(x.key)?.score) : null;
+    const e = x.kind === 'album' ? _ratings.albums[x.key] : _ratings.songs[x.key];
+    items.push({ ...x, ...nm, score: s, ls: lsv == null ? null : lsv, line: e && (e.line || '').trim() ? e : null });
+  }
+  if (!items.length) return null;
+  const by = (a, b) => b.score - a.score;
+  const sorted = [...items].sort(by);
+  // The biggest surprise, but not the song already shown as highest / harshest
+  const high = sorted[0], low = sorted.length > 1 ? sorted[sorted.length - 1] : null;
+  const surprise = items.filter(x => x.ls != null && x !== high && x !== low).sort((a, b) => Math.abs(b.score - b.ls) - Math.abs(a.score - a.ls))[0] || null;
+  const hits = Object.keys(_rfHits()).filter(d => d >= weekStart && d < end).length;
+  return {
+    weekStart, end, n: items.length,
+    songs: items.filter(x => x.kind === 'song').length, albums: items.filter(x => x.kind === 'album').length,
+    high, low,
+    surprise: surprise && Math.abs(surprise.score - surprise.ls) >= 1 ? surprise : null,
+    line: items.find(x => x.line) || null,
+    avg: Math.round(items.reduce((a, x) => a + x.score, 0) / items.length * 10) / 10,
+    hits, streak: rfStreak().cur
+  };
+}
+function _rfWeekLabel(ws) {
+  const a = new Date(ws + 'T12:00:00'), b = new Date(dyShift(ws, 6) + 'T12:00:00');
+  return `${fmt(a)} – ${fmt(b)}`;
+}
+
+let _rfRep = null;   // the report on screen
+function rfReportOpen(weekStart) {
+  const ws = weekStart || rfWeekStart(1);
+  const R = rfReportData(ws);
+  _rfRep = R;
+  if (!R) {
+    rfStageOpen(`<div class="rf-end"><div class="rf-end-burst" aria-hidden="true">📰</div><h2 class="rf-end-h">${esc(t('rf_rep_none'))}</h2>
+      <p class="rf-end-sub">${esc(_rfWeekLabel(ws))}</p><div class="rf-end-btns"><button type="button" class="dc-btn dc-btn-main" data-rf-focus onclick="rfStageClose();rfRushOpen()">⚡ ${esc(t('rf_rush_title'))}</button></div></div>`, { label: t('rf_rep_title') });
+    return;
+  }
+  const row = (kicker, x, right, id) => x ? `<div class="rf-rep-row">
+      <span class="rf-rep-art" id="${id}"><span class="thumb-initials">${esc(initials(x.title))}</span></span>
+      <button type="button" class="rf-rep-txt" onclick="rfStageClose();${x.kind === 'album' ? 'openAlbumModal' : 'openSongModal'}(${esc(JSON.stringify(x.key))})"><span class="rf-kicker">${esc(kicker)}</span><b>${esc(x.title)}</b><span>${x.kind === 'album' ? '💿 ' : ''}${esc(x.artist)}</span></button>
+      ${right}
+    </div>` : '';
+  rfStageOpen(`<div class="rf-rep">
+    <div class="rf-rush-top"><span class="rf-kicker">📰 ${esc(t('rf_rep_title'))}</span><span class="rf-rush-count">${esc(_rfWeekLabel(ws))}</span></div>
+    <div class="rf-rep-hero">
+      <span class="rf-rep-big">${R.n.toLocaleString()}</span>
+      <span class="rf-rep-big-l">${esc(t(R.n === 1 ? 'rf_rep_rated_one' : 'rf_rep_rated'))}<span>${esc(t('rf_rep_split', { s: R.songs, a: R.albums }))} · ${esc(t('rf_rush_avg'))} ${ratingChip(R.avg)}</span></span>
+    </div>
+    ${row(t('rf_rep_high'), R.high, ratingChip(R.high.score), 'rfRepA0')}
+    ${row(t('rf_rep_low'), R.low, R.low ? ratingChip(R.low.score) : '', 'rfRepA1')}
+    ${R.surprise ? row(t('rf_rep_surprise'), R.surprise, `<span class="rf-rep-vs">${ratingChip(R.surprise.score)}<i>vs</i>${asChip({ score: R.surprise.ls, state: 'listening' })}</span>`, 'rfRepA2') : ''}
+    ${R.line ? `<p class="rf-rep-line">${rfLineHTML(R.line.line)} <span>— ${esc(R.line.title)}</span></p>` : ''}
+    ${R.hits || R.streak ? `<div class="rf-rep-foot">${R.hits ? `<span>🎯 ${esc(t('rf_rep_goal', { n: R.hits }))}</span>` : ''}${R.streak ? `<span>🔥 ${esc(t('rf_rep_streak', { n: R.streak }))}</span>` : ''}</div>` : ''}
+    <div class="rf-end-btns">
+      <button type="button" class="dc-btn dc-btn-main" data-rf-focus onclick="rfReportShare()">📤 ${esc(t('rf_rep_share'))}</button>
+      <button type="button" class="dc-btn dc-btn-normal" onclick="rfStageClose()">${esc(t('rte_done'))}</button>
+    </div>
+  </div>`, { label: t('rf_rep_title') });
+  [R.high, R.low, R.surprise].forEach((x, i) => { if (x) rfArt(document.getElementById('rfRepA' + i), x.kind, x.title, x.artist, x.kind === 'song' ? rfSongAlbum(x.key) : ''); });
+}
+
+// The picture
+function rfReportShare() {
+  const R = _rfRep;
+  if (!R) return;
+  const art = {};
+  const draw = fmt => {
+    const big = fmt === 'story';
+    const cover = (x, i) => _rfShCover(art[i], x.title, big ? 120 : 104);
+    const rows = [
+      R.high && _rfShRow(cover(R.high, 0), t('rf_rep_high'), R.high.title, R.high.artist, _rfShChip(R.high.score, 34)),
+      R.low && _rfShRow(cover(R.low, 1), t('rf_rep_low'), R.low.title, R.low.artist, _rfShChip(R.low.score, 34)),
+      R.surprise && fmt !== 'post' && _rfShRow(cover(R.surprise, 2), t('rf_rep_surprise'), R.surprise.title, `${t('rf_gap_you')} ${ratingFmt(R.surprise.score)} · ${t('rf_gap_ls')} ${ratingFmt(R.surprise.ls)}`, '')
+    ].filter(Boolean).join('');
+    return _rfShFrame(fmt, `
+      <div style="font:700 26px ${SH_FONT.mono};color:${RF_SH.accent};text-transform:uppercase;">${esc(t('rf_rep_title'))}</div>
+      <div style="font:600 30px ${SH_FONT.sans};color:${RF_SH.text2};margin-top:-14px;">${esc(_rfWeekLabel(R.weekStart))}</div>
+      <div style="display:flex;align-items:baseline;gap:22px;">
+        <span style="font:800 ${big ? 190 : 150}px/0.9 ${SH_FONT.display};color:${RF_SH.text};">${R.n}</span>
+        <span style="font:800 44px/1.1 ${SH_FONT.display};color:${RF_SH.text};">${esc(t(R.n === 1 ? 'rf_rep_rated_one' : 'rf_rep_rated'))}<br><span style="font:500 28px ${SH_FONT.sans};color:${RF_SH.text2};">${esc(t('rf_rep_split', { s: R.songs, a: R.albums }))}</span></span>
+      </div>
+      ${rows}
+      ${R.hits || R.streak ? `<div style="display:flex;gap:40px;font:600 30px ${SH_FONT.sans};color:${RF_SH.text2};">${R.hits ? `<span>🎯 ${esc(t('rf_rep_goal', { n: R.hits }))}</span>` : ''}${R.streak ? `<span>🔥 ${esc(t('rf_rep_streak', { n: R.streak }))}</span>` : ''}</div>` : ''}`);
+  };
+  rfShareOpen({ title: t('rf_rep_title'), file: 'week_in_ratings', draw });
+  [R.high, R.low, R.surprise].forEach((x, i) => { if (x) _rfShArt(x.kind, x.title, x.artist).then(u => { art[i] = u; rfShareRefresh(); }); });
+}
+
+// Monday (the first visit of a new week): tell about last week, once
+function _rfWatchReport() {
+  const f = _rfFun(), cur = rfWeekStart(0);
+  if (f.told.report === cur) return;
+  f.told.report = cur;
+  _rfFunTouch();
+  ratingsPersist(true);
+  const R = rfReportData(rfWeekStart(1));
+  if (!R) return;
+  dcNotify({ kind: 'rt_report', n: R.n, week: R.weekStart, link: { tab: 'rfun', what: 'report', week: R.weekStart } });
+}
+_rfWatchers.push(_rfWatchReport);
+_rfFollowers.report = link => rfReportOpen(link.week);
+
+// The way in on the Ratings page (last week, when it had scores)
+function rfReportPromoHTML() {
+  const R = rfReportData(rfWeekStart(1));
+  if (!R) return '';
+  return `<button type="button" class="rf-promo rf-promo--rep" onclick="rfReportOpen()">
+    <span class="rf-promo-ico" aria-hidden="true">📰</span>
+    <span class="rf-promo-txt"><b>${esc(t('rf_rep_title'))}</b><span>${esc(t('rf_rep_promo', { n: R.n, range: _rfWeekLabel(R.weekStart) }))}</span></span>
+    <span class="rf-promo-go">${esc(t('rf_rep_open'))} ▸</span>
+  </button>`;
+}
+window.rfReportOpen = rfReportOpen;
+window.rfReportShare = rfReportShare;

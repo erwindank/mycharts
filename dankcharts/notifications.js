@@ -107,6 +107,8 @@ const NT_KINDS = {
   rt_streak: { emoji: '🔥', cat: 'ratings', text: p => t('nt_rt_streak', { n: p.n, left: p.left }) },
   // A well-timed "ready to rate it?" (ratefun.js): p.why 'no1' (a song is #1
   // on the weekly chart) or 'thrice' (an album played through p.times times)
+  // Last week's critic's report is ready (ratefun.js): p.n scored, p.week its first day
+  rt_report: { emoji: '📰', cat: 'ratings', text: p => t('nt_rt_report', { n: p.n }) },
   rt_nudge: { emoji: '⭐', cat: 'ratings', text: p => t(p.why === 'no1' ? 'nt_rt_nudge_no1' : 'nt_rt_nudge_thrice', { title: p.title, artist: p.artist, n: p.times }) }
 };
 

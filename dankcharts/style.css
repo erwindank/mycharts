@@ -52516,3 +52516,24 @@ body.rf-stage-on { overflow: hidden; }
 .rf-still-q { display: flex; align-items: center; gap: 8px 12px; flex-wrap: wrap; }
 .rf-still-q > b { font: 800 var(--fs-md) var(--font-display); }
 .rf-still--tab { margin: var(--sp-3) 0; padding: var(--sp-3); border-radius: var(--r-md); border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--border)); background: color-mix(in srgb, var(--accent) 7%, transparent); }
+
+/* Share pictures window, above the rating stage (step 14) */
+.ig-modal-overlay.rf-sh-modal { z-index: 10060; }
+
+/* Weekly critic's report (step 14) */
+.rf-rep-hero { display: flex; align-items: center; gap: var(--sp-4); margin: var(--sp-3) 0 var(--sp-4); }
+.rf-rep-big { font: 800 4rem/0.9 var(--font-display); color: var(--accent); }
+.rf-rep-big-l { display: flex; flex-direction: column; gap: 4px; font: 800 var(--fs-lg) var(--font-display); }
+.rf-rep-big-l > span { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font: 500 var(--fs-sm) var(--font-sans); color: var(--text2); }
+.rf-rep-row { display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-2) var(--sp-3); margin-bottom: 6px; border-radius: var(--r-md); background: color-mix(in srgb, var(--text) 4%, transparent); min-width: 0; }
+.rf-rep-art { position: relative; width: 52px; height: 52px; flex-shrink: 0; border-radius: var(--r-sm); overflow: hidden; background: var(--bg3); }
+.rf-rep-art img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.rf-rep-art .thumb-initials { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--text3); }
+.rf-rep-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; text-align: left; background: none; border: 0; padding: 0; color: var(--text); font: inherit; cursor: pointer; }
+.rf-rep-txt b, .rf-rep-txt > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rf-rep-txt > span:last-child { font-size: var(--fs-xs); color: var(--text3); }
+.rf-rep-vs { display: inline-flex; align-items: center; gap: 6px; }
+.rf-rep-vs i { font-style: normal; font-size: var(--fs-xs); color: var(--text3); }
+.rf-rep-line { margin: var(--sp-3) 0 0; font-size: var(--fs-sm); color: var(--text2); }
+.rf-rep-line .rf-line { display: inline-flex; margin: 0; }
+.rf-rep-foot { display: flex; gap: var(--sp-4); flex-wrap: wrap; justify-content: center; margin-top: var(--sp-4); font-size: var(--fs-sm); color: var(--text2); }
