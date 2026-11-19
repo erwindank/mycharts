@@ -52510,3 +52510,9 @@ body.rf-stage-on { overflow: hidden; }
 .rf-gap-say { margin: 0; color: var(--text2); font-size: var(--fs-sm); max-width: 42ch; }
 .rf-gap-acts { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--sp-2); }
 .rf-gap-move-q { text-align: center; font-weight: 700; margin: 0 0 var(--sp-2); }
+
+/* Re-rates: "Still a 9.5?" (step 12) */
+.rf-still-say { margin: 0 0 var(--sp-2); font-size: var(--fs-sm); color: var(--text2); }
+.rf-still-q { display: flex; align-items: center; gap: 8px 12px; flex-wrap: wrap; }
+.rf-still-q > b { font: 800 var(--fs-md) var(--font-display); }
+.rf-still--tab { margin: var(--sp-3) 0; padding: var(--sp-3); border-radius: var(--r-md); border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--border)); background: color-mix(in srgb, var(--accent) 7%, transparent); }

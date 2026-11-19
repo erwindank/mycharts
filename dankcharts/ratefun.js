@@ -1427,3 +1427,138 @@ window.rfGapMoveCancel = rfGapMoveCancel;
 window.rfGapMove = rfGapMove;
 window.rfGapSkip = rfGapSkip;
 window.rfGapListen = rfGapListen;
+
+// ── Re-rates: "Still a 9.5?" (19) ────────────────────────────────────────
+/* A year after you scored something you still play (RF_STILL_PLAYS plays in
+   the last 30 days), ask whether the score still stands. Yes stamps it
+   (fun.ok, so it isn't asked again for another year); Re-rate opens the
+   rating window, and the change lands in its score history. Shown as a card
+   on the Ratings page and on the item's own Rating tab. */
+const RF_STILL_AGE = 365 * RF_DAY_MS;
+const RF_STILL_RECENT = 30 * RF_DAY_MS;
+const RF_STILL_PLAYS = 3;
+const _rfStillSkip = new Set();
+
+// When the score last changed (or was last confirmed)
+function rfScoredAt(kind, key) {
+  const h = rfHist(kind, key);
+  let at = h.length ? h[h.length - 1].t : 0;
+  if (!at) {
+    if (kind === 'song') at = _ratings.songs[key]?.ts || 0;
+    else {
+      at = _ratings.albums[key]?.ts || 0;
+      for (const tr of ratingAlbumTrackKeys(key)) at = Math.max(at, _ratings.songs[tr.key]?.ts || 0);
+    }
+  }
+  const ok = _rfFun().ok[(kind === 'album' ? 'a:' : 's:') + key] || 0;
+  return Math.max(at, ok);
+}
+
+// Plays in the last 30 days, per song and per album (once per library load)
+let _rfRecent = null;
+function _rfRecentPlays() {
+  if (_rfRecent && _rfRecent.plays === allPlays && _rfRecent.len === allPlays.length) return _rfRecent;
+  const since = Date.now() - RF_STILL_RECENT, songs = new Map(), albums = new Map();
+  for (const p of allPlays) {
+    if (!p.date || +p.date < since) continue;
+    const sk = songKey(p);
+    songs.set(sk, (songs.get(sk) || 0) + 1);
+    if (p.album && p.album !== '—') { const ak = albumKeyOf(p); albums.set(ak, (albums.get(ak) || 0) + 1); }
+  }
+  return _rfRecent = { plays: allPlays, len: allPlays.length, songs, albums };
+}
+
+// Everything due a check, most played lately first
+function rfStillDue() {
+  if (!allPlays || !allPlays.length) return [];
+  const R = _rfRecentPlays(), old = Date.now() - RF_STILL_AGE, out = [];
+  for (const [k, n] of R.songs) {
+    if (n < RF_STILL_PLAYS || _rfStillSkip.has('s:' + k)) continue;
+    const s = ratingSongScore(k);
+    if (s == null) continue;
+    const at = rfScoredAt('song', k);
+    if (at && at < old) out.push({ kind: 'song', key: k, score: s, at, n });
+  }
+  for (const [k, n] of R.albums) {
+    if (n < RF_STILL_PLAYS * 2 || _rfStillSkip.has('a:' + k) || !_rfAlbumYours(k)) continue;
+    const at = rfScoredAt('album', k);
+    if (at && at < old) out.push({ kind: 'album', key: k, score: ratingAlbumScore(k).score, at, n });
+  }
+  return out.sort((a, b) => b.n - a.n);
+}
+function rfStillOf(kind, key) {
+  if (_rfStillSkip.has((kind === 'album' ? 'a:' : 's:') + key)) return null;
+  return rfStillDue().find(x => x.kind === kind && x.key === key) || null;
+}
+
+function _rfStillName(x) {
+  if (x.kind === 'song') return ratingSongNames(x.key);
+  const [title, artist = ''] = x.key.split('|||');
+  return { title, artist };
+}
+function _rfStillBody(x, where) {
+  const nm = _rfStillName(x), k = esc(JSON.stringify(x.key));
+  return `<p class="rf-still-say">${esc(t('rf_still_say', { date: fmt(tzDate(new Date(x.at))), n: x.n }))}</p>
+    <div class="rf-still-q"><b>${esc(t('rf_still_q', { score: ratingFmt(x.score) }))}</b>
+      <span class="rf-agree-btns">
+        <button type="button" class="rf-agree-b is-main" onclick="rfStillYes('${x.kind}', ${k}, '${where}')">✓ ${esc(t('rf_still_yes'))}</button>
+        <button type="button" class="rf-agree-b" onclick="rfStillRerate('${x.kind}', ${k})">${esc(t('rf_still_rerate'))}</button>
+        <button type="button" class="rf-agree-b is-plain" onclick="rfStillSkip('${x.kind}', ${k}, '${where}')">${esc(t('rf_still_later'))}</button>
+      </span></div>`;
+}
+
+// On the item's own Rating tab
+function rfStillHTML(kind, key) {
+  const x = rfStillOf(kind, key);
+  return x ? `<div class="rf-still rf-still--tab">${_rfStillBody(x, 'tab')}</div>` : '';
+}
+
+// The Ratings page card: one at a time
+function rfStillCardHTML() {
+  const due = rfStillDue();
+  if (!due.length) return '';
+  const x = due[0], nm = _rfStillName(x);
+  return `<div class="rf-card rf-still" id="rfStillCard">
+    <div class="rf-card-k">🔁<span>${esc(t('rf_still_title'))}</span><span class="rf-card-n">${due.length}</span></div>
+    <div class="rf-agree-item">
+      <span class="am-art rf-agree-art" id="rfStillArt"><span class="thumb-initials">${esc(initials(nm.title))}</span></span>
+      <button type="button" class="rf-agree-txt" onclick="${x.kind === 'album' ? 'openAlbumModal' : 'openSongModal'}(${esc(JSON.stringify(x.key))})"><b>${esc(nm.title)}</b><span>${x.kind === 'album' ? '💿 ' : ''}${esc(nm.artist)}</span></button>
+      ${ratingChip(x.score)}
+    </div>
+    ${_rfStillBody(x, 'page')}
+  </div>`;
+}
+function rfStillCardFill() {
+  const x = rfStillDue()[0];
+  if (!x) return;
+  const nm = _rfStillName(x);
+  rfArt(document.getElementById('rfStillArt'), x.kind, nm.title, nm.artist, x.kind === 'song' ? rfSongAlbum(x.key) : '');
+}
+function _rfStillRefresh(where, kind, key) {
+  if (where === 'page') {
+    const el = document.getElementById('rfStillCard');
+    if (el) { const html = rfStillCardHTML(); if (html) { el.outerHTML = html; rfStillCardFill(); } else el.remove(); }
+  } else {
+    if (kind === 'song' && typeof renderSongRatingSection === 'function') renderSongRatingSection(key);
+    if (kind === 'album' && typeof renderAlbumRatingSection === 'function') renderAlbumRatingSection(key);
+  }
+}
+function rfStillYes(kind, key, where) {
+  _rfFun().ok[(kind === 'album' ? 'a:' : 's:') + key] = Date.now();
+  _rfFunTouch();
+  ratingsPersist(true);
+  if (typeof dcPlToast === 'function') dcPlToast(t('rf_still_kept'));
+  _rfStillRefresh(where, kind, key);
+}
+function rfStillSkip(kind, key, where) {
+  _rfStillSkip.add((kind === 'album' ? 'a:' : 's:') + key);
+  _rfStillRefresh(where, kind, key);
+}
+function rfStillRerate(kind, key) {
+  // This visit: don't ask again while the window is open
+  _rfStillSkip.add((kind === 'album' ? 'a:' : 's:') + key);
+  openRatingModal(kind, key);
+}
+window.rfStillYes = rfStillYes;
+window.rfStillSkip = rfStillSkip;
+window.rfStillRerate = rfStillRerate;

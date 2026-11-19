@@ -7009,6 +7009,14 @@ const TRANSLATIONS = {
     rf_gap_listen: "Listen",
     rf_gap_end: "All settled",
     rf_gap_end_sub: "{{k}} kept, {{m}} moved",
+    // Step 12: re-rates
+    rf_still_title: "Does it still hold up?",
+    rf_still_say: "You scored it on {{date}}, and you've played it {{n}} times in the last 30 days.",
+    rf_still_q: "Still a {{score}}?",
+    rf_still_yes: "Yes",
+    rf_still_rerate: "Re-rate",
+    rf_still_later: "Not now",
+    rf_still_kept: "Kept. We'll ask again in a year.",
     // ── end rating fun ──
   },
 
