@@ -7035,6 +7035,16 @@ const TRANSLATIONS = {
     rf_rep_open: "Open",
     rf_rep_promo: "{{n}} scored, {{range}}: your highest, your harshest and your biggest surprise",
     nt_rt_report: "Your week in ratings is ready: {{n}} scored last week.",
+    // Step 15: critic profile card
+    rf_card_title: "My critic card",
+    rf_card_desc: "A picture of your taste: your average, how harsh you are, your top three and your hottest take",
+    rf_card_make: "Make it",
+    rf_card_need: "Score a few albums or songs first",
+    rf_card_sub: "{{n}} scored · {{b}} badges",
+    rf_card_top9: "{{p}}% get a 9 or more",
+    rf_card_top_albums: "Top albums",
+    rf_card_top_songs: "Top songs",
+    rf_card_hot: "Hottest take",
     // ── end rating fun ──
   },
 

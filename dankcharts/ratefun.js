@@ -1932,3 +1932,85 @@ function rfReportPromoHTML() {
 }
 window.rfReportOpen = rfReportOpen;
 window.rfReportShare = rfReportShare;
+
+// ── Critic profile card (14) ─────────────────────────────────────────────
+/* A picture of your taste: your average and what kind of critic that makes
+   you (rfScale), your level, your three top albums (songs when you have
+   fewer than three albums), and your hottest take — the score furthest
+   from your listening. Your own scores only. */
+function rfCriticData() {
+  const sum = ratingLibrarySummary('yours');
+  const scale = rfScale(sum);
+  const counts = rfOwnCounts();
+  const level = rfLevel(counts.all);
+  const albums = (sum.yours.albums || []).filter(a => _rfAlbumYours(a.key)).sort((a, b) => b.score - a.score || (b.plays || 0) - (a.plays || 0));
+  const useAlb = albums.length >= 3;
+  const top = (useAlb ? albums : (sum.yours.songs || [])).slice(0, 3).map(x => ({
+    kind: useAlb ? 'album' : 'song', key: x.key, title: x.name || x.title, artist: x.artist, score: x.score }));
+  // Hottest take: every own score against its Listening Score, biggest gap
+  let hot = null;
+  if (typeof asOn === 'function' && asOn()) {
+    const consider = (kind, key, title, artist, own, ls) => {
+      if (ls == null) return;
+      const d = Math.abs(own - ls);
+      if (d >= 2 && (!hot || d > hot.d)) hot = { kind, key, title, artist, own, ls, d };
+    };
+    for (const a of albums) consider('album', a.key, a.name, a.artist, a.score, asAlbumLs(a.key));
+    for (const s of (sum.yours.songs || [])) consider('song', s.key, s.title, s.artist, s.score, asSong(s.key)?.score);
+  }
+  if (!scale && !top.length) return null;
+  return { scale, level, n: counts.all, top, topKind: useAlb ? 'albums' : 'songs', hot, streak: rfStreak().best,
+    badges: RF_BADGES.filter(b => _rfFun().badges[b.id]).length };
+}
+
+function rfCriticPromoHTML() {
+  return `<button type="button" class="rf-promo rf-promo--card" onclick="rfCriticOpen()">
+    <span class="rf-promo-ico" aria-hidden="true">🪪</span>
+    <span class="rf-promo-txt"><b>${esc(t('rf_card_title'))}</b><span>${esc(t('rf_card_desc'))}</span></span>
+    <span class="rf-promo-go">${esc(t('rf_card_make'))} ▸</span>
+  </button>`;
+}
+
+function rfCriticOpen() {
+  const C = rfCriticData();
+  if (!C) { if (typeof dcPlToast === 'function') dcPlToast(t('rf_card_need')); return; }
+  const art = {};
+  const draw = fmt => {
+    const big = fmt === 'story', post = fmt === 'post';
+    const sc = C.scale;
+    const avg = sc ? sc.mean : null;
+    const tops = C.top.map((x, i) => `<div style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:14px;">
+        ${_rfShCover(art['t' + i], x.title, post ? 210 : 250)}
+        ${_rfShChip(x.score, 32)}
+        <div style="width:100%;text-align:center;font:800 28px/1.15 ${SH_FONT.display};color:${RF_SH.text};overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${esc(x.title)}</div>
+      </div>`).join('');
+    const meter = sc ? `<div style="position:relative;height:22px;margin:6px 11px 0;">
+        <div style="position:absolute;left:-11px;right:-11px;top:5px;height:12px;border-radius:12px;background:linear-gradient(90deg,${RT_CARD_BAND_HEX.poor[0]},${RT_CARD_BAND_HEX.mixed[0]},${RT_CARD_BAND_HEX.masterpiece[0]});"></div>
+        <div style="position:absolute;top:-4px;left:${(sc.pos * 100).toFixed(1)}%;margin-left:-15px;width:30px;height:30px;border-radius:50%;background:${RF_SH.bg};border:6px solid #ffffff;"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font:600 24px ${SH_FONT.sans};color:${RF_SH.text3};margin-top:10px;"><span>${esc(t('rf_scale_harsh'))}</span><span>${esc(t('rf_scale_generous'))}</span></div>` : '';
+    const hot = C.hot && !post ? _rfShRow(_rfShCover(art.hot, C.hot.title, big ? 112 : 96), t('rf_card_hot'), C.hot.title,
+      `${t('rf_gap_you')} ${ratingFmt(C.hot.own)} · ${t('rf_gap_ls')} ${ratingFmt(C.hot.ls)}`, _rfShChip(C.hot.own, 30)) : '';
+    return _rfShFrame(fmt, `
+      <div style="display:flex;justify-content:space-between;align-items:baseline;">
+        <span style="font:700 26px ${SH_FONT.mono};color:${RF_SH.accent};text-transform:uppercase;">${esc(t('rf_card_title'))}</span>
+        <span style="font:800 30px ${SH_FONT.display};color:${RF_SH.gold};">${esc(t('rf_lv_' + C.level.key))}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:34px;">
+        ${avg != null ? `<span style="font:800 ${big ? 170 : 140}px/0.9 ${SH_FONT.display};color:${_rfShHex(avg)};">${ratingFmt(avg)}</span>` : ''}
+        <div style="display:flex;flex-direction:column;gap:8px;min-width:0;">
+          <span style="font:800 52px/1.05 ${SH_FONT.display};color:${RF_SH.text};">${esc(sc ? t('rf_scale_t_' + sc.type) : t('rf_lv_' + C.level.key))}</span>
+          <span style="font:500 28px ${SH_FONT.sans};color:${RF_SH.text2};">${esc(t('rf_card_sub', { n: C.n.toLocaleString(), b: C.badges }))}</span>
+          ${sc ? `<span style="font:500 28px ${SH_FONT.sans};color:${RF_SH.text2};">${esc(t('rf_card_top9', { p: sc.top9 }))}</span>` : ''}
+        </div>
+      </div>
+      ${meter}
+      ${tops ? `<div style="font:700 24px ${SH_FONT.mono};color:${RF_SH.text3};text-transform:uppercase;">${esc(t(C.topKind === 'albums' ? 'rf_card_top_albums' : 'rf_card_top_songs'))}</div>
+      <div style="display:flex;gap:28px;">${tops}</div>` : ''}
+      ${hot}`);
+  };
+  rfShareOpen({ title: t('rf_card_title'), file: 'critic_card', draw });
+  C.top.forEach((x, i) => _rfShArt(x.kind, x.title, x.artist).then(u => { art['t' + i] = u; rfShareRefresh(); }));
+  if (C.hot) _rfShArt(C.hot.kind, C.hot.title, C.hot.artist).then(u => { art.hot = u; rfShareRefresh(); });
+}
+window.rfCriticOpen = rfCriticOpen;
