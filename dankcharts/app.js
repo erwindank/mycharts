@@ -39023,6 +39023,61 @@ function _ytInitTv() {
   }, 1000);
 }
 
+// ── "Show on TV" (TV-PLAN.md step 5) ───────────────────────────────────
+// The TV mode card in Tools opens this panel: a big Start TV mode button,
+// then plain steps for each way of getting the player on a TV. The kind of
+// device in hand goes first, marked "This device". Nothing is cast by the
+// site itself (YouTube hides its Cast button in embeds) — these are the
+// device's own ways: tab casting, screen casting, AirPlay mirroring, or the
+// TV's browser on dankcharts.fm/?tv=1.
+const _YT_TV_LINK = 'https://dankcharts.fm/?tv=1';
+function _ytTvDeviceKind() {
+  const ua = navigator.userAgent || '';
+  // Smart-TV browsers first (their names often include "Chrome" or "Android" too)
+  if (/SMART-TV|SmartTV|Tizen|Web0S|webOS|NetCast|BRAVIA|HbbTV|GoogleTV|Android TV|AFT[A-Z]|CrKey|Roku|VIDAA/i.test(ua)) return 'tv';
+  if (/Android/i.test(ua)) return 'android';
+  const ios = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+  if (ios) return 'apple';
+  if (window.chrome || /Chrome\/|Edg\//.test(ua)) return 'chrome';   // Chrome, Edge (and other Chromium browsers) can cast a tab
+  if (/Macintosh/.test(ua)) return 'apple';                // Safari on a Mac: AirPlay
+  return 'tv';
+}
+function _ytRenderTvHelp() {
+  const el = document.getElementById('ytTvPanel');
+  if (!el) return;
+  const mine = _ytTvDeviceKind();
+  const ways = [
+    ['chrome',  'M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0zM12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM12 8h8.5M8.5 14L4.3 6.7M15.5 14l-4.2 7'],
+    ['android', 'M7 2h10a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zM12 18h.01'],
+    ['apple',   'M5 17H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-1M12 15l5 6H7z'],
+    ['tv',      'M4 5h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2zM8 21h8M12 18v3'],
+  ].sort((a, b) => (b[0] === mine) - (a[0] === mine));
+  const ic = d => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"/></svg>`;
+  el.innerHTML =
+    `<button type="button" class="ytp-tvhow-start" onclick="_ytToggleTv(true)">` +
+      `<span class="ytp-tvhow-start-ic">${ic('M4 5h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2zM8 21h8M12 18v3')}</span>` +
+      `<span><b>${esc(t('yt_np_tvh_start'))}</b><small>${esc(t('yt_np_tvh_start_d'))}</small></span></button>` +
+    `<div class="ytp-tvhow-h">${esc(t('yt_np_tvh_how'))}</div>` +
+    ways.map(([k, d]) =>
+      `<div class="ytp-tvhow-way${k === mine ? ' mine' : ''}">` +
+        `<span class="ytp-tvhow-ic">${ic(d)}</span>` +
+        `<div class="ytp-tvhow-txt"><b>${esc(t('yt_np_tvh_' + k))}${k === mine ? `<em>${esc(t('yt_np_tvh_this'))}</em>` : ''}</b>` +
+        `<p>${esc(t('yt_np_tvh_' + k + '_d'))}</p>` +
+        (k === 'tv' ? `<div class="ytp-tvhow-link"><code>dankcharts.fm/?tv=1</code><button type="button" onclick="_ytTvCopyLink()">${esc(t('yt_np_tvh_copy'))}</button></div>` : '') +
+        `</div></div>`).join('') +
+    `<p class="ytp-tvhow-note">${esc(t('yt_np_tvh_remote'))}</p>`;
+}
+function _ytToggleTvHelp() {
+  const el = document.getElementById('ytTvPanel');
+  if (!el) return;
+  _ytRenderTvHelp();
+  el.style.display = 'block';
+}
+function _ytTvCopyLink() {
+  const done = () => { if (typeof dcPlToast === 'function') dcPlToast(t('yt_np_tvh_copied')); };
+  try { navigator.clipboard.writeText(_YT_TV_LINK).then(done, () => {}); } catch (e) {}
+}
+
 // ── Phone player (PLAYER-PLAN.md step 11) ───────────────────────────────
 // At phone width (≤ 760 px) the open card fills the screen: big cover, big
 // buttons, and Up Next / Lyrics / History / Tools as named buttons along the
@@ -39306,6 +39361,7 @@ function _ytApplyI18n() {
    '_ytUpdateLoveBtn', '_ytUpdateQueueDisplay', '_ytUpdateScrobbleNote', '_ytToolsRefresh', '_ytBarSync'].forEach(fn => { try { if (typeof window[fn] === 'function') window[fn](); } catch (e) {} });
   try { _ytSetVideoSource(_ytVideoSourceKind); } catch (e) {}
   if (card && card.dataset.tab === 'history') try { _ytRenderHistory(); } catch (e) {}
+  if (card && card.dataset.tool === 'tv') try { _ytRenderTvHelp(); } catch (e) {}
   try { if (_ytLyricsData) _ytRenderLyrics(); } catch (e) {}
   if (card && card.dataset.tab) { const st = document.getElementById('ytSheetTitle'); if (st) st.textContent = t('yt_np_tab_' + card.dataset.tab); }
   if (_ytCurrentTrack) try { _ytUpdateChartStory(_ytCurrentTrack.title, _ytCurrentTrack.artist); } catch (e) {}
@@ -42778,8 +42834,8 @@ async function _ytShare() {
 // (search, sleep, playlists, keys); empty = the grid of tool cards.
 // The old toggle functions (_ytToggleLyrics, _ytToggleSleep, …) are kept and
 // wrapped below, so the keys and every older caller open the right tab.
-const _YT_TOOL_PANELS = { search: ['ytMiniSearchBox', 'ytSearchResults'], sleep: ['ytSleepPanel'], playlists: ['ytPlaylistsPanel'], keys: ['ytShortcutsPanel'] };
-const _YT_TOOL_NAMES  = { search: 'yt_np_tool_search', sleep: 'yt_np_sleep', playlists: 'yt_np_tool_lists', keys: 'yt_np_tool_keys' };   // translation keys
+const _YT_TOOL_PANELS = { search: ['ytMiniSearchBox', 'ytSearchResults'], sleep: ['ytSleepPanel'], playlists: ['ytPlaylistsPanel'], keys: ['ytShortcutsPanel'], tv: ['ytTvPanel'] };
+const _YT_TOOL_NAMES  = { search: 'yt_np_tool_search', sleep: 'yt_np_sleep', playlists: 'yt_np_tool_lists', keys: 'yt_np_tool_keys', tv: 'yt_np_tool_tv' };   // translation keys
 function _ytShowTab(tab, tool) {
   const player = document.getElementById('ytMiniPlayer');
   if (!player) return;
@@ -42841,7 +42897,7 @@ function _ytRenderTools() {
     ['share',   t('yt_np_tool_share'), t('yt_np_tool_share_d'), t('yt_np_val_copy'), 'M4 12v8h16v-8M16 6l-4-4-4 4M12 2v13', '_ytShare()'],
     ['pip',     t('yt_np_pip'), t('yt_np_tool_pip_d'), t(_ytPipWindow ? 'yt_np_on' : 'yt_np_off'), 'M3 4h18v14H3zM13 11h7v6h-7z', '_ytTogglePiP().then(_ytRenderTools)'],
     ['youtube', t('yt_np_tool_youtube'), t('yt_np_tool_youtube_d'), t('yt_np_val_newtab'), 'M2 6h20v12H2zM10 9l5 3-5 3z', '_ytOpenInYT()'],
-    ['tv',      t('yt_np_tool_tv'), t('yt_np_tool_tv_d'), t(_ytInTv() ? 'yt_np_on' : 'yt_np_off'), 'M4 5h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2zM8 21h8M12 18v3', '_ytToggleTv(true)'],
+    ['tv',      t('yt_np_tool_tv'), t('yt_np_tool_tv_d'), t('yt_np_tvh_val'), 'M4 5h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2zM8 21h8M12 18v3', '_ytToggleTvHelp()'],
     ['wake',    t('yt_np_tool_wake'), t('yt_np_tool_wake_d'), !_ytWakeSupported() ? t('yt_np_val_nothere') : t(_ytWakeOn ? 'yt_np_on' : 'yt_np_off'), 'M7 2h10a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zM12 18h.01', '_ytToggleWake()'],
     ['keys',    t('yt_np_tool_keys'), t('yt_np_tool_keys_d'), t('yt_np_val_list'), 'M2 6h20v12H2zM6 10h.01M10 10h.01M14 10h.01M18 10h.01M8 14h8', '_ytToggleShortcuts()'],
     ['tour',    t('yt_np_tool_tour'), t('yt_np_tool_tour_d'), t('yt_np_val_stops', { n: _YT_TOUR.length }), 'M12 2l3 7 7 .6-5.3 4.6L18.4 22 12 18l-6.4 4 1.7-7.8L2 9.6 9 9z', '_ytStartTour()'],
@@ -42887,6 +42943,7 @@ function _ytInitTabs() {
   wrapTool('_ytToggleSleep', 'sleep');
   wrapTool('_ytTogglePlaylists', 'playlists');
   wrapTool('_ytToggleShortcuts', 'keys');
+  wrapTool('_ytToggleTvHelp', 'tv');   // TV-PLAN.md step 5
   const wrapTab = (fnName, tab) => {
     if (typeof window[fnName] !== 'function') return;
     window[fnName] = function () {

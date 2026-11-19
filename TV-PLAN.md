@@ -4,7 +4,7 @@ The Now Playing player (`#ytMiniPlayer`) works well upright on phones and as a
 card or Stage on big screens. Two things are missing: a good **sideways**
 layout, and a way to enjoy it **on a TV**.
 
-**Status: in progress** — steps 1–4 done 2026-11-18. This round = steps 1–8
+**Status: in progress** — steps 1–5 done 2026-11-18 (1–4 pushed). This round = steps 1–8
 and step 10. Step 9 (Play queue on YouTube) is saved for later.
 
 Decisions so far (2026-11-18):
@@ -102,12 +102,16 @@ Decisions so far (2026-11-18):
   Session) within 400 ms is skipped (_ytMediaDup). Drift = 12-minute loop
   on the TV layer (CSS has no "min" unit — use seconds). Check: C:/tmp/tv4.mjs.
 
-### Step 5. "Show on TV" card
+### Step 5. "Show on TV" card — DONE 2026-11-18
 - Tools card that explains, per device, in plain steps:
   - Chrome (computer or Android): ⋮ → Cast… → pick the TV → then TV mode.
   - Smart TV browser: open `dankcharts.fm/?tv=1`.
   - iPhone / Mac: Screen Mirroring to Apple TV.
 - One button to start TV mode right away.
+- Built as: the TV mode card in Tools opens tool panel 'tv' (#ytTvPanel,
+  _ytRenderTvHelp): Start TV mode button + 4 ways (Chrome/Edge, Android,
+  Apple, TV browser with Copy link). _ytTvDeviceKind puts this device first
+  (smart-TV browsers checked before Android/Chrome). Check: C:/tmp/tv5.mjs.
 
 ## Part C — Phone as remote
 
