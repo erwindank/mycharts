@@ -38654,6 +38654,7 @@ function _ytToggleStage(force) {
     if (p.dataset.tab === 'next') _ytShowTab('lyrics');
     if (btn) btn.title = t('yt_np_t_back_small');
   } else {
+    if (_ytInTv()) _ytTvTeardown();   // TV mode lives on top of Stage (TV-PLAN.md step 3)
     if (document.fullscreenElement) { try { document.exitFullscreen(); } catch (e) {} }
     p.classList.remove('ytp-stage');
     document.body.classList.remove('ytp-stage-open');
@@ -38736,6 +38737,182 @@ function _ytInitStage() {
   });
   const open = window.openYtPlayer;
   if (typeof open === 'function') window.openYtPlayer = function () { const r = open.apply(this, arguments); _ytMaybeTurnHint(); return r; };
+}
+
+// ── TV mode (TV-PLAN.md step 3) ─────────────────────────────────────────
+// A big-screen view for a TV: a cast Chrome tab, a smart-TV browser or any
+// big window. It sits on top of Stage (same card, so the video never
+// reloads) and adds .ytp-tv plus a layer of its own (#ytTvLayer):
+//   cover — big cover, song, artist, chart story, karaoke lyrics (the line
+//           being sung big, the lines around it small), Up Next strip
+//   video — the video fills the screen, lyrics show like subtitles at the
+//           bottom; the song name shows only while the controls do
+// Controls and the header fade out after a few seconds of playing and come
+// back on any key, click, touch or mouse move. The screen is kept on.
+// Ways in: Tools card, the TV button in Stage, dankcharts.fm/?tv=1.
+// Esc / the TV button go back to how the player was before.
+let _ytTvOn = false;
+let _ytTvStageBefore = false;   // was Stage already on? then leaving TV stays in Stage
+let _ytTvIv = null;             // lyrics / subtitles timer
+let _ytTvAwakeT = null;         // controls fade-out timer
+let _ytTvLyrIdx = -9;           // line shown last
+function _ytInTv() { return _ytTvOn; }
+function _ytToggleTv(force) {
+  const p = document.getElementById('ytMiniPlayer');
+  if (!p || p.style.display === 'none') return;
+  const on = force === undefined ? !_ytTvOn : !!force;
+  if (on === _ytTvOn) return;
+  if (on) {
+    if (_ytTouring) _ytEndTour();
+    _ytTvStageBefore = _ytInStage();
+    if (!_ytTvStageBefore) _ytToggleStage(true);
+    _ytTvOn = true;
+    p.classList.add('ytp-tv');
+    document.body.classList.add('ytp-tv-open');
+    _ytTvFill();
+    _ytFetchLyrics();
+    _ytTvLyrIdx = -9;
+    clearInterval(_ytTvIv); _ytTvIv = setInterval(_ytTvTick, 250);
+    _ytTvPoke();
+    _ytTvBtnSync();
+    _ytWakeSync();
+    _ytToolsRefresh();
+  } else {
+    _ytTvTeardown();
+    if (!_ytTvStageBefore) _ytToggleStage(false);
+  }
+}
+// Everything TV mode turned on, off again (also used when Stage is left by G / close)
+function _ytTvTeardown() {
+  const p = document.getElementById('ytMiniPlayer');
+  _ytTvOn = false;
+  clearInterval(_ytTvIv); _ytTvIv = null;
+  clearTimeout(_ytTvAwakeT); _ytTvAwakeT = null;
+  if (p) p.classList.remove('ytp-tv', 'ytp-tv-awake');
+  document.body.classList.remove('ytp-tv-open');
+  _ytTvBtnSync();
+  _ytWakeSync();
+  _ytToolsRefresh();
+}
+function _ytTvBtnSync() {
+  const b = document.getElementById('ytTvBtn');
+  if (b) { b.title = t(_ytTvOn ? 'yt_np_tv_leave' : 'yt_np_tv'); b.setAttribute('aria-pressed', String(_ytTvOn)); }
+}
+// Show the controls; hide them again after 4 s while the music plays
+function _ytTvPoke() {
+  const p = document.getElementById('ytMiniPlayer');
+  if (!p || !_ytTvOn) return;
+  p.classList.add('ytp-tv-awake');
+  clearTimeout(_ytTvAwakeT);
+  _ytTvAwakeT = setTimeout(function hide() {
+    if (!_ytTvOn) return;
+    // Paused: keep the controls up, check again later
+    if (!p.classList.contains('yt-is-playing')) { _ytTvAwakeT = setTimeout(hide, 4000); return; }
+    p.classList.remove('ytp-tv-awake');
+  }, 4000);
+}
+['mousemove', 'pointerdown', 'keydown', 'touchstart', 'wheel'].forEach(ev =>
+  document.addEventListener(ev, () => { if (_ytTvOn) _ytTvPoke(); }, { passive: true, capture: true }));
+
+// Song, artist, cover, chart story and Up Next into the TV layer
+function _ytTvFill() {
+  if (!_ytTvOn) return;
+  const tr = _ytCurrentTrack || {};
+  const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v || ''; };
+  set('ytTvTitle', tr.title);
+  set('ytTvArtist', tr.artist);
+  set('ytTvInit', (tr.artist || tr.title || '').split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase());
+  _ytTvCover();
+  // The chart story tiles, copied from the card (same numbers, bigger)
+  const story = document.getElementById('ytChartStory'), tvs = document.getElementById('ytTvStory');
+  if (tvs) tvs.innerHTML = story && story.style.display !== 'none' ? story.innerHTML : '';
+  _ytTvNext();
+}
+function _ytTvCover() {
+  const img = document.getElementById('ytTvCover');
+  if (!img) return;
+  const p = document.getElementById('ytMiniPlayer');
+  if (_ytArtUrl) { img.src = _ytArtUrl; if (p) p.classList.add('ytp-tv-has-cover'); }
+  else { img.removeAttribute('src'); if (p) p.classList.remove('ytp-tv-has-cover'); }
+}
+// The next four songs, with their covers
+let _ytTvNextToken = 0;
+function _ytTvNext() {
+  const el = document.getElementById('ytTvNext');
+  if (!el) return;
+  const list = (_ytQueue || []).slice(0, 4);
+  if (!list.length) { el.innerHTML = ''; el.style.display = 'none'; return; }
+  el.style.display = '';
+  const token = ++_ytTvNextToken;
+  el.innerHTML = `<span class="ytp-tv-next-h">${esc(t('yt_np_tv_next'))}</span>` + list.map((q, i) =>
+    `<span class="ytp-tv-next-item"><span class="ytp-tv-next-art" data-i="${i}"></span>` +
+    `<span class="ytp-tv-next-txt"><b>${esc(q.title || '')}</b><small>${esc(q.artist || '')}</small></span></span>`).join('');
+  list.forEach(async (q, i) => {
+    let url = '';
+    try { url = (q.album ? await getArtAuto('album', q.album, q.artist, q.album) : '') || await getArtAuto('song', q.title, q.artist) || ''; } catch (e) {}
+    if (!url || token !== _ytTvNextToken) return;
+    const box = el.querySelector(`.ytp-tv-next-art[data-i="${i}"]`);
+    if (box) box.innerHTML = `<img src="${esc(url)}" alt="">`;
+  });
+}
+// Lyrics: the line being sung (and the ones around it). Cover = karaoke,
+// video = subtitles. Only timed (synced) lyrics can follow the song.
+function _ytTvTick() {
+  if (!_ytTvOn) return;
+  const kar = document.getElementById('ytTvLyrics'), subs = document.getElementById('ytTvSubs');
+  const data = _ytLyricsData;
+  const mine = data && _ytCurrentTrack && _ytLyricsKey === _ytCurrentTrack.artist + '|||' + _ytCurrentTrack.title;
+  if (!mine || data.kind !== 'synced') {
+    if (_ytTvLyrIdx !== -1) { _ytTvLyrIdx = -1; if (kar) kar.innerHTML = ''; if (subs) subs.innerHTML = ''; }
+    return;
+  }
+  let cur = 0;
+  try { cur = (_ytPlayer && _ytPlayer.getCurrentTime ? _ytPlayer.getCurrentTime() : 0) - (_ytLyricsOffset[_ytLyricsKey] || 0); } catch (e) { return; }
+  let idx = -1;
+  for (let i = 0; i < data.lines.length; i++) { if (data.lines[i].t <= cur + 0.15) idx = i; else break; }
+  if (idx === _ytTvLyrIdx) return;
+  _ytTvLyrIdx = idx;
+  const line = i => { const l = data.lines[i]; return l ? (l.text || '♪') : ''; };
+  if (kar) kar.innerHTML =
+    `<div class="ytp-tv-lyr prev">${esc(idx > 0 ? line(idx - 1) : '')}</div>` +
+    `<div class="ytp-tv-lyr now">${esc(idx >= 0 ? line(idx) : '♪')}</div>` +
+    `<div class="ytp-tv-lyr next">${esc(line(idx + 1))}</div>`;
+  // Subtitles: the line being sung, the next one small under it. Nothing during gaps.
+  const now = idx >= 0 ? (data.lines[idx].text || '') : '';
+  const nxt = line(idx + 1);
+  if (subs) subs.innerHTML = now
+    ? `<span class="ytp-tv-sub now">${esc(now)}</span>` + (nxt && nxt !== '♪' ? `<span class="ytp-tv-sub next">${esc(nxt)}</span>` : '')
+    : '';
+}
+// Keep the layer in step with the player: new song, cover, story, queue, lyrics
+function _ytInitTv() {
+  const after = (fn, then) => {
+    const orig = window[fn];
+    if (typeof orig !== 'function') return;
+    window[fn] = function () { const r = orig.apply(this, arguments); if (_ytTvOn) { try { then.apply(this, arguments); } catch (e) {} } return r; };
+  };
+  after('_ytUpdateArt', () => { _ytTvLyrIdx = -9; setTimeout(() => { _ytTvFill(); _ytFetchLyrics(); }, 0); });
+  after('_ytShowArt', _ytTvCover);
+  after('_ytUpdateChartStory', () => setTimeout(_ytTvFill, 0));
+  after('_ytUpdateQueueDisplay', _ytTvNext);
+  after('_ytRenderLyrics', () => { _ytTvLyrIdx = -9; _ytTvTick(); });
+  // Shrinking to the bar leaves TV mode (and Stage) first
+  const bar = window._ytSetBar;
+  if (typeof bar === 'function') window._ytSetBar = function (on) { if (on && _ytTvOn) _ytToggleTv(false); return bar.apply(this, arguments); };
+  // dankcharts.fm/?tv=1 — straight into TV mode once the library is loaded:
+  // your top song of the week starts (like the guide's player lesson)
+  let want = false;
+  try { want = new URLSearchParams(location.search).get('tv') === '1'; } catch (e) {}
+  if (!want) return;
+  let tries = 0;
+  const iv = setInterval(() => {
+    tries++;
+    const p = document.getElementById('ytMiniPlayer');
+    const ready = typeof allPlays !== 'undefined' && allPlays && allPlays.length;
+    if (p && p.style.display !== 'none') { clearInterval(iv); _ytToggleTv(true); return; }
+    if (ready) { _ytGuideOpen(); return; }   // the next round finds the player open
+    if (tries > 120) clearInterval(iv);      // two minutes without a library: give up quietly
+  }, 1000);
 }
 
 // ── Phone player (PLAYER-PLAN.md step 11) ───────────────────────────────
@@ -38965,7 +39142,7 @@ let _ytWakeLock = null;
 function _ytWakeSupported() { return !!(navigator.wakeLock && navigator.wakeLock.request); }
 async function _ytWakeSync() {
   const card = document.getElementById('ytMiniPlayer');
-  const want = _ytWakeOn && _ytWakeSupported() && !document.hidden && card && card.style.display !== 'none' && card.classList.contains('yt-is-playing');
+  const want = (_ytWakeOn || _ytInTv()) && _ytWakeSupported() && !document.hidden && card && card.style.display !== 'none' && card.classList.contains('yt-is-playing');
   try {
     if (want && !_ytWakeLock) {
       _ytWakeLock = await navigator.wakeLock.request('screen');
@@ -40439,7 +40616,7 @@ document.addEventListener('keydown', e => {
   else if (key === 's' || key === 'S') { e.preventDefault(); _ytCycleSpeed(); }
   else if (key === '?')                { e.preventDefault(); _ytTouring ? _ytEndTour() : _ytStartTour(); }
   else if (key === 'g' || key === 'G') { e.preventDefault(); _ytToggleStage(); }
-  else if (key === 'Escape')           { e.preventDefault(); if (_ytTouring) _ytEndTour(); else if (_ytInStage()) _ytToggleStage(false); else closeYtPlayer(); }
+  else if (key === 'Escape')           { e.preventDefault(); if (_ytTouring) _ytEndTour(); else if (_ytInTv()) _ytToggleTv(false); else if (_ytInStage()) _ytToggleStage(false); else closeYtPlayer(); }
 });
 
 // Scroll wheel on mini player changes volume (but not when scrolling the queue list)
@@ -40464,6 +40641,7 @@ _ytInitTabs();                       // step 6: tabs + the old toggles routed th
 _ytInitLove();                       // step 8: heart follows Favorites, also after a sync
 _ytInitBar();                        // step 9: the Bar follows closing
 _ytInitStage();                      // step 10: Stage mode
+_ytInitTv();                         // TV-PLAN.md step 3: TV mode
 _ytInitPhone();                      // step 11: phone player
 setTimeout(_ytInitI18n, 0);          // step 14: the player in every language (after the whole file has run: it reads settings declared further down)
 _ytLoadPlaylists();
@@ -42547,6 +42725,7 @@ function _ytRenderTools() {
     ['share',   t('yt_np_tool_share'), t('yt_np_tool_share_d'), t('yt_np_val_copy'), 'M4 12v8h16v-8M16 6l-4-4-4 4M12 2v13', '_ytShare()'],
     ['pip',     t('yt_np_pip'), t('yt_np_tool_pip_d'), t(_ytPipWindow ? 'yt_np_on' : 'yt_np_off'), 'M3 4h18v14H3zM13 11h7v6h-7z', '_ytTogglePiP().then(_ytRenderTools)'],
     ['youtube', t('yt_np_tool_youtube'), t('yt_np_tool_youtube_d'), t('yt_np_val_newtab'), 'M2 6h20v12H2zM10 9l5 3-5 3z', '_ytOpenInYT()'],
+    ['tv',      t('yt_np_tool_tv'), t('yt_np_tool_tv_d'), t(_ytInTv() ? 'yt_np_on' : 'yt_np_off'), 'M4 5h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2zM8 21h8M12 18v3', '_ytToggleTv(true)'],
     ['wake',    t('yt_np_tool_wake'), t('yt_np_tool_wake_d'), !_ytWakeSupported() ? t('yt_np_val_nothere') : t(_ytWakeOn ? 'yt_np_on' : 'yt_np_off'), 'M7 2h10a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zM12 18h.01', '_ytToggleWake()'],
     ['keys',    t('yt_np_tool_keys'), t('yt_np_tool_keys_d'), t('yt_np_val_list'), 'M2 6h20v12H2zM6 10h.01M10 10h.01M14 10h.01M18 10h.01M8 14h8', '_ytToggleShortcuts()'],
     ['tour',    t('yt_np_tool_tour'), t('yt_np_tool_tour_d'), t('yt_np_val_stops', { n: _YT_TOUR.length }), 'M12 2l3 7 7 .6-5.3 4.6L18.4 22 12 18l-6.4 4 1.7-7.8L2 9.6 9 9z', '_ytStartTour()'],

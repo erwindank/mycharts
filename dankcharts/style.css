@@ -25179,6 +25179,160 @@ body.ytp-stage-open { overflow: hidden; }
   .yt-mini-player.ytp-is-full:not(.ytp-stage) #ytFullBtn { color: var(--accent); }
 }
 
+/* ── TV-PLAN.md step 3: TV mode ──
+   On top of Stage (.ytp-stage.ytp-tv): the card fills the screen and is
+   always dark, whatever the theme — a TV room is dark and white text on the
+   cover's colours reads from across the room. Sizes follow the screen height
+   (vh) so it looks the same on a 720p and a 4K TV.
+   Cover mode: big cover left, song / artist / chart story / karaoke lyrics
+   right, Up Next strip at the bottom.
+   Video mode: the video fills the screen, lyrics as subtitles at the bottom.
+   The header and controls fade in while .ytp-tv-awake is on (any key,
+   click, touch or mouse move) and out again a few seconds later. */
+.ytp-tv-layer { display: none; }
+.yt-mini-player.ytp-stage.ytp-tv {
+  --text: #f6f7fb;
+  --text2: rgba(246, 247, 251, 0.74);
+  --text3: rgba(246, 247, 251, 0.5);
+  --bg: #05060a;
+  --bg2: #0d0f16;
+  --bg3: #181b25;
+  --border: rgba(255, 255, 255, 0.14);
+  --border2: rgba(255, 255, 255, 0.26);
+  display: block;
+  padding: 0;
+  overflow: hidden;
+  background: #05060a;
+  color: var(--text);
+  cursor: none;
+}
+.yt-mini-player.ytp-stage.ytp-tv.ytp-tv-awake { cursor: default; }
+/* Parts of the card TV mode doesn't use (all back when TV mode ends) */
+.yt-mini-player.ytp-stage.ytp-tv .ytp-tabs,
+.yt-mini-player.ytp-stage.ytp-tv .yt-panels-zone,
+.yt-mini-player.ytp-stage.ytp-tv .ytp-foot,
+.yt-mini-player.ytp-stage.ytp-tv .yt-track-area,
+.yt-mini-player.ytp-stage.ytp-tv #ytChartStory,
+.yt-mini-player.ytp-stage.ytp-tv .ytp-stage-hint,
+.yt-mini-player.ytp-stage.ytp-tv #ytMiniExpandBtn,
+.yt-mini-player.ytp-stage.ytp-tv #ytMiniCollapseBtn,
+.yt-mini-player.ytp-stage.ytp-tv .ytp-hint,
+.yt-mini-player.ytp-stage.ytp-tv .ytp-turn-hint,
+.yt-mini-player.ytp-stage.ytp-tv #ytVideoSource { display: none !important; }
+
+/* Background: the cover, blurred and darkened, filling the screen */
+.yt-mini-player.ytp-stage.ytp-tv .ytp-glow { position: absolute; inset: 0; height: 100%; opacity: 1; z-index: 0; }
+.yt-mini-player.ytp-stage.ytp-tv .ytp-glow img { filter: blur(70px) saturate(1.4) brightness(0.5); transform: scale(1.3); opacity: 1; }
+.yt-mini-player.ytp-stage.ytp-tv .ytp-glow::after { background: radial-gradient(ellipse at 30% 40%, transparent 0%, rgba(5, 6, 10, 0.55) 60%, rgba(5, 6, 10, 0.92) 100%); }
+
+/* Video mode: the video fills the screen. Cover mode: the video box is hidden
+   (the music keeps playing, like the card's Artwork view) */
+.yt-mini-player.ytp-stage.ytp-tv .ytp-media { position: absolute; inset: 0; z-index: 1; margin: 0; border-radius: 0; box-shadow: none; background: #000; }
+.yt-mini-player.ytp-stage.ytp-tv:not(.ytp-show-video) .ytp-media { display: none; }
+.yt-mini-player.ytp-stage.ytp-tv.ytp-show-video .yt-mini-video { width: 100%; height: 100% !important; border-radius: 0; }
+
+/* The layer with the big type */
+/* It also catches the mouse and taps: over the video they would go to
+   YouTube's frame and never wake the controls */
+.yt-mini-player.ytp-stage.ytp-tv .ytp-tv-layer { display: block; position: absolute; inset: 0; z-index: 2; }
+.ytp-tv-hero {
+  position: absolute;
+  inset: 0 0 18vh;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 5vw;
+  padding: 8vh 6vw 0;
+}
+.ytp-tv-cover { position: relative; width: min(54vh, 38vw); aspect-ratio: 1; border-radius: 2.2vh; overflow: hidden; background: var(--bg3); box-shadow: 0 4vh 9vh rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.08); }
+.ytp-tv-cover img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.ytp-tv-cover img:not([src]) { display: none; }
+.ytp-tv-cover span { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font: 800 12vh var(--font-display); color: var(--text3); }
+.ytp-tv-has-cover .ytp-tv-cover span { display: none; }
+.ytp-tv-info { min-width: 0; }
+.ytp-tv-kicker { font: 700 1.6vh var(--font-mono); letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); }
+.ytp-tv-title { margin-top: 1.2vh; font: 800 clamp(2rem, 7.2vh, 6rem)/1.05 var(--font-display); letter-spacing: -0.02em; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-wrap: balance; }
+.ytp-tv-artist { margin-top: 1vh; font: 600 3.4vh var(--font-sans); color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ytp-tv-story:empty { display: none; }
+.ytp-tv-story { display: flex; flex-wrap: wrap; gap: 1.2vh; margin-top: 3vh; }
+.ytp-tv-story .ytp-story-tile { min-width: 13vh; padding: 1.3vh 1.8vh; border-radius: 1.4vh; pointer-events: none; }
+.ytp-tv-story .ytp-story-tile b { font-size: 3.2vh; }
+.ytp-tv-story .ytp-story-tile small, .ytp-tv-story .ytp-story-tile span { font-size: 1.5vh; }
+/* Karaoke: the line being sung big, the lines around it small */
+.ytp-tv-lyrics:empty { display: none; }
+.ytp-tv-lyrics { margin-top: 4.5vh; max-width: 62vw; }
+.ytp-tv-lyr { font: 700 2.6vh/1.3 var(--font-sans); color: var(--text3); min-height: 1.3em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ytp-tv-lyr.now { margin: 0.8vh 0; font: 800 4.8vh/1.2 var(--font-display); color: var(--text); white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; animation: ytpTvLine 0.35s var(--ease); }
+@keyframes ytpTvLine { from { opacity: 0.2; transform: translateY(0.8vh); } to { opacity: 1; transform: none; } }
+
+/* Up Next strip along the bottom (fades for the controls) */
+.ytp-tv-next { position: absolute; left: 6vw; right: 6vw; bottom: 5vh; display: flex; align-items: center; gap: 3vw; transition: opacity 0.4s var(--ease); }
+.ytp-tv-next-h { font: 700 1.5vh var(--font-mono); letter-spacing: 0.16em; text-transform: uppercase; color: var(--text3); flex-shrink: 0; }
+.ytp-tv-next-item { display: flex; align-items: center; gap: 1.4vh; min-width: 0; flex: 0 1 22vw; }
+.ytp-tv-next-art { width: 7vh; height: 7vh; flex-shrink: 0; border-radius: 1vh; overflow: hidden; background: rgba(255, 255, 255, 0.08); }
+.ytp-tv-next-art img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ytp-tv-next-txt { min-width: 0; display: flex; flex-direction: column; gap: 0.3vh; }
+.ytp-tv-next-txt b, .ytp-tv-next-txt small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ytp-tv-next-txt b { font: 700 2vh var(--font-sans); color: var(--text); }
+.ytp-tv-next-txt small { font: 500 1.7vh var(--font-sans); color: var(--text2); }
+
+/* Video mode: song name only while the controls show; lyrics as subtitles */
+.yt-mini-player.ytp-tv.ytp-show-video .ytp-tv-hero { inset: 0 auto auto 0; display: block; padding: 11vh 5vw 0; opacity: 0; transition: opacity 0.4s var(--ease); }
+.yt-mini-player.ytp-tv.ytp-show-video.ytp-tv-awake .ytp-tv-hero { opacity: 1; }
+.yt-mini-player.ytp-tv.ytp-show-video .ytp-tv-cover,
+.yt-mini-player.ytp-tv.ytp-show-video .ytp-tv-story,
+.yt-mini-player.ytp-tv.ytp-show-video .ytp-tv-lyrics,
+.yt-mini-player.ytp-tv.ytp-show-video .ytp-tv-next { display: none; }
+.yt-mini-player.ytp-tv.ytp-show-video .ytp-tv-title { font-size: 4.4vh; text-shadow: 0 0.3vh 2vh rgba(0, 0, 0, 0.7); }
+.yt-mini-player.ytp-tv.ytp-show-video .ytp-tv-artist { font-size: 2.4vh; text-shadow: 0 0.3vh 2vh rgba(0, 0, 0, 0.7); }
+.ytp-tv-subs { display: none; }
+.yt-mini-player.ytp-tv.ytp-show-video .ytp-tv-subs {
+  position: absolute;
+  left: 8vw;
+  right: 8vw;
+  bottom: 7vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.8vh;
+  text-align: center;
+  transition: bottom 0.4s var(--ease);
+}
+.yt-mini-player.ytp-tv.ytp-show-video.ytp-tv-awake .ytp-tv-subs { bottom: 25vh; }
+.ytp-tv-sub { max-width: 100%; padding: 0.4vh 1.4vh; border-radius: 0.8vh; background: rgba(0, 0, 0, 0.68); color: #fff; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+.ytp-tv-sub.now { font: 700 4.4vh/1.3 var(--font-sans); }
+.ytp-tv-sub.next { font: 600 2.6vh/1.3 var(--font-sans); color: rgba(255, 255, 255, 0.72); background: rgba(0, 0, 0, 0.5); }
+
+/* Header (top) and controls (bottom) fade in while awake */
+.yt-mini-player.ytp-stage.ytp-tv .yt-player-header,
+.yt-mini-player.ytp-stage.ytp-tv .yt-seek-bar-wrap,
+.yt-mini-player.ytp-stage.ytp-tv .yt-primary-controls,
+.yt-mini-player.ytp-stage.ytp-tv .ytp-media-bar {
+  position: absolute;
+  z-index: 3;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s var(--ease);
+}
+.yt-mini-player.ytp-stage.ytp-tv.ytp-tv-awake .yt-player-header,
+.yt-mini-player.ytp-stage.ytp-tv.ytp-tv-awake .yt-seek-bar-wrap,
+.yt-mini-player.ytp-stage.ytp-tv.ytp-tv-awake .yt-primary-controls,
+.yt-mini-player.ytp-stage.ytp-tv.ytp-tv-awake .ytp-media-bar { opacity: 1; pointer-events: auto; }
+.yt-mini-player.ytp-stage.ytp-tv.ytp-tv-awake .ytp-tv-next { opacity: 0; }
+.yt-mini-player.ytp-stage.ytp-tv .yt-player-header { left: 0; right: 0; top: 0; padding: 2.4vh 3vw 6vh; background: linear-gradient(to bottom, rgba(0, 0, 0, 0.7), transparent); }
+.yt-mini-player.ytp-stage.ytp-tv #ytTvBtn { color: var(--accent); }
+/* A dark band behind the controls so they read on any video */
+.yt-mini-player.ytp-stage.ytp-tv::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 30vh; z-index: 2; pointer-events: none; background: linear-gradient(to top, rgba(0, 0, 0, 0.78), transparent); opacity: 0; transition: opacity 0.4s var(--ease); }
+.yt-mini-player.ytp-stage.ytp-tv.ytp-tv-awake::after { opacity: 1; }
+.yt-mini-player.ytp-stage.ytp-tv .yt-seek-bar-wrap { left: 6vw; right: 6vw; bottom: 14vh; padding: 0; }
+.yt-mini-player.ytp-stage.ytp-tv .yt-primary-controls { left: 0; right: 0; bottom: 3.5vh; justify-content: center; gap: 3vw; padding: 0; }
+.yt-mini-player.ytp-stage.ytp-tv .yt-ctrl-btn { width: max(44px, 7vh); height: max(44px, 7vh); }
+.yt-mini-player.ytp-stage.ytp-tv .yt-ctrl-btn .yt-icon { width: 45%; height: 45%; }
+.yt-mini-player.ytp-stage.ytp-tv .yt-pause-wrap,
+.yt-mini-player.ytp-stage.ytp-tv .yt-ctrl-play { width: max(60px, 10vh); height: max(60px, 10vh); }
+/* Artwork / Video switch, bottom right next to the controls */
+.yt-mini-player.ytp-stage.ytp-tv .ytp-media-bar { right: 4vw; bottom: 5.5vh; left: auto; padding: 0; }
+
 /* ── Step 12: tour + first-visit hint ── */
 .yt-mini-player .ytp-foot .ytp-help-btn { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border); font: 700 var(--fs-sm) var(--font-sans); color: var(--text2); }
 .yt-mini-player .ytp-foot .ytp-help-btn:hover { border-color: var(--border2); color: var(--text); }
