@@ -468,3 +468,249 @@ function rfPlayerTap(n) {
   if (typeof _ratingsRefreshWhenUncovered === 'function') _ratingsRefreshWhenUncovered();
 }
 window.rfPlayerTap = rfPlayerTap;
+
+// ── Shared: the full-screen stage, art, previews ─────────────────────────
+/* One full-screen window for the rating games (Rate Rush, the album
+   speed-run, Settle the gap, the weekly report). Made on first use, at the
+   end of <body> so it sits above every other window. Escape or ✕ closes it;
+   focus goes back to whatever opened it. */
+let _rfStageFocus = null, _rfStageOnClose = null, _rfStageKeys = null;
+function rfStageOpen(html, opts = {}) {
+  let el = document.getElementById('rfStage');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'rfStage';
+    el.className = 'rf-stage';
+    el.setAttribute('role', 'dialog');
+    el.setAttribute('aria-modal', 'true');
+    document.body.appendChild(el);
+    el.addEventListener('keydown', e => {
+      if (e.key === 'Escape') { e.preventDefault(); rfStageClose(); return; }
+      if (_rfStageKeys) _rfStageKeys(e);
+    });
+  }
+  if (!el.classList.contains('open')) _rfStageFocus = document.activeElement;
+  _rfStageOnClose = opts.onClose || null;
+  _rfStageKeys = opts.keys || null;
+  el.className = 'rf-stage open' + (opts.cls ? ' ' + opts.cls : '');
+  el.setAttribute('aria-label', opts.label || '');
+  el.innerHTML = `<div class="rf-stage-box">
+      <button type="button" class="rf-stage-x dc-btn dc-btn-plain dc-btn-icon" onclick="rfStageClose()" aria-label="${esc(t('set_close'))}">✕</button>
+      <div class="rf-stage-body" id="rfStageBody">${html}</div>
+    </div>`;
+  document.body.classList.add('rf-stage-on');
+  if (typeof dcFillIcons === 'function') dcFillIcons(el);
+  setTimeout(() => (el.querySelector('[data-rf-focus]') || el.querySelector('.rf-stage-x')).focus(), 30);
+  return el;
+}
+// Swaps what's inside without closing (next card, end screen)
+function rfStageSet(html) {
+  const body = document.getElementById('rfStageBody');
+  if (!body) return;
+  body.innerHTML = html;
+  if (typeof dcFillIcons === 'function') dcFillIcons(body);
+  const f = body.querySelector('[data-rf-focus]');
+  if (f) f.focus();
+}
+function rfStageClose() {
+  const el = document.getElementById('rfStage');
+  if (!el || !el.classList.contains('open')) return;
+  el.classList.remove('open');
+  el.innerHTML = '';
+  document.body.classList.remove('rf-stage-on');
+  rfStopPreview();
+  const done = _rfStageOnClose;
+  _rfStageOnClose = null; _rfStageKeys = null;
+  if (_rfStageFocus && _rfStageFocus.focus) try { _rfStageFocus.focus(); } catch (e) {}
+  if (done) try { done(); } catch (e) {}
+}
+
+// Cover art into a box, the same way the rest of the site finds it
+function rfArt(el, kind, title, artist, album) {
+  if (!el || typeof fetchAndInjectImage !== 'function') return;
+  if (!el.id) el.id = 'rfArt' + Math.random().toString(36).slice(2, 8);
+  const item = kind === 'album'
+    ? { imgId: el.id, name: title, album: title, artist, prefKey: 'album:' + artist.toLowerCase() + '|||' + title.toLowerCase() }
+    : { imgId: el.id, name: title, title, artist, album: album || '', prefKey: 'song:' + artist.toLowerCase() + '|||' + title.toLowerCase() };
+  fetchAndInjectImage(el, item, kind === 'album' ? 'album' : 'song');
+}
+
+// The album a song is most often played from (for its preview and cover)
+function rfSongAlbum(key) {
+  const albs = rfAlbumsOfSong(key);
+  if (!albs.length) return '';
+  const memo = _rtMemoFresh(), idx = _rtTrackIndex(memo);
+  let best = '', n = -1;
+  for (const ak of albs) { const c = idx.get(ak)?.get(key)?.count || 0; if (c > n) { n = c; best = ak; } }
+  return best.split('|||')[0] || '';
+}
+
+/* 30-second previews (the same iTunes + Deezer search as the Awards ♪
+   buttons). One at a time; a newer request wins. onState(state) is told
+   'loading' | 'playing' | 'none' | 'ended' so a button can follow. */
+let _rfAudio = null, _rfAudioTok = 0;
+async function rfPreview(title, artist, album, onState) {
+  rfStopPreview();
+  const tok = ++_rfAudioTok;
+  const say = s => { if (tok === _rfAudioTok && onState) try { onState(s); } catch (e) {} };
+  say('loading');
+  let takes = [];
+  try { takes = typeof _ceremonyPreviewTakes === 'function' ? await _ceremonyPreviewTakes({ title, artist, album: album || '' }, 'song') : []; } catch (e) { takes = []; }
+  if (tok !== _rfAudioTok) return;
+  if (!takes.length) { say('none'); return; }
+  // Only one sound at a time on the site: stop an awards sample first
+  if (typeof _ceremonyStopAudio === 'function') try { _ceremonyStopAudio(); } catch (e) {}
+  const a = _rfAudio = new Audio(takes[0].url);
+  a.volume = 0.8;
+  a.addEventListener('ended', () => { if (_rfAudio === a) { _rfAudio = null; say('ended'); } });
+  try { await a.play(); if (tok !== _rfAudioTok) { a.pause(); return; } say('playing'); }
+  catch (e) { if (_rfAudio === a) _rfAudio = null; say('none'); }
+}
+function rfStopPreview() {
+  _rfAudioTok++;
+  if (_rfAudio) { try { _rfAudio.pause(); } catch (e) {} _rfAudio = null; }
+}
+
+// 1–10 buttons, big. fn = the global function each one calls with its number.
+function rfTenHTML(fn, on, extraCls) {
+  return `<div class="rf-ten${extraCls ? ' ' + extraCls : ''}" role="group">${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => {
+    const b = ratingBand(n);
+    return `<button type="button" class="rf-ten-b ${b.cls}${n === on ? ' is-on' : ''}" onclick="${fn}(${n})" aria-pressed="${n === on}"${n === 1 ? ' data-rf-focus' : ''}>${n}</button>`;
+  }).join('')}</div>`;
+}
+// Number keys 1–9 and 0 (= 10) for the 1–10 buttons on a stage
+function rfTenKeys(fn) {
+  return e => {
+    if (e.target && /^(INPUT|TEXTAREA)$/.test(e.target.tagName)) return;
+    if (/^[0-9]$/.test(e.key)) { e.preventDefault(); fn(e.key === '0' ? 10 : +e.key); }
+  };
+}
+
+// ── Rate Rush (1) ────────────────────────────────────────────────────────
+/* A stack of your most played songs you haven't scored. A 30-second preview
+   plays, you tap a number, the next card slides in. RF_RUSH_N a round.
+   Skip moves on (and leaves that song out for the rest of this visit). */
+const RF_RUSH_N = 10;
+let _rfRush = null;   // { list: [{k, n}], at, done: [{k, s}], skipped, t0 }
+const _rfRushSkip = new Set();
+
+function rfRushPool() {
+  const out = [];
+  for (const [k, n] of rfSongPlays().list) {
+    if (ratingSongScore(k) != null || _rfRushSkip.has(k)) continue;
+    out.push({ k, n });
+    if (out.length >= RF_RUSH_N) break;
+  }
+  return out;
+}
+
+function rfRushOpen() {
+  if (typeof allPlays === 'undefined' || !allPlays.length) return;
+  const list = rfRushPool();
+  _rfRush = { list, at: 0, done: [], skipped: 0, t0: Date.now() };
+  rfStageOpen('', { cls: 'rf-stage--rush', label: t('rf_rush_title'), keys: rfTenKeys(rfRushPick),
+    onClose: () => { _rfRush = null; if (typeof _ratingsRefreshWhenUncovered === 'function') _ratingsRefreshWhenUncovered(); if (document.getElementById('ratingsView')?.offsetParent) renderRatingsPage(); } });
+  _rfRushCard();
+}
+
+function _rfRushCard() {
+  const R = _rfRush;
+  if (!R) return;
+  const x = R.list[R.at];
+  if (!x) { _rfRushEnd(); return; }
+  const nm = ratingSongNames(x.k), album = rfSongAlbum(x.k);
+  const ls = typeof asSong === 'function' ? asSong(x.k) : null;
+  rfStageSet(`<div class="rf-rush">
+      <div class="rf-rush-top">
+        <span class="rf-kicker">⚡ ${esc(t('rf_rush_title'))}</span>
+        <span class="rf-rush-count">${esc(t('rf_rush_of', { n: R.at + 1, of: R.list.length }))}</span>
+      </div>
+      <div class="rf-prog"><i style="width:${(R.at / R.list.length * 100).toFixed(1)}%"></i></div>
+      <div class="rf-rush-card">
+        <span class="rf-rush-art" id="rfRushArt"><span class="thumb-initials">${esc(initials(nm.title))}</span></span>
+        <div class="rf-rush-name">${esc(nm.title)}</div>
+        <div class="rf-rush-artist">${esc(nm.artist)}${album ? ' · ' + esc(album) : ''}</div>
+        <div class="rf-rush-meta">${x.n.toLocaleString()} ${esc(tUnit('plays', x.n))}${ls ? ` · ${esc(t('as_said'))} ${asChip({ score: ls.score, state: 'listening' })}` : ''}</div>
+        <button type="button" class="rf-play" id="rfRushPlay" onclick="rfRushPlay()">♪ <span>${esc(t('rf_preview_loading'))}</span></button>
+      </div>
+      ${rfTenHTML('rfRushPick')}
+      <div class="rf-rush-foot">
+        <button type="button" class="dc-btn dc-btn-plain" onclick="rfRushSkip()">${esc(t('rf_skip'))} →</button>
+        <span class="rf-rush-hint">${esc(t('rf_keys_hint'))}</span>
+      </div>
+    </div>`);
+  rfArt(document.getElementById('rfRushArt'), 'song', nm.title, nm.artist, album);
+  rfRushPlay();
+}
+
+// The preview button follows the sound: loading, playing (tap = stop), none
+function rfRushPlay() {
+  const R = _rfRush; if (!R) return;
+  const x = R.list[R.at]; if (!x) return;
+  const btn = document.getElementById('rfRushPlay');
+  if (btn && btn.dataset.state === 'playing') { rfStopPreview(); _rfPlayBtn(btn, 'ended'); return; }
+  const nm = ratingSongNames(x.k);
+  rfPreview(nm.title, nm.artist, rfSongAlbum(x.k), s => _rfPlayBtn(document.getElementById('rfRushPlay'), s));
+}
+function _rfPlayBtn(btn, s) {
+  if (!btn) return;
+  btn.dataset.state = s;
+  btn.classList.toggle('is-playing', s === 'playing');
+  btn.disabled = s === 'none';
+  btn.querySelector('span').textContent = t(s === 'loading' ? 'rf_preview_loading' : s === 'playing' ? 'rf_preview_stop' : s === 'none' ? 'rf_preview_none' : 'rf_preview_play');
+}
+
+function rfRushPick(n) {
+  const R = _rfRush; if (!R) return;
+  const x = R.list[R.at]; if (!x) return;
+  rfSetSong(x.k, n);
+  R.done.push({ k: x.k, s: n });
+  R.at++;
+  _rfRushCard();
+}
+function rfRushSkip() {
+  const R = _rfRush; if (!R) return;
+  const x = R.list[R.at]; if (!x) return;
+  _rfRushSkip.add(x.k);
+  R.skipped++;
+  R.at++;
+  _rfRushCard();
+}
+
+function _rfRushEnd() {
+  const R = _rfRush;
+  rfStopPreview();
+  const secs = Math.max(1, Math.round((Date.now() - R.t0) / 1000));
+  const avg = R.done.length ? Math.round(R.done.reduce((a, d) => a + d.s, 0) / R.done.length * 10) / 10 : null;
+  const top = [...R.done].sort((a, b) => b.s - a.s)[0];
+  const more = rfRushPool().length;
+  rfStageSet(`<div class="rf-rush rf-end">
+      <div class="rf-end-burst" aria-hidden="true">⚡</div>
+      <h2 class="rf-end-h">${esc(R.done.length ? t('rf_rush_end', { n: R.done.length, s: secs }) : t('rf_rush_end_none'))}</h2>
+      ${avg != null ? `<p class="rf-end-sub">${esc(t('rf_rush_avg'))} ${ratingChip(avg)}${top ? ` · ${esc(t('rf_rush_top'))} <b>${esc(ratingSongNames(top.k).title)}</b> ${ratingChip(top.s)}` : ''}</p>` : ''}
+      ${typeof rfGoalMiniHTML === 'function' ? rfGoalMiniHTML() : ''}
+      <div class="rf-end-btns">
+        ${more ? `<button type="button" class="dc-btn dc-btn-main" data-rf-focus onclick="rfRushOpen()">⚡ ${esc(t('rf_rush_again'))}</button>` : ''}
+        <button type="button" class="dc-btn dc-btn-normal" onclick="rfStageClose()" ${more ? '' : 'data-rf-focus'}>${esc(t('rte_done'))}</button>
+      </div>
+    </div>`);
+}
+
+/* The way in: a wide card on the Ratings page and on the Games page. */
+function rfRushPromoHTML() {
+  if (typeof allPlays === 'undefined' || !allPlays.length) return '';
+  let left = 0;
+  for (const [k] of rfSongPlays().list) { if (ratingSongScore(k) == null) left++; if (left > 999) break; }
+  if (!left) return '';
+  return `<button type="button" class="rf-promo rf-promo--rush" onclick="rfRushOpen()">
+    <span class="rf-promo-ico" aria-hidden="true">⚡</span>
+    <span class="rf-promo-txt"><b>${esc(t('rf_rush_title'))}</b><span>${esc(t('rf_rush_desc', { n: RF_RUSH_N }))}</span></span>
+    <span class="rf-promo-go">${esc(t('rf_rush_go'))} ▸</span>
+  </button>`;
+}
+
+window.rfStageClose = rfStageClose;
+window.rfRushOpen = rfRushOpen;
+window.rfRushPick = rfRushPick;
+window.rfRushSkip = rfRushSkip;
+window.rfRushPlay = rfRushPlay;

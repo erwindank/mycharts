@@ -3646,7 +3646,8 @@ function sxRenderGames() {
     `<div class="section-rule"></div></div>`;
   box.innerHTML = pageHead + `<div class="sx-games-head"><div><h3 class="sx-games-title">${esc(t('sx_games_title'))}</h3>` +
     `<p class="sx-games-intro">${esc(t('sx_games_intro'))}</p></div>${tally}</div>` +
-    daily + _sxRemindHtml() + `<div class="sx-games-grid">${cards}</div>`;
+    // Rate Rush (ratefun.js): rating as a quick game, under the Game of the day
+    daily + _sxRemindHtml() + (typeof rfRushPromoHTML === 'function' ? rfRushPromoHTML() : '') + `<div class="sx-games-grid">${cards}</div>`;
   arts.forEach(([el, s]) => _sxSongArt(document.getElementById(el), s));
   sxSyncGamesDot();
 }

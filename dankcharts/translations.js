@@ -6887,6 +6887,21 @@ const TRANSLATIONS = {
     rf_np_yours: "Your score",
     rf_np_more: "More",
     rf_np_more_tip: "Open the rating window: decimals, the full rubric, a one-line review",
+    // Step 5: Rate Rush
+    rf_rush_title: "Rate Rush",
+    rf_rush_desc: "Your most played songs without a score: hear a preview, tap a number. {{n}} a round.",
+    rf_rush_go: "Start",
+    rf_rush_of: "{{n}} of {{of}}",
+    rf_rush_end: "{{n}} rated in {{s}} seconds",
+    rf_rush_end_none: "Nothing rated this round",
+    rf_rush_avg: "Average",
+    rf_rush_top: "Top pick",
+    rf_rush_again: "Another round",
+    rf_keys_hint: "Keys 1–9, 0 for 10",
+    rf_preview_loading: "Finding a preview…",
+    rf_preview_play: "Play preview",
+    rf_preview_stop: "Stop",
+    rf_preview_none: "No preview found",
     // ── end rating fun ──
   },
 
