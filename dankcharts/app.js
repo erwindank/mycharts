@@ -38275,6 +38275,8 @@ function _ytChosenPlayed() {
 // charts (_crFull), so after the first song this is quick.
 let _ytStoryToken = 0;
 function _ytUpdateChartStory(title, artist) {
+  // Rate what's playing (ratefun.js) follows the song too
+  if (typeof rfPlayerRate === 'function') try { rfPlayerRate(title, artist); } catch (e) {}
   const el = document.getElementById('ytChartStory');
   if (!el) return;
   const token = ++_ytStoryToken;

@@ -52273,3 +52273,20 @@ button.gl-fact:hover { background: color-mix(in srgb, var(--gf) 14%, var(--bg3))
 .rf-agree-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; text-align: left; background: none; border: 0; padding: 0; color: var(--text); cursor: pointer; font: inherit; }
 .rf-agree-txt b, .rf-agree-txt span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .rf-agree-txt span { font-size: var(--fs-xs); color: var(--text3); }
+
+/* Rate what's playing (step 4): the score row in the Now Playing card */
+.ytp-rate { display: flex; align-items: center; gap: 8px; margin: 10px 16px 0; padding: 6px 8px; border-radius: var(--r-md); background: color-mix(in srgb, var(--text) 5%, transparent); flex-shrink: 0; flex-wrap: wrap; }
+.ytp-rate[hidden] { display: none; }
+.ytp-rate-l { font: 700 var(--fs-xs) var(--font-sans); letter-spacing: .06em; text-transform: uppercase; color: var(--text3); }
+.ytp-rate-dots { display: flex; gap: 3px; order: 5; flex-basis: 100%; min-width: 0; }
+.ytp-rate > .rt-chip { margin-left: auto; }
+.ytp-rate-dot { flex: 1; min-width: 0; height: 26px; padding: 0; border: 0; border-radius: 5px; background: color-mix(in srgb, var(--text) 9%, transparent); color: var(--text2); font: 700 11px var(--font-mono); cursor: pointer; transition: background var(--t-fast) var(--ease), transform var(--t-fast) var(--ease); }
+.ytp-rate-dot:hover { background: color-mix(in srgb, var(--accent) 35%, transparent); color: var(--text); transform: translateY(-1px); }
+.ytp-rate-dot.is-fill { background: color-mix(in srgb, var(--accent) 30%, transparent); color: var(--text); }
+.ytp-rate-dot.is-on { background: var(--accent); color: var(--on-accent); }
+.ytp-rate-dot:focus-visible, .ytp-rate-more:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.ytp-rate-more { border: 0; background: none; color: var(--accent); font: 600 var(--fs-xs) var(--font-sans); cursor: pointer; padding: 2px 4px; }
+.ytp-rate.is-glow { animation: rfGlow 1.1s var(--ease); }
+@keyframes rfGlow { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 70%, transparent); } 60% { box-shadow: 0 0 0 8px transparent; background: color-mix(in srgb, var(--accent) 16%, transparent); } 100% { box-shadow: 0 0 0 0 transparent; } }
+@media (prefers-reduced-motion: reduce) { .ytp-rate.is-glow { animation: none; } }
+.yt-mini-player.ytp-stage .ytp-rate, .yt-mini-player.yt-mini-collapsed .ytp-rate, .yt-mini-player.ytp-tv .ytp-rate { display: none !important; }

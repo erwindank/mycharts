@@ -6882,6 +6882,11 @@ const TRANSLATIONS = {
     rf_agree_title: "Agree with your listening",
     rf_agree_all_done: "That's all your most played songs scored",
     rf_skip: "Skip",
+    // Step 4: rate what's playing
+    rf_np_rate: "Rate it",
+    rf_np_yours: "Your score",
+    rf_np_more: "More",
+    rf_np_more_tip: "Open the rating window: decimals, the full rubric, a one-line review",
     // ── end rating fun ──
   },
 

@@ -429,3 +429,42 @@ function rfAgreeCardSkip() {
 window.rfAgree = rfAgree;
 window.rfAgreeCardPick = rfAgreeCardPick;
 window.rfAgreeCardSkip = rfAgreeCardSkip;
+
+// ── Rate what's playing (3) ──────────────────────────────────────────────
+/* A score row in the Now Playing card, under the chart story: your score
+   (or the Listening Score, dashed), and 1–10 to tap while it plays. A tap
+   saves a quick score and the row glows; "More" opens the full rating
+   window for decimals, the rubric and a one-line review. Hidden on the
+   landing page (no library) and in Stage / TV mode, which have no room. */
+let _rfNowKey = null;
+function rfPlayerRate(title, artist) {
+  const el = document.getElementById('ytRateRow');
+  if (!el) return;
+  if (typeof allPlays === 'undefined' || !allPlays || !allPlays.length || !title || !artist) { el.hidden = true; _rfNowKey = null; return; }
+  _rfNowKey = songKey({ title, artist });
+  rfPlayerRateRender();
+}
+function rfPlayerRateRender(glow) {
+  const el = document.getElementById('ytRateRow');
+  if (!el || !_rfNowKey) return;
+  const own = ratingSongScore(_rfNowKey);
+  const ls = own == null && typeof asSong === 'function' ? asSong(_rfNowKey) : null;
+  const on = own == null ? -1 : Math.round(own);
+  const chip = own != null ? ratingChip(own) : ls ? asChip({ score: ls.score, state: 'listening' }) : '';
+  const k = esc(JSON.stringify(_rfNowKey));
+  el.innerHTML = `<span class="ytp-rate-l">${esc(t(own != null ? 'rf_np_yours' : 'rf_np_rate'))}</span>
+    <span class="ytp-rate-dots" role="group" aria-label="${esc(t('rf_np_rate'))}">${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n =>
+      `<button type="button" class="ytp-rate-dot${n === on ? ' is-on' : ''}${own != null && n <= on ? ' is-fill' : ''}" onclick="rfPlayerTap(${n})" aria-label="${n}" aria-pressed="${n === on}">${n}</button>`).join('')}</span>
+    ${chip}
+    <button type="button" class="ytp-rate-more" onclick="openRatingModal('song', ${k})" title="${esc(t('rf_np_more_tip'))}">${esc(t('rf_np_more'))}</button>`;
+  el.hidden = false;
+  if (glow) { el.classList.remove('is-glow'); void el.offsetWidth; el.classList.add('is-glow'); }
+}
+function rfPlayerTap(n) {
+  if (!_rfNowKey) return;
+  rfSetSong(_rfNowKey, n);
+  rfPlayerRateRender(true);
+  if (typeof dcPlToast === 'function') dcPlToast(t('rf_agree_done', { score: ratingFmt(n) }));
+  if (typeof _ratingsRefreshWhenUncovered === 'function') _ratingsRefreshWhenUncovered();
+}
+window.rfPlayerTap = rfPlayerTap;
