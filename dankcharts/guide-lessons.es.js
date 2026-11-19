@@ -2768,7 +2768,7 @@ window.GL_TEXT.es = {
         more: { title: 'Línea de tiempo y colección', spots: {
           cap: ['Lo que destaca', 'El mes en que destacó una familia, y quién manda ahora.'],
           tl: ['Tu línea de tiempo de géneros', 'Tus familias mes a mes. Pasa el ratón o toca un mes para ver su mezcla.'],
-          shelf: ['Tu colección de géneros', 'Una tarjeta por cada género que escuchas, numerada por puesto. Las grises son parecidas y aún no las has escuchado.'],
+          shelf: ['Tu colección de géneros', 'Una tarjeta por cada género que escuchas, numerada por puesto. Las que tienen ? son parecidas y aún no las has escuchado.'],
           card: ['Una tarjeta', 'Tócala para ver la página del género.'],
           rar: ['Rareza', 'Las Raras y las Joyas ocultas son las que lucen.']
         } }

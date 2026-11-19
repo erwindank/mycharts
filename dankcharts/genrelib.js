@@ -161,7 +161,7 @@
       sh_title: "Your genre shelf",
       sh_sub: "{n} genres collected.",
       sh_sub_rare: "{r} rare and {d} deep cuts among them.",
-      sh_sub_locked: "Greyed cards are genres next door you haven’t played yet.",
+      sh_sub_locked: "Cards with a ? are genres next door you haven’t played yet.",
       sh_locked: "Not played yet",
       sh_all: "Show all {n}",
       sh_less: "Show fewer",
@@ -356,7 +356,7 @@
       sh_title: "Tu colección de géneros",
       sh_sub: "{n} géneros coleccionados.",
       sh_sub_rare: "Entre ellos, {r} raros y {d} joyas ocultas.",
-      sh_sub_locked: "Las tarjetas grises son géneros parecidos que aún no has escuchado.",
+      sh_sub_locked: "Las tarjetas con ? son géneros parecidos que aún no has escuchado.",
       sh_locked: "Aún sin escuchar",
       sh_all: "Ver los {n}",
       sh_less: "Ver menos",
@@ -551,7 +551,7 @@
       sh_title: "Sua coleção de gêneros",
       sh_sub: "{n} gêneros colecionados.",
       sh_sub_rare: "Entre eles, {r} raros e {d} pérolas escondidas.",
-      sh_sub_locked: "Os cartões cinza são gêneros parecidos que você ainda não ouviu.",
+      sh_sub_locked: "Os cartões com ? são gêneros parecidos que você ainda não ouviu.",
       sh_locked: "Ainda não ouvido",
       sh_all: "Mostrar os {n}",
       sh_less: "Mostrar menos",
@@ -746,7 +746,7 @@
       sh_title: "A tua coleção de géneros",
       sh_sub: "{n} géneros colecionados.",
       sh_sub_rare: "Entre eles, {r} raros e {d} pérolas escondidas.",
-      sh_sub_locked: "Os cartões cinzentos são géneros parecidos que ainda não ouviste.",
+      sh_sub_locked: "Os cartões com ? são géneros parecidos que ainda não ouviste.",
       sh_locked: "Ainda não ouvido",
       sh_all: "Mostrar os {n}",
       sh_less: "Mostrar menos",
@@ -1559,6 +1559,7 @@
   function funPaint(root) {
     qfPaint(root);
     tlPaint(root);
+    shelfPaint(root);
     paintSamples();
   }
   let _shownRows = [];
@@ -2710,26 +2711,79 @@
     const deep = s.rank.filter(id => rarity(id) === 'deep').length;
     const rare = s.rank.filter(id => rarity(id) === 'rare').length;
     const shown = SH.all ? s.rank : s.rank.slice(0, 11);
+    /* A collectible card (redone 2026-11-18, "could be higher quality"):
+       a frame in the family's colour (gold for a Deep cut, with a holo sheen
+       for Rare), a dark inner panel that stays dark in every theme, a
+       picture window with the genre's top artist tinted in its colour, the
+       name on a plate, and plays + top artist at the foot. */
+    SH.art = [];
     const card = (id, i) => {
       const g = s.byId.get(id), e = G.byId.get(id), fam = e ? e.fam : 'world', rar = rarity(id);
-      return `<button type="button" class="gl-gcard gl-gcard-${rar}" data-gll="gp-open" data-id="${H(id)}" style="--gf:${FAM_HUE[fam] || FAM_HUE.world}">` +
-        `<span class="gl-gcard-no">#${String(i + 1).padStart(3, '0')}</span>` +
-        `<span class="gl-gcard-fam">${H(tx('fam_' + fam))}</span>` +
-        `<span class="gl-gcard-name">${H(nameOf(id))}</span>` +
-        `<span class="gl-gcard-foot"><span class="gl-gcard-pl">${H(plays(g.n))}</span><span class="gl-gcard-rar">${rar === 'deep' ? '✦ ' : rar === 'rare' ? '◆ ' : ''}${H(tx('rar_' + rar))}</span></span></button>`;
+      const topA = [...g.artists.values()].sort((a, b) => b.n - a.n)[0];
+      if (topA) SH.art.push(topA.p);
+      const name = nameOf(id);
+      return `<button type="button" class="gl-gcard gl-gcard-${rar}${name.length > 13 ? ' is-long' : ''}" data-gll="gp-open" data-id="${H(id)}" style="--gf:${FAM_HUE[fam] || FAM_HUE.world}">` +
+        `<span class="gl-gc-in">` +
+          `<span class="gl-gc-top"><span class="gl-gcard-no">#${String(i + 1).padStart(3, '0')}</span>` +
+            `<span class="gl-gcard-rar">${rar === 'deep' ? '✦ ' : rar === 'rare' ? '◆ ' : ''}${H(tx('rar_' + rar))}</span></span>` +
+          `<span class="gl-gc-art"${topA ? ` data-shart="${SH.art.length - 1}"` : ''} aria-hidden="true"><span class="gl-gc-ini">${H(typeof initials === 'function' && topA ? initials(topA.name) : '')}</span></span>` +
+          `<span class="gl-gc-fam">${H(tx('fam_' + fam))}</span>` +
+          `<span class="gl-gcard-name">${H(name)}</span>` +
+          `<span class="gl-gc-foot"><span class="gl-gcard-pl">${H(plays(g.n))}</span>${topA ? `<span class="gl-gc-who">${H(topA.name)}</span>` : ''}</span>` +
+        `</span></button>`;
     };
-    // Locked cards: a few genres next door, greyed until you play them
+    // Locked cards: a few genres next door, a mystery until you play them
     const locked = SH.all ? [] : nextDoor(2, 2).flatMap(x => x.ids).slice(0, 3);
     const lock = id => { const e = G.byId.get(id);
-      return `<button type="button" class="gl-gcard is-locked" data-gll="gp-open" data-id="${H(id)}" style="--gf:${FAM_HUE[e.fam] || FAM_HUE.world}">` +
-        `<span class="gl-gcard-no">???</span><span class="gl-gcard-fam">${H(tx('fam_' + e.fam))}</span>` +
-        `<span class="gl-gcard-name">${H(e.name)}</span><span class="gl-gcard-foot"><span class="gl-gcard-pl">${H(tx('sh_locked'))}</span></span></button>`; };
+      return `<button type="button" class="gl-gcard is-locked${e.name.length > 13 ? ' is-long' : ''}" data-gll="gp-open" data-id="${H(id)}" style="--gf:${FAM_HUE[e.fam] || FAM_HUE.world}">` +
+        `<span class="gl-gc-in"><span class="gl-gc-top"><span class="gl-gcard-no">???</span><span class="gl-gc-lock">${ico('target')}</span></span>` +
+        `<span class="gl-gc-art" aria-hidden="true"><span class="gl-gc-q">?</span></span>` +
+        `<span class="gl-gc-fam">${H(tx('fam_' + e.fam))}</span>` +
+        `<span class="gl-gcard-name">${H(e.name)}</span><span class="gl-gc-foot"><span class="gl-gcard-pl">${H(tx('sh_locked'))}</span></span></span></button>`; };
     return `<section class="gl-sec gl-shelf" id="glShelf" aria-labelledby="glShelfH">
       <div class="gl-sec-head"><div><h3 class="gl-sec-title" id="glShelfH">${H(tx('sh_title'))}</h3>
         <p class="gl-sec-sub">${H(tx('sh_sub', { n: num(s.rank.length) }))}${rare + deep ? ' ' + H(tx('sh_sub_rare', { r: num(rare), d: num(deep) })) : ''}${locked.length ? ' ' + H(tx('sh_sub_locked')) : ''}</p></div></div>
       <div class="gl-shelf-grid">${shown.map(card).join('')}${locked.map(lock).join('')}</div>
       ${s.rank.length > 11 ? `<div class="gl-more-wrap"><button type="button" class="dc-btn dc-btn-normal dc-btn-sm" data-gll="sh-all">${H(SH.all ? tx('sh_less') : tx('sh_all', { n: num(s.rank.length) }))}</button></div>` : ''}
     </section>`;
+  }
+
+  // After drawing: each card's top-artist picture as it scrolls into view,
+  // and a slight 3D tilt under the pointer (not on touch, not with reduced motion)
+  let _shObs = null;
+  function shelfPaint(root) {
+    const grid = root.querySelector('.gl-shelf-grid');
+    if (!grid) return;
+    if (_shObs) _shObs.disconnect();
+    const go = el => {
+      const p = SH.art[+el.dataset.shart];
+      if (!p) return;
+      artFor('artist', p).then(url => {
+        if (!url || !el.isConnected) return;
+        el.style.backgroundImage = `url("${String(typeof sizedArtUrl === 'function' ? sizedArtUrl(url, 300) : url).replace(/"/g, '%22')}")`;
+        el.classList.add('has-img');
+      });
+    };
+    const els = grid.querySelectorAll('[data-shart]');
+    if ('IntersectionObserver' in window) {
+      _shObs = new IntersectionObserver(ents => { for (const en of ents) if (en.isIntersecting) { _shObs.unobserve(en.target); go(en.target); } }, { rootMargin: '200px 0px' });
+      els.forEach(el => _shObs.observe(el));
+    } else els.forEach(go);
+    if (grid._tilt || matchMedia('(hover: none), (prefers-reduced-motion: reduce)').matches) return;
+    grid._tilt = true;
+    grid.addEventListener('pointermove', e => {
+      const c = e.target.closest('.gl-gcard');
+      if (!c) return;
+      const r = c.getBoundingClientRect(), x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+      c.style.setProperty('--ry', ((x - 0.5) * 12).toFixed(2) + 'deg');
+      c.style.setProperty('--rx', ((0.5 - y) * 10).toFixed(2) + 'deg');
+      c.style.setProperty('--mx', (x * 100).toFixed(1) + '%');
+      c.style.setProperty('--my', (y * 100).toFixed(1) + '%');
+    });
+    grid.addEventListener('pointerout', e => {
+      const c = e.target.closest('.gl-gcard');
+      if (c && !c.contains(e.relatedTarget)) { c.style.removeProperty('--rx'); c.style.removeProperty('--ry'); }
+    });
   }
 
   /* The share card: drawn straight on a canvas (no html2canvas, so none of

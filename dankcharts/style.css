@@ -51305,72 +51305,137 @@ button.gl-fact:active { transform: translateY(1px); }
 }
 
 
-/* ── The genre shelf (step 4) ── */
-.gl-shelf-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: var(--sp-3); }
+/* ── The genre shelf: collectible cards (step 4, redone 2026-11-18) ──
+   A frame in the family colour around a dark panel that stays dark in every
+   theme (like a real trading card), a picture window with the genre's top
+   artist tinted in the family colour, the name on its own line, plays and
+   top artist at the foot. Rare: a holo sheen that follows the pointer.
+   Deep cut: a gold frame with a sparkle. Locked: a mystery card. */
+.gl-shelf-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)); gap: var(--sp-4) var(--sp-3); perspective: 900px; }
 .gl-gcard {
+  --frame: linear-gradient(150deg, color-mix(in srgb, var(--gf) 70%, #fff) 0%, var(--gf) 45%, color-mix(in srgb, var(--gf) 60%, #000) 100%);
+  position: relative;
+  display: block;
+  aspect-ratio: 5 / 7;
+  padding: 5px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--frame);
+  color: #f3f6fc;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.25) inset, 0 10px 24px -8px rgba(0, 0, 0, 0.45);
+  transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transform-style: preserve-3d;
+  transition: transform 160ms var(--ease), box-shadow var(--t-med) var(--ease);
+}
+.gl-gcard:hover { box-shadow: 0 1px 0 rgba(255, 255, 255, 0.3) inset, 0 18px 34px -10px rgba(0, 0, 0, 0.55), 0 0 0 1px color-mix(in srgb, var(--gf) 60%, transparent); }
+.gl-gcard:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+.gl-gc-in {
   position: relative;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 4px;
-  aspect-ratio: 3 / 4;
-  padding: var(--sp-3);
-  border: 0;
-  border-radius: var(--r-lg);
-  /* Bright family colour in both themes, so the dark ink always reads */
-  background: linear-gradient(165deg, color-mix(in srgb, var(--gf) 72%, #fff) 0%, var(--gf) 55%, color-mix(in srgb, var(--gf) 78%, #000) 100%);
-  color: #0b1220;
-  font: inherit;
-  text-align: left;
+  height: 100%;
+  padding: 9px 10px 10px;
+  border-radius: 12px;
+  background:
+    radial-gradient(120% 70% at 50% 0%, color-mix(in srgb, var(--gf) 22%, transparent), transparent 70%),
+    #0e1522;
   overflow: hidden;
-  cursor: pointer;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
-  transition: transform var(--t-med) var(--ease), box-shadow var(--t-med) var(--ease);
 }
-/* Fine diagonal foil lines */
-.gl-gcard::after {
+.gl-gc-top { display: flex; align-items: center; justify-content: space-between; gap: 6px; min-height: 18px; }
+.gl-gcard-no { font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; color: color-mix(in srgb, var(--gf) 55%, #fff); letter-spacing: 0.02em; }
+.gl-gcard-rar {
+  padding: 2px 7px;
+  border-radius: var(--r-full);
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.82);
+  font-family: var(--font-mono);
+  font-size: 0.5625rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.gl-gc-art {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: 1 1 auto;
+  min-height: 0;
+  margin: 7px 0 8px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--gf) 30%, #0e1522) center 25% / cover no-repeat;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08) inset;
+  overflow: hidden;
+}
+/* The family colour washed over the photo, darker at the bottom */
+.gl-gc-art::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: repeating-linear-gradient(115deg, transparent 0 16px, rgba(255, 255, 255, 0.14) 16px 17px);
-  pointer-events: none;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--gf) 18%, transparent) 0%, color-mix(in srgb, var(--gf) 30%, transparent) 55%, rgba(14, 21, 34, 0.75) 100%);
+  mix-blend-mode: normal;
 }
-.gl-gcard:hover { transform: translateY(-3px) rotate(-1deg); box-shadow: 0 12px 26px rgba(0, 0, 0, 0.26); }
-.gl-gcard:focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
-.gl-gcard-no { font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; opacity: 0.72; }
-.gl-gcard-fam { font-size: 0.625rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; opacity: 0.75; }
+.gl-gc-art.has-img .gl-gc-ini { display: none; }
+.gl-gc-ini { position: relative; z-index: 1; font-family: var(--font-display); font-size: 2rem; font-weight: 800; color: color-mix(in srgb, var(--gf) 40%, #fff); opacity: 0.8; }
+.gl-gc-fam { font-size: 0.5625rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: color-mix(in srgb, var(--gf) 55%, #fff); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .gl-gcard-name {
-  margin-top: auto;
+  margin-top: 2px;
   font-family: var(--font-display);
-  font-size: 1.3rem;
+  font-size: 1.2rem;
   font-weight: 800;
-  line-height: 1.02;
-  overflow-wrap: anywhere;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  color: #fff;
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: auto;
   text-wrap: balance;
 }
-.gl-gcard-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px; width: 100%; margin-top: 6px; }
-.gl-gcard-pl { font-family: var(--font-mono); font-size: 0.6875rem; font-weight: 600; }
-.gl-gcard-rar {
-  padding: 2px 8px;
-  border-radius: var(--r-full);
-  background: rgba(11, 18, 32, 0.84);
-  color: #fff;
-  font-size: 0.625rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+.gl-gcard.is-long .gl-gcard-name { font-size: 1rem; }
+.gl-gc-foot { display: flex; align-items: baseline; justify-content: space-between; gap: 6px; margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(255, 255, 255, 0.1); }
+.gl-gcard-pl { flex: 0 0 auto; font-family: var(--font-mono); font-size: 0.6875rem; font-weight: 600; color: rgba(255, 255, 255, 0.85); }
+.gl-gc-who { min-width: 0; font-size: 0.6875rem; color: rgba(255, 255, 255, 0.6); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Rare: a holographic sheen on the frame and the picture, moving with the pointer */
+.gl-gcard-rare .gl-gcard-rar { background: color-mix(in srgb, #58aaf6 30%, transparent); color: #d6ebff; }
+.gl-gcard-rare::after, .gl-gcard-deep::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  mix-blend-mode: overlay;
+  opacity: 0.55;
+  background: linear-gradient(115deg, transparent 20%, rgba(255, 120, 220, 0.55) 35%, rgba(120, 220, 255, 0.55) 47%, rgba(255, 250, 160, 0.55) 58%, transparent 72%);
+  background-size: 250% 250%;
+  background-position: var(--mx, 30%) var(--my, 30%);
+  transition: opacity var(--t-med) var(--ease);
 }
-.gl-gcard-deep .gl-gcard-rar { background: #0b1220; color: #fbbf24; }
-.gl-gcard-deep { box-shadow: 0 0 0 2px #fbbf24, 0 6px 18px rgba(0, 0, 0, 0.18); }
+.gl-gcard-rare:hover::after, .gl-gcard-deep:hover::after { opacity: 0.85; }
+/* Deep cut: a gold frame and gold details */
+.gl-gcard-deep { --frame: linear-gradient(150deg, #fff3c4 0%, #f5c84b 28%, #c9921f 55%, #fde68a 78%, #a87412 100%); }
+.gl-gcard-deep::after { background: linear-gradient(115deg, transparent 25%, rgba(255, 255, 255, 0.7) 45%, transparent 62%); background-size: 250% 250%; }
+.gl-gcard-deep .gl-gcard-rar { background: #f5c84b; color: #2a1d02; }
+.gl-gcard-deep .gl-gcard-no { color: #f5c84b; }
+
+/* Locked: a mystery card in the family's colour, until you play it */
 .gl-gcard.is-locked {
-  background: var(--bg2);
-  color: var(--text3);
-  border: 1px dashed var(--border2);
+  --frame: repeating-linear-gradient(135deg, color-mix(in srgb, var(--gf) 45%, #1a2438) 0 6px, color-mix(in srgb, var(--gf) 25%, #1a2438) 6px 12px);
   box-shadow: none;
+  opacity: 0.88;
 }
-.gl-gcard.is-locked::after { display: none; }
-.gl-gcard.is-locked .gl-gcard-name { color: var(--text2); }
-.gl-gcard.is-locked:hover { border-color: var(--gf); color: var(--text2); }
+.gl-gcard.is-locked .gl-gc-in { background: #121a29; }
+.gl-gcard.is-locked .gl-gc-art { background: repeating-radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--gf) 14%, #121a29) 0 8px, #121a29 8px 16px); }
+.gl-gcard.is-locked .gl-gc-art::after { display: none; }
+.gl-gc-q { font-family: var(--font-display); font-size: 3rem; font-weight: 800; color: color-mix(in srgb, var(--gf) 55%, #fff); opacity: 0.55; }
+.gl-gc-lock { display: inline-flex; color: rgba(255, 255, 255, 0.5); }
+.gl-gc-lock svg { width: 14px; height: 14px; }
+.gl-gcard.is-locked .gl-gcard-name { color: rgba(255, 255, 255, 0.78); }
+.gl-gcard.is-locked:hover { opacity: 1; }
+
 
 /* ── Share card window ── */
 .gl-share-box { width: min(480px, calc(100vw - 32px)); }
@@ -51382,8 +51447,8 @@ button.gl-fact:active { transform: translateY(1px); }
   .gl-shelf-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .gl-gcard { transition: none; }
-  .gl-gcard:hover { transform: none; }
+  .gl-gcard { transition: none; transform: none; }
+  .gl-gcard-rare::after, .gl-gcard-deep::after { transition: none; }
 }
 
 

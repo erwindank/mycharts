@@ -3944,7 +3944,7 @@ window.GL_TEXT.en = {
         more: { title: 'Timeline and shelf', spots: {
           cap: ['What stands out', 'The month a family stood out, and who leads now.'],
           tl: ['Your genre timeline', 'Your families month by month. Hover over or tap a month for its mix.'],
-          shelf: ['Your genre shelf', 'A card for every genre you play, numbered by rank. Grey ones are next door and not played yet.'],
+          shelf: ['Your genre shelf', 'A card for every genre you play, numbered by rank. The ones with a ? are next door and not played yet.'],
           card: ['A card', 'Tap it for the genre’s page.'],
           rar: ['Rarity', 'Rare and Deep cut cards are the ones to show off.']
         } }

@@ -2768,7 +2768,7 @@ window.GL_TEXT['pt-PT'] = {
         more: { title: 'Linha do tempo e coleção', spots: {
           cap: ['O que se destaca', 'O mês em que uma família se destacou, e quem lidera agora.'],
           tl: ['A tua linha do tempo de géneros', 'As tuas famílias mês a mês. Passa o rato ou toca num mês para ver a mistura.'],
-          shelf: ['A tua coleção de géneros', 'Um cartão para cada género que ouves, numerado pela posição. Os cinzentos são parecidos e ainda não ouvidos.'],
+          shelf: ['A tua coleção de géneros', 'Um cartão para cada género que ouves, numerado pela posição. Os que têm ? são parecidos e ainda não ouvidos.'],
           card: ['Um cartão', 'Toca-lhe para ver a página do género.'],
           rar: ['Raridade', 'Os Raros e as Pérolas escondidas são os que vale a pena mostrar.']
         } }
