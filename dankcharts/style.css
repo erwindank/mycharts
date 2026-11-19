@@ -24994,7 +24994,9 @@ body.ytp-stage-open { overflow: hidden; }
 /* ── Step 11: the phone player ── */
 .ytp-tab-ic { display: none; width: 19px; height: 19px; }
 .ytp-sheet-head { display: none; }
-@media (max-width: 760px) {
+/* Same query as _YT_PHONE_MQ in app.js: phones upright, and phones held sideways
+   (short + landscape + touch only — those are wider than 760px) */
+@media (max-width: 760px), (orientation: landscape) and (max-height: 500px) and (hover: none) {
   body.ytp-phone-open { overflow: hidden; }
   /* The open card fills the screen; its content scrolls if the phone is short */
   .yt-mini-player:not(.yt-mini-collapsed):not(.ytp-stage) {
@@ -25085,6 +25087,85 @@ body.ytp-stage-open { overflow: hidden; }
   @media (prefers-reduced-motion: reduce) { .yt-mini-player .yt-panels-zone { transition: none; } }
 }
 
+/* ── TV-PLAN.md step 1: the phone player held sideways ──
+   Left half: cover / video, the artwork-or-video switch and the section
+   buttons, pinned in place. Right half: header, song, chart story, progress,
+   controls and the bottom row — this side scrolls on its own if it is taller
+   than the screen (e.g. while the first-visit hint shows). A section opens as
+   a panel that slides in over the right half, so the video stays in view.
+   Same query as _YT_SIDEWAYS_MQ in app.js. */
+@media (orientation: landscape) and (max-height: 500px) and (hover: none) {
+  .yt-mini-player:not(.yt-mini-collapsed):not(.ytp-stage) {
+    --ytp-left: 47vw;   /* width of the pinned left half */
+    --cv: min(48dvh, 190px);
+    padding: env(safe-area-inset-top, 0px) calc(12px + env(safe-area-inset-right, 0px)) calc(10px + env(safe-area-inset-bottom, 0px)) calc(var(--ytp-left) + 16px);
+  }
+  .yt-mini-player:not(.ytp-stage) .yt-player-header { padding: 6px 0 2px 2px; }
+  .yt-mini-player:not(.ytp-stage) .yt-hdr-btn { width: 40px; height: 40px; }
+  /* Left half: the cover / video, centred in the space above the switch */
+  .yt-mini-player:not(.yt-mini-collapsed):not(.ytp-stage) .ytp-media {
+    position: fixed;
+    left: calc(12px + env(safe-area-inset-left, 0px));
+    width: calc(var(--ytp-left) - 12px - env(safe-area-inset-left, 0px));
+    top: calc(10px + env(safe-area-inset-top, 0px));
+    bottom: calc(118px + env(safe-area-inset-bottom, 0px));
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+  }
+  .yt-mini-player:not(.ytp-stage).ytp-show-video .yt-mini-video { width: 100%; max-height: 100%; border-radius: 14px; overflow: hidden; }
+  .yt-mini-player:not(.ytp-stage) .ytp-art { width: 100%; height: calc(var(--cv) + 24px); }
+  .yt-mini-player:not(.ytp-stage) .ytp-cover { left: 8px; top: 12px; }
+  .yt-mini-player:not(.ytp-stage) .ytp-vinyl { top: calc(12px + var(--cv) * 0.04); left: calc(8px + var(--cv) * 0.42); }
+  .yt-mini-player.yt-is-playing:not(.ytp-stage) .ytp-vinyl { left: calc(8px + var(--cv) * 0.66); }
+  .yt-mini-player:not(.yt-mini-collapsed):not(.ytp-stage) .ytp-media-bar {
+    position: fixed;
+    left: calc(12px + env(safe-area-inset-left, 0px));
+    width: calc(var(--ytp-left) - 12px - env(safe-area-inset-left, 0px));
+    bottom: calc(70px + env(safe-area-inset-bottom, 0px));
+    padding: 0;
+    z-index: 1;
+  }
+  /* Section buttons: under the switch on the left, not across the whole bottom */
+  .yt-mini-player:not(.yt-mini-collapsed):not(.ytp-stage) .ytp-tabs {
+    left: calc(12px + env(safe-area-inset-left, 0px));
+    right: auto;
+    width: calc(var(--ytp-left) - 12px - env(safe-area-inset-left, 0px));
+    bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+    box-shadow: none;
+  }
+  .yt-mini-player:not(.ytp-stage) .ytp-tab { height: 52px; }
+  /* Right half: a little tighter so it fits a short screen */
+  .yt-mini-player:not(.ytp-stage) .yt-track-area { padding-top: 2px; }
+  .yt-mini-player:not(.ytp-stage) .yt-mini-title { font-size: 1.3rem; }
+  .yt-mini-player:not(.ytp-stage) .ytp-story { margin: 8px 0 0; }
+  .yt-mini-player:not(.ytp-stage) .ytp-hint { margin: 8px 0 0; }
+  .yt-mini-player:not(.ytp-stage) .yt-seek-bar-wrap { padding: 8px 0 0; }
+  .yt-mini-player:not(.ytp-stage) .yt-primary-controls { padding: 2px 0 0; justify-content: space-around; }
+  .yt-mini-player:not(.ytp-stage) .yt-ctrl-btn { width: 44px; height: 44px; }
+  .yt-mini-player:not(.ytp-stage) .yt-pause-wrap,
+  .yt-mini-player:not(.ytp-stage) .yt-ctrl-play { width: 60px; height: 60px; }
+  .yt-mini-player:not(.ytp-stage) .ytp-foot { padding: 2px 0 0; }
+  /* The panel slides in over the right half, full height */
+  .yt-mini-player:not(.yt-mini-collapsed):not(.ytp-stage) .yt-panels-zone {
+    left: var(--ytp-left);
+    right: 0;
+    top: 0;
+    bottom: 0;
+    height: auto;
+    padding: env(safe-area-inset-top, 0px) calc(16px + env(safe-area-inset-right, 0px)) calc(12px + env(safe-area-inset-bottom, 0px)) 16px;
+    border-radius: 20px 0 0 20px;
+    border-top: 0;
+    border-left: 1px solid var(--border);
+    box-shadow: -18px 0 40px rgba(0, 0, 0, 0.4);
+    transform: translateX(calc(100% + 40px));
+  }
+  .yt-mini-player[data-sheet="open"]:not(.ytp-stage) .yt-panels-zone { transform: none; }
+  .ytp-sheet-grab { display: none; }
+}
+
 /* ── Step 12: tour + first-visit hint ── */
 .yt-mini-player .ytp-foot .ytp-help-btn { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border); font: 700 var(--fs-sm) var(--font-sans); color: var(--text2); }
 .yt-mini-player .ytp-foot .ytp-help-btn:hover { border-color: var(--border2); color: var(--text); }
@@ -25121,7 +25202,7 @@ body.ytp-stage-open { overflow: hidden; }
 .ytp-tour-skip { margin-left: auto; background: none; border: 0; padding: 4px; font: 600 var(--fs-xs) var(--font-sans); color: inherit; opacity: 0.7; cursor: pointer; }
 .ytp-tour-skip:hover { opacity: 1; text-decoration: underline; }
 /* Phone: the tabs are fixed to the screen, so lift them above the dim layer when ringed */
-@media (max-width: 760px) {
+@media (max-width: 760px), (orientation: landscape) and (max-height: 500px) and (hover: none) {
   .yt-mini-player.ytp-touring .ytp-tabs.ytp-spot { z-index: 31 !important; }
 }
 

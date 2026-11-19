@@ -38695,7 +38695,14 @@ function _ytInitStage() {
 // shrinks it to the bar. All CSS (max-width: 760px); this adds the state
 // (data-sheet on the card), the swipes and a page-scroll lock.
 let _ytTabTap = false;   // the next _ytShowTab came from tapping a tab button
-function _ytIsPhone() { return window.matchMedia && window.matchMedia('(max-width: 760px)').matches; }
+// A phone held sideways is wider than 760px, so it also counts as a phone when
+// it is short, landscape and touch-only (TV-PLAN.md step 1). The same query is
+// used in style.css for the phone player rules — keep the two in step.
+const _YT_PHONE_MQ = '(max-width: 760px), (orientation: landscape) and (max-height: 500px) and (hover: none)';
+const _YT_SIDEWAYS_MQ = '(orientation: landscape) and (max-height: 500px) and (hover: none)';
+function _ytIsPhone() { return !!(window.matchMedia && window.matchMedia(_YT_PHONE_MQ).matches); }
+// The phone player turned sideways: cover / video on the left, controls on the right
+function _ytIsSideways() { return !!(window.matchMedia && window.matchMedia(_YT_SIDEWAYS_MQ).matches); }
 function _ytCloseSheet() {
   const p = document.getElementById('ytMiniPlayer');
   if (p) p.dataset.sheet = '';
@@ -38706,10 +38713,12 @@ function _ytCloseSheet() {
 // the old height when it is not set. Never below 220px so the sheet stays usable.
 function _ytSizeSheet() {
   const p = document.getElementById('ytMiniPlayer');
-  if (!p || !_ytIsPhone()) return;
+  if (!p || !_ytIsPhone() || _ytIsSideways()) return;   // sideways the panel is full height (CSS)
   const story = document.getElementById('ytChartStory');
   let anchor = story && story.offsetParent ? story : null;
-  if (!anchor) anchor = p.querySelector('.ytp-art');
+  // The whole media box (cover or video) — .ytp-art alone is hidden in video
+  // mode and measured 0, which made the sheet cover the whole screen
+  if (!anchor) anchor = p.querySelector('.ytp-media');
   if (!anchor) return;
   const tabs = p.querySelector('.ytp-tabs');
   const sheetBottom = tabs ? tabs.getBoundingClientRect().top - 2 : window.innerHeight - 76;   // the sheet ends at the tab buttons
@@ -38738,6 +38747,16 @@ function _ytInitPhone() {
     window[fn] = function () { const r = orig.apply(this, arguments); if (fn === 'openYtPlayer' && _ytIsPhone() && !p.classList.contains('yt-mini-collapsed')) _ytCloseSheet(); _ytPhoneSync(); return r; };
   });
   window.addEventListener('resize', _ytPhoneSync);
+  // Turning the phone (upright ↔ sideways, TV-PLAN.md step 1): start the card
+  // at the top again and re-measure an open sheet for the new layout. Music and
+  // the open section carry on.
+  if (window.matchMedia) {
+    const mq = window.matchMedia(_YT_SIDEWAYS_MQ);
+    // Measured again once the cover / video has settled into its new size
+    // (measuring straight away caught it mid-change and the sheet came out wrong)
+    const onTurn = () => { p.scrollTop = 0; setTimeout(() => { if (p.dataset.sheet === 'open') _ytSizeSheet(); }, 450); };
+    if (mq.addEventListener) mq.addEventListener('change', onTurn); else if (mq.addListener) mq.addListener(onTurn);
+  }
   // No "keep on screen" for the full-screen phone card (it would save a bogus spot)
   const clamp = window._ytClampToViewport;
   if (typeof clamp === 'function') window._ytClampToViewport = function () { if (_ytIsPhone()) return; return clamp.apply(this, arguments); };
