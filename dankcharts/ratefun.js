@@ -1562,3 +1562,77 @@ function rfStillRerate(kind, key) {
 window.rfStillYes = rfStillYes;
 window.rfStillSkip = rfStillSkip;
 window.rfStillRerate = rfStillRerate;
+
+// ── Well-timed nudges (20) ───────────────────────────────────────────────
+/* Ask at the right moment, at most once a day (fun.told.nudge):
+     1. a song you haven't scored is #1 on your weekly chart this week
+     2. else, an album you haven't scored was played through 3 times or more
+        in the last 7 days (plays ≥ 3 × the tracks you play from it, 4
+        tracks or more)
+   The same song or album is never nudged twice (fun.told.nudged keeps the
+   last RF_NUDGE_KEEP). Looked for at most every RF_NUDGE_EVERY while the
+   site is open; the weekly chart run is the charts' own cached one. */
+const RF_NUDGE_EVERY = 3 * 3600 * 1000;
+const RF_NUDGE_KEEP = 60;
+let _rfNudgeTried = 0;
+
+function _rfNudgeFind() {
+  const f = _rfFun(), seen = new Set(f.told.nudged || []);
+  // 1. This week's #1
+  try {
+    const run = typeof _crFull === 'function' ? _crFull('week') : null;
+    const songs = run && run.result && run.result.songs;
+    if (songs) {
+      const wk = playWeekKey(new Date());
+      for (const [k, d] of Object.entries(songs)) {
+        const cur = d.entries && d.entries.find(e => e.periodKey === wk);
+        if (!cur || cur.rank !== 1 || seen.has('s:' + k) || ratingSongScore(k) != null) continue;
+        const nm = ratingSongNames(k);
+        return { kind: 'song', key: k, why: 'no1', title: nm.title, artist: nm.artist };
+      }
+    }
+  } catch (e) { /* no chart yet: try the album rule */ }
+  // 2. An album played through three times this week
+  const since = Date.now() - 7 * RF_DAY_MS, plays = new Map();
+  for (let i = allPlays.length - 1; i >= 0; i--) {
+    const p = allPlays[i];
+    if (!p.date || +p.date < since) continue;
+    if (!p.album || p.album === '—') continue;
+    const ak = albumKeyOf(p);
+    plays.set(ak, (plays.get(ak) || 0) + 1);
+  }
+  let best = null;
+  for (const [ak, n] of plays) {
+    const tracks = ratingAlbumTrackKeys(ak).length;
+    if (tracks < 4 || n < tracks * 3 || seen.has('a:' + ak) || _rfAlbumYours(ak)) continue;
+    if (!best || n / tracks > best.times) best = { kind: 'album', key: ak, why: 'thrice', times: n / tracks };
+  }
+  if (best) { const [title, artist = ''] = best.key.split('|||'); return { ...best, title, artist, times: Math.floor(best.times) }; }
+  return null;
+}
+
+function _rfWatchNudge() {
+  const f = _rfFun(), d = rfToday();
+  if (f.told.nudge === d || Date.now() - _rfNudgeTried < RF_NUDGE_EVERY) return;
+  _rfNudgeTried = Date.now();
+  const x = _rfNudgeFind();
+  if (!x) return;
+  f.told.nudge = d;
+  f.told.nudged = [...(f.told.nudged || []), (x.kind === 'album' ? 'a:' : 's:') + x.key].slice(-RF_NUDGE_KEEP);
+  _rfFunTouch();
+  ratingsPersist(true);
+  dcNotify({ kind: 'rt_nudge', why: x.why, title: x.title, artist: x.artist, times: x.times || 0,
+    link: { tab: 'rfun', what: 'rate', kind: x.kind, key: x.key } });
+}
+_rfWatchers.push(_rfWatchNudge);
+
+// The link: the song or album's window, ready to score
+_rfFollowers.rate = link => {
+  if (link.kind === 'album') {
+    openAlbumModal(link.key);
+    if (window.dcPanelShowTab) dcPanelShowTab('album', 'rating');
+  } else {
+    openSongModal(link.key);
+    openRatingModal('song', link.key);
+  }
+};

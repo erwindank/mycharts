@@ -104,7 +104,10 @@ const NT_KINDS = {
   // (2026-11-09) explains the singles/EPs Records fix — see NT_NOTICE_REC_UNTIL.
   notice: { emoji: '📣', cat: 'news', text: p => t('nt_notice_' + p.key) },
   // Rating fun (ratefun.js): the daily rating streak is at risk tonight (p.n days, p.left to go)
-  rt_streak: { emoji: '🔥', cat: 'ratings', text: p => t('nt_rt_streak', { n: p.n, left: p.left }) }
+  rt_streak: { emoji: '🔥', cat: 'ratings', text: p => t('nt_rt_streak', { n: p.n, left: p.left }) },
+  // A well-timed "ready to rate it?" (ratefun.js): p.why 'no1' (a song is #1
+  // on the weekly chart) or 'thrice' (an album played through p.times times)
+  rt_nudge: { emoji: '⭐', cat: 'ratings', text: p => t(p.why === 'no1' ? 'nt_rt_nudge_no1' : 'nt_rt_nudge_thrice', { title: p.title, artist: p.artist, n: p.times }) }
 };
 
 /* Record notifications that cover several lists (one holder taking many,

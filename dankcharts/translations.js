@@ -7017,6 +7017,9 @@ const TRANSLATIONS = {
     rf_still_rerate: "Re-rate",
     rf_still_later: "Not now",
     rf_still_kept: "Kept. We'll ask again in a year.",
+    // Step 13: well-timed nudges
+    nt_rt_nudge_no1: "{{title}} by {{artist}} is #1 on your chart this week. Ready to rate it?",
+    nt_rt_nudge_thrice: "You've played {{title}} through {{n}} times this week. Ready to rate it?",
     // ── end rating fun ──
   },
 
