@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 505;
+const DC_CL_I18N_V = 510;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -449,6 +449,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-19', t: 'change', a: 'ratings',
+    title: "The Ratings page keeps your scores and Listening Scores apart",
+    detail: "With Listening Scores on, the Ratings page used to fold them in with your own scores, so its big verdict was mostly a number you never gave. Now the top shows the two side by side: your average as a solid ring and the Listening Score average as a dashed one, each with its own verdict. The rated bars are split into what you scored and what only has a Listening Score. A Yours / Listening / Both switch decides what the cards and lists below hold, and every highest and lowest card and every list row says who gave the score. A new \u201cYou vs. your listening\u201d block shows how far your own scores sit from your listening on average, and what you rate far above how much you play it, and the other way round. Your critical records always use your own scores." },
   { d: '2026-11-18', t: 'feature', a: 'player',
     title: "TV mode for the music player",
     detail: "Tools \u2192 TV mode in the music player opens a big-screen view for a TV, a cast tab or any big window. With the artwork it shows a big cover, the song, your chart story, karaoke lyrics and the next four songs; with the video, the video fills the screen and the lyrics show like subtitles. The controls fade out while the music plays and come back on any key, click or touch, and the screen stays on. It works with a TV remote: the arrows move between the buttons, OK presses and Back leaves. The same card explains how to get it onto a TV from Chrome or Edge, an Android phone, an iPhone, iPad or Mac, or the TV's own browser, where dankcharts.fm/?tv=1 opens straight into TV mode. Play/pause, next and previous keys on keyboards and remotes now work everywhere." },

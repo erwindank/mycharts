@@ -68252,15 +68252,21 @@ function arRenderBody(sc) {
   // Spread of the scores over the seven verdicts, best first
   let dist = '';
   if (view !== 'todo') {
-    const scores = (view === 'albums' ? sum.albums : view === 'singles' ? sum.singles : sum.songs).map(x => x.score);
-    const per = RATING_BANDS.map(b => ({ b, n: scores.filter(s => ratingBand(s) === b).length }));
+    const rowsOf = view === 'albums' ? sum.albums : view === 'singles' ? sum.singles : sum.songs;
+    // ls: how much of each column is (partly) Listening Scores, drawn striped
+    // on top of your solid part (the Ratings page in Both, 2026-11-19)
+    const split = sum.mode === 'both';
+    const per = RATING_BANDS.map(b => {
+      const inBand = rowsOf.filter(x => ratingBand(x.score) === b);
+      return { b, n: inBand.length, ls: split ? inBand.filter(x => x.ls).length : 0 };
+    });
     const max = Math.max(...per.map(p => p.n), 1);
     dist = `<div class="ar-dist${_ar.band ? ' has-pick' : ''}" role="group" aria-label="${esc(t('ar_spread'))}">
       <div class="ar-dist-head"><span class="ao-kicker">${esc(t('ar_spread'))}</span><span class="ar-dist-hint">${esc(t(_ar.band ? 'ar_spread_clear' : 'ar_spread_hint'))}</span></div>
       <div class="ar-dist-cols">${per.map(p => `<button type="button" class="ar-dist-col ${p.b.cls}${_ar.band === p.b.key ? ' is-on' : ''}" ${p.n ? '' : 'disabled'}
-          aria-pressed="${_ar.band === p.b.key}" onclick="arSetBand('${sc}','${p.b.key}')" title="${esc(p.b.label)}: ${p.n}">
+          aria-pressed="${_ar.band === p.b.key}" onclick="arSetBand('${sc}','${p.b.key}')" title="${esc(p.b.label)}: ${p.n}${p.ls ? ` (${esc(t('rp_m_ls', { n: p.ls }))})` : ''}">
           <span class="ar-dist-n">${p.n || ''}</span>
-          <span class="ar-dist-bar"><span style="height:${(p.n / max * 100).toFixed(1)}%"></span></span>
+          <span class="ar-dist-bar"><span style="height:${(p.n / max * 100).toFixed(1)}%">${p.ls ? `<i class="rp-dist-ls" style="height:${(p.ls / p.n * 100).toFixed(1)}%"></i>` : ''}</span></span>
           <span class="ar-dist-lbl">${esc(p.b.label)}</span>
         </button>`).join('')}</div>
     </div>`;
@@ -68287,11 +68293,11 @@ function arRenderList(sc) {
   const { sum, todo, plays, view } = _ar;
   // One shape for all three lists
   // rel: what the release counts as (album / single / ep) and whether that is a guess
-  const relRow = a => ({ kind: 'album', key: a.key, name: a.name, artist: a.key.split('|||')[1] || '', score: a.score, ls: !!a.ls, ratedTracks: a.ratedTracks, totalTracks: a.totalTracks, plays: plays[a.key] || 0, rel: { kind: a.kind, guess: a.guess } });
+  const relRow = a => ({ kind: 'album', key: a.key, name: a.name, artist: a.key.split('|||')[1] || '', score: a.score, ls: !!a.ls, src: a.src, ratedTracks: a.ratedTracks, totalTracks: a.totalTracks, plays: plays[a.key] || 0, rel: { kind: a.kind, guess: a.guess } });
   let rows = view === 'albums' ? sum.albums.map(relRow)
     : view === 'singles' ? sum.singles.map(relRow)
     : view === 'songs'
-      ? sum.songs.map(s => ({ kind: 'song', key: s.key, name: s.title, artist: s.artist || '', score: s.score, ls: !!s.ls, quick: ratingSongEntry(s.key)?.m === 'quick' }))
+      ? sum.songs.map(s => ({ kind: 'song', key: s.key, name: s.title, artist: s.artist || '', score: s.score, ls: !!s.ls, src: s.src, quick: ratingSongEntry(s.key)?.m === 'quick' }))
       : todo.map(k => ({ kind: 'album', key: k, name: k.split('|||')[0], artist: k.split('|||')[1] || '', score: null, plays: plays[k] || 0, rel: ratingReleaseKind(k) }));
   if (_ar.band && view !== 'todo') rows = rows.filter(r => ratingBand(r.score).key === _ar.band);
   const q = _ar.q.trim().toLowerCase();
@@ -68323,12 +68329,17 @@ function arRenderList(sc) {
     const lsOn = typeof asOn === 'function' && asOn();
     const lsView = lsOn && r.kind === 'album' && (view === 'todo' || !r.ls) ? asAlbumView(r.key) : null;
     const lsTodo = view === 'todo' && lsView ? lsView : null;
+    // Who gave the score shown (the Ratings page's Listening / Both modes,
+    // 2026-11-19): a worded tag, not just the dashed box, so nobody has to
+    // know what a dashed box means
     const mixTag = lsView && lsView.state === 'mixed' && view !== 'todo'
-      ? `<span class="ar-tag as-tag">${esc(t('as_mixed'))} ${asChip(lsView)}</span>` : '';
+      ? `<span class="ar-tag as-tag">${esc(t('as_mixed'))} ${asChip(lsView)}</span>`
+      : r.src === 'ls' && view !== 'todo' ? `<span class="ar-tag rp-who rp-who--ls">${ic('headphones')}${esc(t('as_name'))}</span>`
+      : r.src === 'mix' && view !== 'todo' ? `<span class="ar-tag rp-who rp-who--mix">${esc(t('as_mixed'))}</span>` : '';
     let sub = '';
     if (view === 'albums' || view === 'singles') sub = `<span class="ar-sub">${tag}${mixTag}${esc(t('ar_tracks_rated', { n: r.ratedTracks, of: r.totalTracks }))}</span>
         <span class="ar-prog"><span style="width:${(r.totalTracks ? r.ratedTracks / r.totalTracks * 100 : 0).toFixed(1)}%"></span></span>`;
-    else if (view === 'songs') sub = `<span class="ar-sub">${esc(t(r.quick ? 'ar_quick' : 'ar_rubric'))}</span>`;
+    else if (view === 'songs') sub = `<span class="ar-sub">${r.src === 'ls' ? mixTag : esc(t(r.quick ? 'ar_quick' : 'ar_rubric'))}</span>`;
     else sub = `<span class="ar-sub">${tag}${r.plays.toLocaleString()} ${esc(tUnit('plays', r.plays))}${lsTodo ? ` · ${esc(t('as_name'))}` : ''}</span>`;
     const lsB = lsTodo ? ratingBand(lsTodo.score) : null;
     return `<div class="ar-row ${b ? b.cls : lsB ? lsB.cls : 'rt--none'}${r.ls || lsTodo ? ' as-row--ls' : ''}" role="button" tabindex="0" onclick="arEdit('${sc}',${i})" onkeydown="if(event.target===this&&(event.key==='Enter'||event.key===' ')){event.preventDefault();arEdit('${sc}',${i});}">
@@ -69163,7 +69174,17 @@ function _rpTieOrder(a, b) {
   return _rpFullness(b) - _rpFullness(a) || (b.plays || 0) - (a.plays || 0);
 }
 
-function ratingLibrarySummary() {
+/* mode — whose scores the lists hold (2026-11-19, the page's "Yours ·
+   Listening · Both" switch):
+     'yours'  your own scores only (a part-yours album by your scores alone)
+     'ls'     Listening Scores only: what you have not scored at all
+     'both'   what every chip shows: yours where you scored, Listening
+              Scores in the gaps, part-yours albums blended
+   Left out, it follows the "Count Listening Scores" switch, as before.
+   Every row carries src ('you' | 'mix' | 'ls': who the shown score is
+   from), and the summary carries the split and both averages whatever the
+   mode, so the page can always show the two side by side. */
+function ratingLibrarySummary(mode) {
   const albumPlays = {}, songPlays = {}, songAlbums = {};
   for (const p of allPlays) {
     const sk = songKey(p);
@@ -69173,33 +69194,69 @@ function ratingLibrarySummary() {
     albumPlays[ak] = (albumPlays[ak] || 0) + 1;
     (songAlbums[sk] || (songAlbums[sk] = new Set())).add(ak);
   }
+  const lsOn = typeof asOn === 'function' && asOn();
+  if (!lsOn) mode = 'yours';
+  else if (!mode) mode = asCounts() ? 'both' : 'yours';
   // An album is rated through its own scores or through its tracks', so the
   // candidates are the albums with an entry and the albums of rated songs
-  const counting = typeof asCounts === 'function' && asCounts();
   const cand = new Set(Object.keys(_ratings.albums));
   for (const sk of Object.keys(_ratings.songs)) for (const ak of songAlbums[sk] || []) cand.add(ak);
-  // Counting Listening Scores (autoscore.js, switch off by default): every
-  // played release is a candidate, scored with what its chip shows
-  if (counting) for (const ak of Object.keys(albumPlays)) cand.add(ak);
-  const releases = [...cand].map(k => {
+  // With Listening Scores on, every played release can have one
+  if (lsOn) for (const ak of Object.keys(albumPlays)) cand.add(ak);
+  // Every release once, with your score (own) and the shown one (view)
+  const allRel = [...cand].map(k => {
     const r = ratingAlbumScore(k);
-    const score = ratingAlbumScoreCounted(k);
-    if (score == null) return null;
+    const v = lsOn ? asAlbumView(k) : (r ? { score: r.score, state: 'yours' } : null);
+    if (!r && !v) return null;
     const [name, artist = ''] = k.split('|||');
     const base = r || { ratedTracks: 0, totalTracks: ratingAlbumTrackKeys(k).length };
-    return { key: k, name, artist, ...base, score, own: !!r, ls: counting && asIsCountedLs('album', k), ...ratingReleaseKind(k), plays: albumPlays[k] || 0 };
-  }).filter(Boolean).sort((a, b) => _rpScore10(b.score) - _rpScore10(a.score) || _rpTieOrder(a, b));
+    const src = !v || v.state === 'yours' ? 'you' : v.state === 'mixed' ? 'mix' : 'ls';
+    return { key: k, name, artist, ...base, own: r ? r.score : null, view: v ? v.score : null, src, ...ratingReleaseKind(k), plays: albumPlays[k] || 0 };
+  }).filter(Boolean);
+  // Every song once: rated ones, and with Listening Scores on every played one
+  const songKeys = new Set(Object.keys(_ratings.songs));
+  if (lsOn) for (const k of Object.keys(songPlays)) songKeys.add(k);
+  const allSongs = [...songKeys].map(k => {
+    const own = ratingSongScore(k);
+    const ls = lsOn && own == null ? asSong(k) : null;
+    if (own == null && !ls) return null;
+    const nm = ratingSongNames(k);
+    return { key: k, title: nm.title, artist: nm.artist, own, view: own != null ? own : ls.score, src: own != null ? 'you' : 'ls',
+      plays: songPlays[k] || 0, ts: _ratings.songs[k]?.ts || 0, quick: _ratings.songs[k]?.m === 'quick' };
+  }).filter(Boolean);
+
+  // The rows a mode keeps, scored the way that mode shows them
+  const order = (a, b) => _rpScore10(b.score) - _rpScore10(a.score) || _rpTieOrder(a, b);
+  const take = (rows, m) => rows.map(x =>
+      m === 'yours' ? (x.own != null ? { ...x, score: x.own, ls: false, src: 'you' } : null)
+    : m === 'ls'    ? (x.src === 'ls' ? { ...x, score: x.view, ls: true } : null)
+    : (x.view != null ? { ...x, score: x.view, ls: x.src !== 'you' } : null)
+  ).filter(Boolean).sort(order);
+  const releases = take(allRel, mode);
   const albums = releases.filter(a => a.kind === 'album');
   const singles = releases.filter(a => a.kind !== 'album');
-  const songs = (counting ? Object.keys(songPlays) : Object.keys(_ratings.songs)).map(k => {
-    const s = ratingSongScoreCounted(k);
-    if (s == null) return null;
-    const nm = ratingSongNames(k);
-    return { key: k, title: nm.title, artist: nm.artist, score: s, ls: counting && asIsCountedLs('song', k), plays: songPlays[k] || 0, ts: _ratings.songs[k]?.ts || 0, quick: _ratings.songs[k]?.m === 'quick' };
-  }).filter(Boolean).sort((a, b) => _rpScore10(b.score) - _rpScore10(a.score) || _rpTieOrder(a, b));
+  const songs = take(allSongs, mode);
+  // Your own lists, whatever the mode: the critical records always judge
+  // your scores (a Listening Score is made from plays, so "played more than
+  // its score" would only be measuring itself)
+  const youRel = mode === 'yours' ? releases : take(allRel, 'yours');
+  const yours = mode === 'yours' ? { albums, singles, songs }
+    : { albums: youRel.filter(a => a.kind === 'album'), singles: youRel.filter(a => a.kind !== 'album'), songs: take(allSongs, 'yours') };
+
+  // The split: how many of each kind you scored, how many only listening did
+  const isAlb = x => x.kind === 'album';
+  const cnt = (rows, f) => { let you = 0, ls = 0; for (const x of rows) if (f(x)) { if (x.own != null) you++; else if (x.src === 'ls') ls++; } return { you, ls }; };
+  const split = { albums: cnt(allRel, isAlb), singles: cnt(allRel, x => !isAlb(x)), songs: cnt(allSongs, () => true) };
+  // Both averages side by side: yours over what you scored, Listening
+  // Scores over what you didn't
+  const mean = (rows, get) => { let s = 0, n = 0; for (const x of rows) { const v = get(x); if (v != null) { s += v; n++; } } return n ? { avg: Math.round(s / n * 10) / 10, n } : null; };
+  const duel = {
+    you: { album: mean(allRel.filter(isAlb), x => x.own), song: mean(allSongs, x => x.own) },
+    ls:  { album: mean(allRel.filter(isAlb), x => x.src === 'ls' ? x.view : null), song: mean(allSongs, x => x.src === 'ls' ? x.view : null) }
+  };
 
   // "Rated" and the To-rate list are always about your own scores
-  const rated = new Set(releases.filter(r => r.own).map(r => r.key));
+  const rated = new Set(allRel.filter(r => r.own != null).map(r => r.key));
   const allAlbums = Object.keys(albumPlays);
   let totalAlbums = 0;
   for (const k of allAlbums) if (ratingReleaseKind(k).kind === 'album') totalAlbums++;
@@ -69210,11 +69267,12 @@ function ratingLibrarySummary() {
   // Every rated album and song by when it was last scored, newest first
   const recent = [];
   for (const k of Object.keys(_ratings.albums)) if (_ratings.albums[k]?.ts && rated.has(k)) recent.push({ kind: 'album', key: k, ts: _ratings.albums[k].ts });
-  for (const s of songs) if (s.ts) recent.push({ kind: 'song', key: s.key, ts: s.ts });
+  for (const s of allSongs) if (s.ts && s.own != null) recent.push({ kind: 'song', key: s.key, ts: s.ts });
   recent.sort((a, b) => b.ts - a.ts);
 
   const avg = arr => arr.length ? Math.round((arr.reduce((a, b) => a + b.score, 0) / arr.length) * 10) / 10 : null;
   return {
+    mode, lsOn, split, duel, yours, allRel, allSongs,
     albums, singles, songs, todo, recent, albumPlays,
     albumAvg: avg(albums), singleAvg: avg(singles), songAvg: avg(songs),
     ratedAlbums: albums.length, ratedSingles: singles.length, ratedSongs: songs.length,
@@ -69228,13 +69286,63 @@ function ratingLibrarySummary() {
 function _rpTopArtists(sum) {
   const group = (rows, min) => {
     const by = {};
-    for (const r of rows) for (const a of splitArtists(r.artist)) { const n = a.trim(); if (n) (by[n] || (by[n] = [])).push(r.score); }
+    // ls: how many of the artist's scores are (partly) Listening Scores, so
+    // the row can say so (the Ratings page's Listening / Both modes)
+    const lsN = {};
+    for (const r of rows) for (const a of splitArtists(r.artist)) { const n = a.trim(); if (n) { (by[n] || (by[n] = [])).push(r.score); if (r.ls) lsN[n] = (lsN[n] || 0) + 1; } }
     return Object.entries(by).filter(([, v]) => v.length >= min)
-      .map(([name, v]) => ({ name, n: v.length, avg: Math.round(v.reduce((x, y) => x + y, 0) / v.length * 10) / 10 }))
+      .map(([name, v]) => ({ name, n: v.length, ls: lsN[name] || 0, avg: Math.round(v.reduce((x, y) => x + y, 0) / v.length * 10) / 10 }))
       .sort((a, b) => b.avg - a.avg || b.n - a.n).slice(0, 8);
   };
   const byAlbums = group(sum.albums, 2);
   return byAlbums.length ? { list: byAlbums, unit: 'albums' } : { list: group(sum.songs, 3), unit: 'songs' };
+}
+
+/* Whose scores the Ratings page shows (2026-11-19): 'yours' | 'ls' | 'both'.
+   Per browser, like a remembered tab; opens on your own scores. */
+const RP_SRCS = ['yours', 'ls', 'both'];
+let _rpSrc = null;
+function _rpSrcGet() {
+  if (_rpSrc) return _rpSrc;
+  try { _rpSrc = localStorage.getItem('dc_rp_src'); } catch (e) { /* private window: no memory, default below */ }
+  if (!RP_SRCS.includes(_rpSrc)) _rpSrc = 'yours';
+  return _rpSrc;
+}
+function rpSetSrc(s) {
+  if (!RP_SRCS.includes(s)) return;
+  _rpSrc = s;
+  try { localStorage.setItem('dc_rp_src', s); } catch (e) { /* not remembered, still switched */ }
+  // a verdict picked in the spread may not exist in the other list
+  if (_arS.p) { _arS.p.band = null; _arS.p.all = false; }
+  renderRatingsPage();
+}
+
+/* You vs. your listening (2026-11-19). Everything you scored also has a
+   Listening Score (worked out as if you had rated nothing on it — asAlbumLs).
+   The gap between the two is the fun part: what you rate far above how you
+   play it, and what you play far more than you rate it. d = yours − theirs.
+   null with Listening Scores off or fewer than 3 pairs. */
+const RP_VS_SHOW = 4;
+function _rpVs(sum) {
+  if (!sum.lsOn || typeof asAlbumLs !== 'function') return null;
+  const pairs = [];
+  for (const x of sum.allRel) {
+    if (x.own == null) continue;
+    const ls = asAlbumLs(x.key);
+    if (ls != null) pairs.push({ kind: 'album', key: x.key, name: x.name, artist: x.artist, own: x.own, ls, d: Math.round((x.own - ls) * 10) / 10 });
+  }
+  for (const x of sum.allSongs) {
+    if (x.own == null) continue;
+    const ls = asSong(x.key);
+    if (ls) pairs.push({ kind: 'song', key: x.key, name: x.title, artist: x.artist, own: x.own, ls: ls.score, d: Math.round((x.own - ls.score) * 10) / 10 });
+  }
+  if (pairs.length < 3) return null;
+  const avg = Math.round(pairs.reduce((a, p) => a + p.d, 0) / pairs.length * 10) / 10;
+  const agree = Math.round(pairs.filter(p => Math.abs(p.d) <= 1).length / pairs.length * 100);
+  // only real disagreements (a point or more), the biggest first
+  const love = pairs.filter(p => p.d >= 1).sort((a, b) => b.d - a.d || b.own - a.own).slice(0, RP_VS_SHOW);
+  const play = pairs.filter(p => p.d <= -1).sort((a, b) => a.d - b.d || b.ls - a.ls).slice(0, RP_VS_SHOW);
+  return { n: pairs.length, avg, agree, love, play };
 }
 
 function renderRatingsPage() {
@@ -69247,7 +69355,14 @@ function renderRatingsPage() {
     <p class="rp-intro">${esc(t('rp_intro'))}</p>`;
   if (!allPlays.length) { view.innerHTML = head; return; }
 
-  const sum = ratingLibrarySummary();
+  // Whose scores (2026-11-19): with Listening Scores on, the page keeps your
+  // scores and the automatic ones apart instead of averaging them into one
+  // verdict nobody gave. Opens on yours; nothing of yours yet opens on theirs.
+  const lsOn = typeof asOn === 'function' && asOn();
+  let mode = lsOn ? _rpSrcGet() : 'yours';
+  let sum = ratingLibrarySummary(mode);
+  if (lsOn && mode === 'yours' && !sum.albums.length && !sum.singles.length && !sum.songs.length
+      && (sum.split.albums.ls || sum.split.singles.ls || sum.split.songs.ls)) { mode = 'ls'; sum = ratingLibrarySummary('ls'); }
   const prev = _arS.p;
   const _ar = _arS.p = {
     artist: null, sum, plays: sum.albumPlays, todo: sum.todo,
@@ -69261,9 +69376,16 @@ function renderRatingsPage() {
   const headline = sum.albumAvg ?? sum.songAvg;
   const band = headline != null ? ratingBand(headline) : null;
   const act = _ratingsActivity();
-  const meter = (n, of, label) => `<div class="ar-meter">
+  // With Listening Scores on, each bar is split: solid = what you scored,
+  // striped = what only has a Listening Score, empty = nothing yet
+  const pct = (n, of) => (of ? Math.max(n ? 1.5 : 0, n / of * 100) : 0).toFixed(1);
+  const meter = (n, of, label, sp) => sp && lsOn ? `<div class="ar-meter rp-meter">
+      <div class="ar-meter-top"><span>${esc(label)}</span><b>${sp.you.toLocaleString()}<span> / ${of.toLocaleString()}</span></b></div>
+      <div class="ar-meter-track rp-meter-track"><span class="rp-m-you" style="width:${pct(sp.you, of)}%"></span><span class="rp-m-ls" style="width:${pct(sp.ls, of)}%"></span></div>
+      <div class="rp-meter-key"><span class="rp-k-you">${esc(t('rp_m_you', { n: sp.you.toLocaleString() }))}</span><span class="rp-k-ls">${esc(t('rp_m_ls', { n: sp.ls.toLocaleString() }))}</span></div>
+    </div>` : `<div class="ar-meter">
       <div class="ar-meter-top"><span>${esc(label)}</span><b>${n.toLocaleString()}<span> / ${of.toLocaleString()}</span></b></div>
-      <div class="ar-meter-track"><span style="width:${(of ? Math.max(n ? 1.5 : 0, n / of * 100) : 0).toFixed(1)}%"></span></div>
+      <div class="ar-meter-track"><span style="width:${pct(n, of)}%"></span></div>
     </div>`;
   const chip = (icon, html) => `<span class="rp-act">${ic(icon)}<span>${html}</span></span>`;
   const acts = act.days ? `<div class="rp-acts">
@@ -69271,18 +69393,60 @@ function renderRatingsPage() {
       ${act.longest > 1 ? chip('flame', t('rp_act_run', { n: `<b>${act.longest}</b>` })) : ''}
       ${act.last ? chip('clock', t('rp_act_last', { date: `<b>${esc(fmt(new Date(act.last + 'T12:00:00')))}</b>` })) : ''}
     </div>` : '';
-  const hero = `<div class="ar-hero rp-hero ${band ? band.cls : 'rt--none'}">
+  const meters = `<div class="ar-meters">${meter(sum.ratedAlbums, sum.totalAlbums, t('rtg_albums_rated'), sum.split.albums)}${
+        sum.totalSingles ? meter(sum.ratedSingles, sum.totalSingles, t('ar_singles_rated'), sum.split.singles) : ''}${meter(sum.ratedSongs, sum.totalSongs, t('rtg_songs_rated'), sum.split.songs)}</div>`;
+  let hero;
+  if (!lsOn) {
+    hero = `<div class="ar-hero rp-hero ${band ? band.cls : 'rt--none'}">
     ${ratingRing(headline, { size: 132 })}
     <div class="ar-hero-txt">
       <span class="ao-kicker">${esc(t(sum.albumAvg != null ? 'rp_kicker_album' : 'rp_kicker_song'))}</span>
       <div class="ar-verdict">${esc(band ? band.label : t('ao_no_ratings'))}</div>
       <div class="ar-hero-sub">${esc(headline == null ? t('rp_none_sub')
         : sum.albumAvg != null ? t('ar_avg_albums', { n: sum.ratedAlbums }) : t('ar_avg_songs', { n: sum.ratedSongs }))}</div>
-      <div class="ar-meters">${meter(sum.ratedAlbums, sum.totalAlbums, t('rtg_albums_rated'))}${
-        sum.totalSingles ? meter(sum.ratedSingles, sum.totalSingles, t('ar_singles_rated')) : ''}${meter(sum.ratedSongs, sum.totalSongs, t('rtg_songs_rated'))}</div>
+      ${meters}
       ${acts}
     </div>
   </div>`;
+  } else {
+    /* You vs. Listening (2026-11-19): your own average and the Listening
+       Score average side by side, each with its own verdict, never blended.
+       Albums when you have scored any, else songs; both sides use the same
+       kind so the two numbers compare. Each side is also the switch to its
+       list. Your side is the solid ring, theirs the dashed one, the same
+       language every chip on the site uses. */
+    const D = sum.duel;
+    const dk = D.you.album || (!D.you.song && D.ls.album) ? 'album' : 'song';
+    const side = who => {
+      const d = D[who][dk];
+      const b = d ? ratingBand(d.avg) : null;
+      const on = mode === 'both' || mode === (who === 'you' ? 'yours' : 'ls');
+      return `<button type="button" class="rp-side rp-side--${who} ${b ? b.cls : 'rt--none'}${on ? ' is-on' : ''}" aria-pressed="${on}" onclick="rpSetSrc('${who === 'you' ? 'yours' : 'ls'}')">
+        ${ratingRing(d ? d.avg : null, { size: 112, ls: who === 'ls' ? 'listening' : undefined })}
+        <span class="rp-side-txt">
+          <span class="ao-kicker">${ic(who === 'you' ? 'star' : 'headphones')}${esc(t(who === 'you' ? 'rp_duel_you' : 'rp_duel_ls'))}</span>
+          <span class="ar-verdict">${esc(b ? b.label : t(who === 'you' ? 'rp_duel_none_you' : 'rp_duel_none_ls'))}</span>
+          <span class="ar-hero-sub">${esc(d ? t('rp_duel_sub_' + who + '_' + dk, { n: d.n.toLocaleString() }) : who === 'you' ? t('rp_none_sub') : t('as_song_sub'))}</span>
+        </span>
+      </button>`;
+    };
+    hero = `<div class="ar-hero rp-hero rp-hero--duel">
+    <div class="rp-duel">${side('you')}<span class="rp-duel-vs" aria-hidden="true">vs</span>${side('ls')}</div>
+    <p class="rp-legend"><span class="rp-legend-i"><span class="rt-chip rt--great">7.4</span>${esc(t('rp_legend_you'))}</span><span class="rp-legend-i"><span class="rt-chip rt--great rt-chip--ls">7.4</span>${esc(t('rp_legend_ls'))}</span></p>
+    ${meters}
+    ${acts}
+  </div>`;
+  }
+
+  // The switch: whose scores the cards and lists below hold
+  const srcN = m => m === 'yours' ? sum.split.albums.you + sum.split.singles.you + sum.split.songs.you
+    : m === 'ls' ? sum.split.albums.ls + sum.split.singles.ls + sum.split.songs.ls
+    : sum.allRel.length + sum.allSongs.length;
+  const srcBar = lsOn ? `<div class="rp-src" role="group" aria-label="${esc(t('rp_src_label'))}">
+      <span class="rp-src-l">${esc(t('rp_src_label'))}</span>
+      ${[['yours', 'star'], ['ls', 'headphones'], ['both', 'eye']].map(([m, icon]) => `<button type="button" class="rp-src-btn rp-src-btn--${m}${m === mode ? ' is-on' : ''}" aria-pressed="${m === mode}" onclick="rpSetSrc('${m}')">
+        ${ic(icon)}<span>${esc(t('rp_src_' + m))}</span><span class="rp-src-n">${srcN(m).toLocaleString()}</span></button>`).join('')}
+    </div>` : '';
 
   // ── Next up: the most played album without a score
   const nk = sum.todo.find(k => ratingReleaseKind(k).kind === 'album') || sum.todo[0];
@@ -69310,15 +69474,20 @@ function renderRatingsPage() {
     ['ar_best_song', sum.songs, true, 'song'], ['ar_low_song', sum.songs, false, 'song'],
   ].map(([lbl, arr, top, kind]) => ({ lbl, top, kind, items: ends(arr, top) })).filter(h => h.items.length);
   _rpHi = HI;
+  // Who gave each score, on every slide (2026-11-19): in Both a card can
+  // slide from one of yours to a Listening Score at the same number
+  const srcTag = x => lsOn ? `<span class="rp-who rp-who--${x.src}">${ic(x.src === 'ls' ? 'headphones' : 'star')}${esc(t(x.src === 'ls' ? 'rp_who_ls' : x.src === 'mix' ? 'as_mixed' : 'rp_who_you'))}</span>` : '';
   const highs = HI.length ? `<div class="ar-highs rp-highs">${HI.map((h, ci) => {
     const x0 = h.items[0], b = ratingBand(x0.score), many = h.items.length > 1;
-    return `<div class="ar-hi rp-hi ${b.cls}" role="button" tabindex="0" data-hi="${ci}" data-at="0"
+    const allLs = lsOn && h.items.every(x => x.src === 'ls');
+    return `<div class="ar-hi rp-hi ${b.cls}${allLs ? ' rp-hi--ls' : ''}" role="button" tabindex="0" data-hi="${ci}" data-at="0"
         onclick="rpHiOpen(${ci})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();rpHiOpen(${ci});}">
       <span class="ar-hi-lbl">${ic(h.top ? 'trend' : 'bars')}${esc(t(h.lbl))}</span>
       <span class="ar-hi-score">${ratingFmt(x0.score)}</span>
       <span class="rp-hi-win"><span class="rp-hi-track">${h.items.map(x => `<span class="rp-hi-slide">
           <span class="ar-hi-name">${esc(x.name || x.title)}</span>
           <span class="ar-hi-artist">${esc(x.artist || '')}</span>
+          ${srcTag(x)}
         </span>`).join('')}</span></span>
       ${many ? `<span class="rp-hi-foot"><span class="rp-hi-dots">${h.items.slice(0, RP_HI_DOTS).map((x, i) => `<button type="button" class="rp-hi-dot${i ? '' : ' is-on'}" aria-label="${i + 1}" onclick="event.stopPropagation();rpHiGo(${ci},${i})"></button>`).join('')}</span><span class="rp-hi-n">1 / ${h.items.length}</span></span>`
         : `<span class="ar-hi-band">${esc(b.label)}</span>`}
@@ -69326,7 +69495,8 @@ function renderRatingsPage() {
   }).join('')}</div>` : '';
 
   // ── Your critical records (were under the Records Overview)
-  const recs = ratingRecords(sum);
+  // Always from your own scores, whatever the switch says (see ratingLibrarySummary)
+  const recs = ratingRecords(sum.yours);
   const open = r => r.kind === 'album' ? `openAlbumModal(${key(r.key)})` : r.kind === 'song' ? `openSongModal(${key(r.key)})` : `openArtistModal(${key(r.key)})`;
   const recsHtml = recs ? `<div class="rp-block">
       <div class="ao-head rk-head">${esc(t('rp_recs'))}</div>
@@ -69339,6 +69509,28 @@ function renderRatingsPage() {
       </button>`).join('')}</div>
     </div>` : '';
 
+  // ── You vs. your listening (2026-11-19)
+  const vs = _rpVs(sum);
+  const vsRow = (x, i) => `<li><button type="button" class="rp-rank-row rp-vs-row" onclick="openRatingModal('${x.kind}', ${key(x.key)})">
+      <span class="am-art rp-rank-art" id="rpVs-${i}"><span class="thumb-initials">${esc(initials(x.name))}</span></span>
+      <span class="rp-rank-txt"><span class="rp-rank-name">${esc(x.name)}</span><span class="rp-rank-sub">${ic(x.kind === 'album' ? 'disc' : 'note')}${esc(x.artist)}</span></span>
+      <span class="rp-vs-pair">${ratingChip(x.own)}<span class="rp-vs-to" aria-hidden="true">vs</span>${ratingChip(x.ls, 'rt-chip--ls')}</span>
+      <b class="rp-vs-d ${x.d > 0 ? 'is-up' : 'is-down'}">${x.d > 0 ? '+' : '−'}${ratingFmt(Math.abs(x.d))}</b>
+    </button></li>`;
+  const vsHtml = vs ? `<div class="rp-block rp-vs">
+      <div class="ao-head rk-head">${esc(t('rp_vs_title'))}</div>
+      <p class="rp-block-sub">${esc(t('rp_vs_sub'))}</p>
+      <div class="rp-vs-sum">
+        <span class="rp-vs-big ${vs.avg > 0.05 ? 'is-up' : vs.avg < -0.05 ? 'is-down' : ''}">${vs.avg > 0.05 ? '+' : vs.avg < -0.05 ? '−' : '±'}${ratingFmt(Math.abs(vs.avg))}</span>
+        <span class="rp-vs-say">${esc(t(vs.avg > 0.05 ? 'rp_vs_avg_up' : vs.avg < -0.05 ? 'rp_vs_avg_down' : 'rp_vs_avg_same', { n: vs.n.toLocaleString(), d: ratingFmt(Math.abs(vs.avg)) }))}
+          <span class="rp-vs-agree"><span class="rp-vs-agree-bar"><i style="width:${vs.agree}%"></i></span>${esc(t('rp_vs_agree', { p: vs.agree }))}</span></span>
+      </div>
+      <div class="rp-duo">
+        ${vs.love.length ? `<div class="rp-col"><div class="rp-vs-h">${ic('trend')}${esc(t('rp_vs_love'))}</div><ol class="rp-rank">${vs.love.map((x, i) => vsRow(x, i)).join('')}</ol></div>` : ''}
+        ${vs.play.length ? `<div class="rp-col"><div class="rp-vs-h">${ic('headphones')}${esc(t('rp_vs_play'))}</div><ol class="rp-rank">${vs.play.map((x, i) => vsRow(x, i + vs.love.length)).join('')}</ol></div>` : ''}
+      </div>
+    </div>` : '';
+
   // ── Top rated artists · recently rated
   const top = _rpTopArtists(sum);
   const topHtml = top.list.length ? `<div class="rp-col">
@@ -69346,8 +69538,8 @@ function renderRatingsPage() {
       <ol class="rp-rank">${top.list.map((a, i) => `<li><button type="button" class="rp-rank-row" onclick="rpOpenArtist(${key(a.name)})">
         <span class="rp-rank-n">${i + 1}</span>
         <span class="am-art rp-rank-art" id="rpArt-${i}"><span class="thumb-initials">${esc(initials(a.name))}</span></span>
-        <span class="rp-rank-txt"><span class="rp-rank-name">${esc(a.name)}</span><span class="rp-rank-sub">${esc(t(top.unit === 'albums' ? 'rp_n_albums' : 'rp_n_songs', { n: a.n }))}</span></span>
-        ${ratingChip(a.avg)}
+        <span class="rp-rank-txt"><span class="rp-rank-name">${esc(a.name)}</span><span class="rp-rank-sub">${esc(t(top.unit === 'albums' ? 'rp_n_albums' : 'rp_n_songs', { n: a.n }))}${a.ls ? ' · ' + esc(t('rp_n_by_ls', { n: a.ls })) : ''}</span></span>
+        ${a.ls ? ratingChip(a.avg, a.ls === a.n ? 'rt-chip--ls' : 'rt-chip--mix') : ratingChip(a.avg)}
       </button></li>`).join('')}</ol>
     </div>` : '';
   const recent = sum.recent.slice(0, 8);
@@ -69371,7 +69563,17 @@ function renderRatingsPage() {
     ? `<div class="rp-block"><div class="ao-head rk-head">${esc(t('rtg_unrated'))}</div>${_ratingsUnratedHTML()}</div>` : '';
 
   // .dp-body: the details window's styles for these parts apply here too
-  view.innerHTML = `${head}<div class="dp-body rp-page"><div class="ar rp" id="ratingsPageBody">${hero}${next}${empty}${highs}${recsHtml}${duo}<div class="ar-body"></div></div></div>`;
+  view.innerHTML = `${head}<div class="dp-body rp-page"><div class="ar rp" id="ratingsPageBody">${hero}${srcBar}${next}${empty}${highs}${vsHtml}${recsHtml}${duo}<div class="ar-body"></div></div></div>`;
+  if (vs) {
+    const vsItems = [...vs.love, ...vs.play];
+    const va = [], vso = [];
+    vsItems.forEach((x, i) => {
+      if (x.kind === 'album') { const [an, aa = ''] = x.key.split('|||'); va.push({ imgId: 'rpVs-' + i, name: an, album: an, artist: aa, prefKey: 'album:' + aa.toLowerCase() + '|||' + an.toLowerCase() }); }
+      else vso.push({ imgId: 'rpVs-' + i, name: x.name, title: x.name, artist: x.artist, album: '', prefKey: 'song:' + x.artist.toLowerCase() + '|||' + x.name.toLowerCase() });
+    });
+    if (va.length) loadImages(va, 'album');
+    if (vso.length) loadImages(vso, 'song');
+  }
 
   // Artwork: the next-up cover, the artists, the recent ones
   if (nk) {

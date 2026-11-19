@@ -41182,6 +41182,120 @@ body.green-light :is(.sv--bronze, .modal-cb-detail-peak--bronze) {
     .rp-rank-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
     .rp-rank-name { font-size: var(--fs-sm); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .rp-rank-sub { font-size: var(--fs-xs); color: var(--text3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    /* ── Yours vs. Listening (2026-11-19) ─────────────────────────────
+       With Listening Scores on, the page never blends the two into one
+       verdict. Same language as every chip on the site, written large:
+       your scores SOLID, Listening Scores DASHED / STRIPED. */
+    #ratingsView .rp-hero--duel { display: block; --rt-c: var(--accent); }
+    .rp-duel { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: stretch; gap: var(--sp-3); }
+    .rp-side {
+      display: flex; align-items: center; gap: var(--sp-4); min-width: 0;
+      padding: var(--sp-3) var(--sp-4);
+      font: inherit; text-align: left; color: var(--text);
+      background: color-mix(in srgb, var(--rt-c) 8%, transparent);
+      border: 1.5px solid color-mix(in srgb, var(--rt-c) 40%, var(--border));
+      border-radius: var(--r-md);
+      cursor: pointer; opacity: 0.55;
+      transition: opacity var(--t-fast) var(--ease), transform var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
+    }
+    .rp-side:hover { opacity: 0.9; transform: translateY(-1px); }
+    .rp-side.is-on { opacity: 1; border-color: color-mix(in srgb, var(--rt-c) 70%, var(--border)); }
+    .rp-side:focus-visible { outline: 2px solid var(--rt-c); outline-offset: 2px; }
+    /* theirs: a dashed frame over faint stripes */
+    .rp-side--ls {
+      border-style: dashed;
+      background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--rt-c) 9%, transparent) 0 7px, transparent 7px 14px);
+    }
+    .rp-side .rt-ring { flex-shrink: 0; }
+    .rp-side-txt { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    .rp-side .ao-kicker { display: inline-flex; align-items: center; gap: 6px; }
+    .rp-side .ao-kicker svg { width: 14px; height: 14px; }
+    #ratingsView .rp-side .ar-verdict { font-size: 2rem; }
+    .rp-duel-vs { align-self: center; font-family: var(--font-display); font-size: var(--fs-sm); font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text3); }
+    /* the key: one solid chip, one dashed, each saying whose it is */
+    .rp-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: var(--sp-3) 0 0; font-size: var(--fs-xs); color: var(--text3); }
+    /* each chip stays with its words when the line wraps */
+    .rp-legend { column-gap: var(--sp-4); }
+    .rp-legend-i { display: inline-flex; align-items: center; gap: 6px; }
+    /* split bars: solid = you, striped = Listening Score, empty = nothing */
+    .dp-body .rp-meter-track { display: flex; }
+    .dp-body .rp-meter-track > span { min-width: 0; border-radius: 0; }
+    .dp-body .rp-meter-track > .rp-m-you { background: var(--accent); }
+    .dp-body .rp-meter-track > .rp-m-ls { background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--accent) 75%, transparent) 0 3px, transparent 3px 6px); }
+    .rp-meter-key { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 6px; font-size: 0.7rem; color: var(--text3); }
+    .rp-meter-key > span { display: inline-flex; align-items: center; gap: 5px; }
+    .rp-meter-key > span::before { content: ''; width: 9px; height: 9px; border-radius: 2px; flex-shrink: 0; }
+    .rp-k-you::before { background: var(--accent); }
+    .rp-k-ls::before { border: 1px dashed var(--accent); background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--accent) 75%, transparent) 0 2px, transparent 2px 4px); }
+
+    /* The switch: whose scores the cards and lists hold */
+    .rp-src { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2); }
+    .rp-src-l { margin-right: var(--sp-1); font-size: var(--fs-xs); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text3); }
+    .rp-src-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 7px 14px;
+      font: inherit; font-size: var(--fs-sm); font-weight: 700;
+      color: var(--text2); background: var(--raised);
+      border: 1.5px solid var(--border); border-radius: 99px;
+      cursor: pointer;
+      transition: background var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+    }
+    .rp-src-btn svg { width: 15px; height: 15px; }
+    .rp-src-btn:hover { border-color: color-mix(in srgb, var(--accent) 55%, var(--border)); color: var(--text); }
+    .rp-src-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .rp-src-btn--ls { border-style: dashed; }
+    .rp-src-btn.is-on { color: var(--on-accent); background: var(--accent); border-color: var(--accent); }
+    /* Listening keeps its dashes when picked: accent wash, not a solid fill */
+    .rp-src-btn--ls.is-on { color: var(--text); background: color-mix(in srgb, var(--accent) 22%, var(--raised)); }
+    .rp-src-n { font-size: var(--fs-xs); font-weight: 600; opacity: 0.75; font-variant-numeric: tabular-nums; }
+
+    /* Who gave a score, worded: on the highs and lows and the list rows */
+    .rp-who {
+      display: inline-flex; align-items: center; gap: 4px; width: max-content; max-width: 100%;
+      margin-top: 5px; padding: 1px 7px;
+      font-size: 0.62rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase;
+      color: var(--text2);
+      background: color-mix(in srgb, var(--accent) 14%, transparent);
+      border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+      border-radius: 99px;
+    }
+    .rp-who svg { width: 11px; height: 11px; flex-shrink: 0; }
+    .rp-who--ls { background: transparent; border-style: dashed; border-color: var(--border); color: var(--text3); }
+    .rp-who--mix { background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 14%, transparent) 50%, transparent 50%); border-style: dashed; }
+    .dp-body .ar-tag.rp-who { margin-top: 0; margin-right: 6px; vertical-align: middle; }
+    /* a card whose every entry is a Listening Score gets the dashed frame */
+    .dp-body .ar-hi.rp-hi--ls { border-style: dashed; background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--rt-c) 6%, transparent) 0 7px, transparent 7px 14px), var(--raised); }
+    /* the spread in Both: the striped top of a column is Listening Scores */
+    .dp-body .ar-dist-bar > span { position: relative; }
+    .rp-dist-ls { position: absolute; left: 0; right: 0; top: 0; border-radius: inherit; background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--raised) 70%, transparent) 0 3px, transparent 3px 6px); }
+
+    /* You vs. your listening */
+    .rp-vs-sum { display: flex; align-items: center; gap: var(--sp-4); margin-bottom: var(--sp-4); padding: var(--sp-3) var(--sp-4); background: var(--raised); border: 1px solid var(--border); border-radius: var(--r-md); }
+    .rp-vs-big { flex-shrink: 0; font-family: var(--font-display); font-size: 2.4rem; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; color: var(--text); }
+    .rp-vs-big.is-up, .rp-vs-d.is-up { color: var(--green); }
+    .rp-vs-big.is-down, .rp-vs-d.is-down { color: var(--rose); }
+    .rp-vs-say { display: flex; flex-direction: column; gap: 6px; min-width: 0; font-size: var(--fs-sm); color: var(--text2); }
+    .rp-vs-agree { display: flex; align-items: center; gap: 8px; font-size: var(--fs-xs); color: var(--text3); }
+    .rp-vs-agree-bar { width: 90px; height: 6px; flex-shrink: 0; border-radius: 99px; background: color-mix(in srgb, var(--text) 9%, transparent); overflow: hidden; }
+    .rp-vs-agree-bar i { display: block; height: 100%; border-radius: inherit; background: var(--accent); }
+    .rp-vs-h { display: flex; align-items: center; gap: 6px; margin-bottom: var(--sp-2); font-size: var(--fs-xs); font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text3); }
+    .rp-vs-h svg { width: 14px; height: 14px; }
+    .rp-vs-row .rp-rank-sub { display: flex; align-items: center; gap: 4px; }
+    .rp-vs-row .rp-rank-sub svg { width: 12px; height: 12px; flex-shrink: 0; }
+    .rp-vs-pair { display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0; }
+    .rp-vs-to { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; color: var(--text3); }
+    .rp-vs-d { flex-shrink: 0; min-width: 2.8em; text-align: right; font-family: var(--font-display); font-weight: 800; font-variant-numeric: tabular-nums; }
+    @media (max-width: 760px) {
+      .rp-duel { grid-template-columns: minmax(0, 1fr); }
+      .rp-duel-vs { justify-self: center; }
+    }
+    /* phones: the three switch buttons share one line, no "Show" label */
+    @media (max-width: 480px) {
+      .rp-src { flex-wrap: nowrap; gap: 6px; }
+      .rp-src-l { display: none; }
+      .rp-src-btn { flex: 1 1 0; justify-content: center; min-width: 0; padding: 7px 8px; font-size: var(--fs-xs); }
+    }
     @media (max-width: 640px) {
       #ratingsView { padding: 0 var(--sp-3) var(--sp-7); }
       #ratingsView .rp-hero { padding: var(--sp-4); }

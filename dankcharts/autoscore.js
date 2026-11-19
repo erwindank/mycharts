@@ -451,6 +451,22 @@ function asAlbumView(albumKey) {
   return { score: Math.round(total * 10) / 10, state: 'mixed', yourTracks: yours, lsTracks: filled, trackAvg: Math.round(trackAvg * 10) / 10, aspectAvg };
 }
 
+/* An album's pure Listening Score, ignoring your own scores (2026-11-19, for
+   the Ratings page's "You vs. your listening"): the average of its songs'
+   Listening Scores, else the release's own ranking — exactly what the album
+   would show if you had rated nothing on it. null when it has none. */
+function asAlbumLs(albumKey) {
+  if (!asOn()) return null;
+  let sum = 0, n = 0;
+  for (const tr of ratingAlbumTrackKeys(albumKey)) {
+    const ls = asSong(tr.key);
+    if (ls) { sum += ls.score; n++; }
+  }
+  if (n) return Math.round(sum / n * 10) / 10;
+  const rel = asRelease(albumKey);
+  return rel ? rel.score : null;
+}
+
 /* The scores Records, Awards, smart playlists and the artist verdict use.
    Your own scores only, unless "Count Listening Scores where I haven't
    rated" is on — then the score you see on the chips. */
