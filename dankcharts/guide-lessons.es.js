@@ -3315,6 +3315,7 @@ window.GL_TEXT.es = {
             share: ['{{t:yt_np_tool_share}}', '{{t:yt_np_tool_share_d}}'],
             pip: ['{{t:yt_np_pip}}', '{{t:yt_np_tool_pip_d}}'],
             youtube: ['{{t:yt_np_tool_youtube}}', 'El vídeo en youtube.com.'],
+            tv: ['{{t:yt_np_tool_tv}}', 'La vista para pantalla grande, y cómo llevarla a tu tele.'],
             wake: ['{{t:yt_np_tool_wake}}', 'En el móvil, la música se para si la pantalla se bloquea. Actívalo para que siga.'],
             keys: ['{{t:yt_np_tool_keys}}', 'Todas las teclas del reproductor.'],
             tour: ['{{t:yt_np_tool_tour}}', 'El paseo de un minuto por el reproductor.']
@@ -3369,7 +3370,49 @@ window.GL_TEXT.es = {
             lyrics: ['Letra grande', 'Fácil de seguir desde el otro lado de la habitación.'],
             controls: ['Controles', 'Abajo.']
           }
-        }
+        },
+        side: { title: 'En el móvil, girado', spots: {
+          media: ['Portada o vídeo', 'Se queda a la izquierda mientras usas el resto.'],
+          seg: ['{{t:yt_np_art}} / {{t:yt_np_video}}', 'Cambia entre la portada y el videoclip.'],
+          tabs: ['Las secciones', '{{t:yt_np_tab_next}}, {{t:yt_np_tab_lyrics}}, {{t:yt_np_tab_history}} y {{t:yt_np_tab_tools}} se abren a la derecha, así el vídeo sigue a la vista.'],
+          controls: ['Controles', 'A la derecha, con la canción y tu historia en las listas encima.'],
+          full: ['{{t:yt_np_full}}', 'En Android también gira la pantalla. Los iPhone no lo permiten: gira el móvil.']
+        } },
+        tv: { title: '{{t:yt_np_tv}}', spots: {
+          cover: ['La portada', 'Grande, sobre los colores de la propia portada.'],
+          title: ['La canción', 'Lo bastante grande para leerla desde el sofá.'],
+          story: ['Tu historia en las listas', 'Mejor puesto, tus escuchas y semanas en la lista.'],
+          lyrics: ['Karaoke', 'La línea que se canta, grande. Las de alrededor, más pequeñas.'],
+          next: ['{{t:yt_np_tv_next}}', 'Las cuatro canciones siguientes.']
+        } },
+        tvvideo: { title: '{{t:yt_np_tv}} con el vídeo', spots: {
+          subs: ['La letra como subtítulos', 'Sobre el vídeo, como en una película. La línea siguiente va debajo, más pequeña.'],
+          seek: ['Progreso', 'Los controles se ocultan mientras suena la música. Cualquier tecla, clic o toque los trae de vuelta.'],
+          controls: ['Controles', 'También funciona el mando de la tele: las flechas pasan de un botón a otro, OK pulsa, Atrás sale.'],
+          seg: ['{{t:yt_np_art}} / {{t:yt_np_video}}', 'Cambia entre la portada grande y el vídeo.'],
+          exit: ['{{t:yt_np_tv_leave}}', 'O Esc. El reproductor vuelve a como estaba.'],
+          note: ['Tu móvil como mando', '¿Has iniciado sesión en la tele y en el móvil? El móvil se convierte solo en el mando.']
+        } },
+        tvhow: { title: '{{t:yt_np_tvh_how}}', spots: {
+          start: ['{{t:yt_np_tvh_start}}', 'Ocupa esta pantalla.'],
+          mine: ['{{t:yt_np_tvh_this}}', 'Cómo llevarlo a una tele desde el dispositivo que usas: enviar la pestaña, enviar la pantalla o duplicarla.'],
+          link: ['{{t:yt_np_tvh_tv}}', 'Abre dankcharts.fm/?tv=1 en la tele y empieza directamente en modo TV.'],
+          remote: ['El mando', 'Las flechas y OK manejan el reproductor. Atrás sale del modo TV.']
+        } },
+        pill: { title: '{{t:yt_np_tvr_pill}}', spots: {
+          pill: ['{{t:yt_np_tvr_pill}}', 'Aparece en tus otros dispositivos mientras una tele está en modo TV. Tócalo para el mando.'],
+          play: ['Reproducir / Pausa', 'Desde la propia píldora.'],
+          hide: ['Ocultar', 'Oculta la píldora hasta que la tele vuelva a entrar en modo TV.']
+        } },
+        remote: { title: 'El mando en el móvil', spots: {
+          now: ['Lo que suena en la tele', 'La canción y su portada.'],
+          seek: ['Progreso', 'Arrastra para saltar a cualquier parte de la canción.'],
+          ctrls: ['Anterior · Reproducir · Siguiente', 'La tele responde al momento.'],
+          vol: ['{{t:yt_np_tvr_vol}}', 'Más bajo o más alto, de diez en diez.'],
+          seg: ['{{t:yt_np_art}} / {{t:yt_np_video}}', 'Lo que muestra la tele.'],
+          queue: ['{{t:yt_np_tvr_upnext}}', 'Toca una canción para ponerla ya, súbela, bájala o quítala. El ⋮ de cualquier canción tiene {{t:yt_np_tvr_play_on_tv}} y {{t:yt_np_tvr_add_tv_queue}}.'],
+          exit: ['{{t:yt_np_tvr_exit}}', 'La tele vuelve al reproductor normal.']
+        } }
       },
       howto: {
         video: {
@@ -3391,6 +3434,14 @@ window.GL_TEXT.es = {
         small: {
           title: 'Sigue navegando mientras suena',
           slides: ['Pulsa ⌄ arriba (o M).', 'El reproductor se convierte en una cápsula pequeña en la esquina. Haz clic en la canción para abrirlo otra vez.', '¿Lo prefieres abajo? Ajustes → Perfil → {{t:set_pm_title}}.']
+        },
+        tv: {
+          title: 'Ponlo en tu tele',
+          slides: ['En {{t:yt_np_tab_tools}}, pulsa {{t:yt_np_tool_tv}}.', 'Pulsa {{t:yt_np_tvh_start}}. Para llevarlo a la tele, sigue los pasos de tu dispositivo justo debajo.', 'La portada, tu historia en las listas y la letra llenan la pantalla.', 'Con el vídeo, la letra sale como subtítulos. Pulsa el botón de la tele (o Esc) para salir.']
+        },
+        remote: {
+          title: 'Usa el móvil como mando',
+          slides: ['Inicia sesión en la tele y en el móvil. Mientras la tele está en modo TV, aparece “{{t:yt_np_tvr_pill}}” en el móvil.', 'Tócalo: Anterior, Reproducir y Siguiente, el volumen y {{t:yt_np_art}} / {{t:yt_np_video}} manejan la tele.', 'Cambia desde aquí la cola de la tele. En cualquier canción, ⋮ → {{t:yt_np_tvr_play_on_tv}} o {{t:yt_np_tvr_add_tv_queue}}.']
         }
       },
       options: {
@@ -3423,14 +3474,15 @@ window.GL_TEXT.es = {
         'np.sleep': ['Pon un temporizador', 'La luna de la fila de abajo.'],
         'np.stage': ['Abre el modo escenario', 'El botón de pantalla de arriba, o G.'],
         'np.bar': ['Reduce el reproductor', 'El ⌄ de arriba, o M.'],
-        'np.tour': ['Haz el recorrido del reproductor', 'El ? de la fila de abajo.']
+        'np.tour': ['Haz el recorrido del reproductor', 'El ? de la fila de abajo.'],
+        'np.tv': ['Abre el modo TV', '{{t:yt_np_tab_tools}} → {{t:yt_np_tool_tv}} → {{t:yt_np_tvh_start}}.']
       },
       quiz: {
         q1: ['¿Qué muestra la marca verde de la barra de progreso?', ['La mitad de la canción', 'Dónde se hace el scrobble', 'Dónde empieza el estribillo'], 'Pásala y la escucha cuenta. {{t:yt_np_scrobble_at}} en {{t:yt_np_tab_tools}} la mueve.'],
         q2: ['El vídeo es el equivocado. ¿Qué puedes hacer?', ['Nada, es automático', 'Cerrar el reproductor y empezar otra vez', 'Pulsar “{{t:yt_np_wrong}}” y elegir otro o pegar un enlace de YouTube'], '“{{t:yt_np_wrong}}” abre {{t:yt_np_tool_search}}: busca, o pega el enlace correcto.'],
         q3: ['¿Adónde van las canciones que marcas con ♥?', ['A una lista llamada Favorites', 'A ningún sitio, es solo un me gusta', 'A {{t:yt_np_tab_next}}'], 'Favorites es una lista normal en la pestaña {{t:nav_playlists}}. No se puede borrar.']
       },
-      tips: ['La marca verde de la barra de progreso es donde se hace el scrobble.', '¿Vídeo equivocado? Pega el enlace correcto de YouTube y el reproductor lo recuerda.', 'Haz clic en cualquier línea de la letra para saltar a esa parte de la canción.', 'Pulsa G para el modo escenario: el vídeo grande y la letra al lado.', 'En el móvil, la música se para si la pantalla se bloquea. Activa {{t:yt_np_tool_wake}} en {{t:yt_np_tab_tools}} para que siga.']
+      tips: ['La marca verde de la barra de progreso es donde se hace el scrobble.', '¿Vídeo equivocado? Pega el enlace correcto de YouTube y el reproductor lo recuerda.', 'Haz clic en cualquier línea de la letra para saltar a esa parte de la canción.', 'Pulsa G para el modo escenario: el vídeo grande y la letra al lado.', 'En el móvil, la música se para si la pantalla se bloquea. Activa {{t:yt_np_tool_wake}} en {{t:yt_np_tab_tools}} para que siga.', 'Con el vídeo en modo TV, la letra sale como subtítulos.', '¿Has iniciado sesión en la tele y en el móvil? “{{t:yt_np_tvr_pill}}” en el móvil abre un mando.']
     },
     rawdata: {
       title: '{{t:nav_rawdata}}',

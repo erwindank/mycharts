@@ -13,6 +13,15 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "TV mode for the music player":
+    ["Modo TV para el reproductor",
+     "Herramientas \u2192 Modo TV abre una vista para pantalla grande: una tele, una pesta\u00f1a enviada o cualquier ventana grande. Con la portada muestra una portada grande, la canci\u00f3n, tu historia en las listas, la letra en modo karaoke y las cuatro canciones siguientes; con el v\u00eddeo, el v\u00eddeo llena la pantalla y la letra sale como subt\u00edtulos. Los controles se ocultan mientras suena la m\u00fasica y vuelven con cualquier tecla, clic o toque, y la pantalla se queda encendida. Funciona con el mando de la tele: las flechas pasan de un bot\u00f3n a otro, OK pulsa y Atr\u00e1s sale. La misma tarjeta explica c\u00f3mo llevarlo a una tele desde Chrome o Edge, un m\u00f3vil Android, un iPhone, iPad o Mac, o el navegador de la propia tele, donde dankcharts.fm/?tv=1 abre directamente en modo TV. Las teclas de reproducir/pausa, siguiente y anterior de teclados y mandos ahora funcionan en todas partes."],
+  "Use your phone as the remote for TV mode":
+    ["Usa el m\u00f3vil como mando del modo TV",
+     "Cuando un dispositivo con tu cuenta est\u00e1 en modo TV, tus otros dispositivos muestran En tu tele abajo en la pantalla. T\u00f3calo para tener un mando: la canci\u00f3n y su progreso, Anterior, Reproducir y Siguiente, el volumen de la tele, Portada o V\u00eddeo, la cola de la tele (ponerla ya, subir, bajar o quitar) y Apagar el modo TV en la tele. El men\u00fa \u22ee de una canci\u00f3n tiene Reproducir en la tele y A\u00f1adir a la cola de la tele. Solo la tele reproduce la m\u00fasica, as\u00ed que cada escucha se cuenta una sola vez."],
+  "The music player works sideways on phones":
+    ["El reproductor funciona con el m\u00f3vil girado",
+     "Al girar el m\u00f3vil, antes sal\u00edas del reproductor a pantalla completa al peque\u00f1o flotante. Ahora el reproductor tiene su propia vista girada: portada o v\u00eddeo a la izquierda, controles a la derecha, y A continuaci\u00f3n, Letra, Historial y Herramientas se abren sobre la parte derecha para que el v\u00eddeo siga a la vista. Un nuevo bot\u00f3n de Pantalla completa tambi\u00e9n gira la pantalla en Android; en iPhone sale una vez un aviso para girar el m\u00f3vil. Con el v\u00eddeo en un m\u00f3vil vertical, una secci\u00f3n abierta ya no tapa el v\u00eddeo."],
   "Genre Library: your sound, Quick Fix, genre pages and more":
     ["Biblioteca de géneros: tu sonido, Arreglo rápido, páginas de género y más",
      "La Biblioteca de géneros ahora abre con Tu sonido: una frase sobre lo que escuchas, tus familias de géneros en una barra de colores, tres datos rápidos y un mapa de burbujas que puedes tocar, para siempre, los últimos 12 meses o los últimos 30 días. Arreglo rápido muestra los artistas sin género de uno en uno con las mejores sugerencias, un anillo con cuánto de lo que escuchas tiene género, insignias al 50, 75, 90 y 100%, y las teclas 1–6, Enter y → en el ordenador. Cada género tiene su página con tus artistas, canciones y álbumes principales, sus últimos 12 meses, su rareza (Común, Raro o Joya oculta) y los géneros parecidos, además de Escuchar una mezcla, Crear lista inteligente y una tarjeta para compartir. También nuevo: Ordenar (arreglos de un toque para etiquetas que no son géneros, géneros adivinados y artistas cuyas canciones no coinciden), una línea de tiempo de géneros, una colección de tarjetas de género, Al lado con muestras de 30 segundos de géneros que no has probado, un género del día, seleccionar varias filas para darles los mismos géneros, y Agrupar por familia. El origen de los géneros ahora dice Elegido por ti, De tu hoja, Votado en MusicBrainz o Adivinado en línea, y los géneros de las ventanas de canción, álbum y artista abren la página de ese género."],
@@ -4791,6 +4800,16 @@ window.DC_CHANGELOG_I18N['es'] = {
 /* Highlight cards (DC_CL_HIGHLIGHTS in changelog.js), keyed by id. */
 window.DC_CL_HIGHLIGHTS_I18N = window.DC_CL_HIGHLIGHTS_I18N || {};
 window.DC_CL_HIGHLIGHTS_I18N["es"] = {
+  "tv-mode": {
+    title: "El reproductor en tu tele",
+    intro: "Un modo TV para pantalla grande, una vista girada para el m\u00f3vil y tu m\u00f3vil como mando.",
+    points: [
+      "Modo TV: una portada grande con la letra en karaoke, o el v\u00eddeo con la letra como subt\u00edtulos.",
+      "Herramientas \u2192 Modo TV te explica c\u00f3mo llevarlo a tu tele.",
+      "\u00bfCon tu cuenta en los dos? Tu m\u00f3vil se convierte en el mando.",
+      "En el m\u00f3vil, g\u00edralo para verlo en grande.",
+    ],
+  },
   "genre-library-fun": {
     title: "Una Biblioteca de géneros con más vida",
     intro: "Tus géneros ahora cuentan una historia, y corregirlos es rápido.",

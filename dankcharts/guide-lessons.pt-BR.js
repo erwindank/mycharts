@@ -3315,6 +3315,7 @@ window.GL_TEXT['pt-BR'] = {
             share: ['{{t:yt_np_tool_share}}', '{{t:yt_np_tool_share_d}}'],
             pip: ['{{t:yt_np_pip}}', '{{t:yt_np_tool_pip_d}}'],
             youtube: ['{{t:yt_np_tool_youtube}}', 'O vídeo no youtube.com.'],
+            tv: ['{{t:yt_np_tool_tv}}', 'O visual para tela grande, e como levar para a sua TV.'],
             wake: ['{{t:yt_np_tool_wake}}', 'No celular, a música para se a tela bloquear. Ligue isto para ela continuar.'],
             keys: ['{{t:yt_np_tool_keys}}', 'Todas as teclas do player.'],
             tour: ['{{t:yt_np_tool_tour}}', 'O passeio de um minuto pelo player.']
@@ -3369,7 +3370,49 @@ window.GL_TEXT['pt-BR'] = {
             lyrics: ['Letra grande', 'Fácil de acompanhar do outro lado da sala.'],
             controls: ['Controles', 'Embaixo.']
           }
-        }
+        },
+        side: { title: 'No celular, deitado', spots: {
+          media: ['Capa ou vídeo', 'Fica à esquerda enquanto você usa o resto.'],
+          seg: ['{{t:yt_np_art}} / {{t:yt_np_video}}', 'Alterne entre a capa e o clipe.'],
+          tabs: ['As seções', '{{t:yt_np_tab_next}}, {{t:yt_np_tab_lyrics}}, {{t:yt_np_tab_history}} e {{t:yt_np_tab_tools}} abrem à direita, e o vídeo continua à vista.'],
+          controls: ['Controles', 'À direita, com a música e a sua história nas paradas em cima.'],
+          full: ['{{t:yt_np_full}}', 'No Android também vira a tela. O iPhone não deixa: é só virar o celular.']
+        } },
+        tv: { title: '{{t:yt_np_tv}}', spots: {
+          cover: ['A capa', 'Grande, sobre as cores da própria capa.'],
+          title: ['A música', 'Grande o bastante para ler do sofá.'],
+          story: ['A sua história nas paradas', 'Pico, suas plays e semanas na parada.'],
+          lyrics: ['Karaokê', 'A linha que está sendo cantada, grande. As de volta, menores.'],
+          next: ['{{t:yt_np_tv_next}}', 'As próximas quatro músicas.']
+        } },
+        tvvideo: { title: '{{t:yt_np_tv}} com o vídeo', spots: {
+          subs: ['A letra como legenda', 'Por cima do vídeo, como num filme. A próxima linha vem embaixo, menor.'],
+          seek: ['Progresso', 'Os controles somem enquanto a música toca. Qualquer tecla, clique ou toque traz eles de volta.'],
+          controls: ['Controles', 'O controle remoto da TV também funciona: as setas passam de um botão para outro, OK aperta, Voltar sai.'],
+          seg: ['{{t:yt_np_art}} / {{t:yt_np_video}}', 'Alterne entre a capa grande e o vídeo.'],
+          exit: ['{{t:yt_np_tv_leave}}', 'Ou Esc. O player volta a ficar como estava.'],
+          note: ['O celular como controle', 'Entrou na conta na TV e no celular? O celular vira o controle sozinho.']
+        } },
+        tvhow: { title: '{{t:yt_np_tvh_how}}', spots: {
+          start: ['{{t:yt_np_tvh_start}}', 'Ocupa esta tela.'],
+          mine: ['{{t:yt_np_tvh_this}}', 'Como levar para uma TV a partir do aparelho que você está usando: transmitir a aba, transmitir a tela ou espelhar.'],
+          link: ['{{t:yt_np_tvh_tv}}', 'Abra dankcharts.fm/?tv=1 na TV e ele já começa no modo TV.'],
+          remote: ['O controle', 'As setas e o OK comandam o player. Voltar sai do modo TV.']
+        } },
+        pill: { title: '{{t:yt_np_tvr_pill}}', spots: {
+          pill: ['{{t:yt_np_tvr_pill}}', 'Aparece nos seus outros aparelhos enquanto uma TV está no modo TV. Toque para abrir o controle.'],
+          play: ['Tocar / Pausar', 'Direto da pílula.'],
+          hide: ['Esconder', 'Esconde a pílula até a TV entrar no modo TV de novo.']
+        } },
+        remote: { title: 'O controle no celular', spots: {
+          now: ['O que a TV está tocando', 'A música e a capa.'],
+          seek: ['Progresso', 'Arraste para pular para qualquer parte da música.'],
+          ctrls: ['Anterior · Tocar · Próxima', 'A TV obedece na hora.'],
+          vol: ['{{t:yt_np_tvr_vol}}', 'Mais baixo ou mais alto, de dez em dez.'],
+          seg: ['{{t:yt_np_art}} / {{t:yt_np_video}}', 'O que a TV mostra.'],
+          queue: ['{{t:yt_np_tvr_upnext}}', 'Toque numa música para tocar agora, suba, desça ou remova. O ⋮ de qualquer música tem {{t:yt_np_tvr_play_on_tv}} e {{t:yt_np_tvr_add_tv_queue}}.'],
+          exit: ['{{t:yt_np_tvr_exit}}', 'A TV volta para o player normal.']
+        } }
       },
       howto: {
         video: {
@@ -3391,6 +3434,14 @@ window.GL_TEXT['pt-BR'] = {
         small: {
           title: 'Continue navegando enquanto toca',
           slides: ['Aperte ⌄ em cima (ou M).', 'O player vira uma cápsula pequena no canto. Clique na música para abrir de novo.', 'Prefere embaixo? Ajustes → Perfil → {{t:set_pm_title}}.']
+        },
+        tv: {
+          title: 'Toque na sua TV',
+          slides: ['Em {{t:yt_np_tab_tools}}, aperte {{t:yt_np_tool_tv}}.', 'Aperte {{t:yt_np_tvh_start}}. Para levar para a TV, siga os passos do seu aparelho logo abaixo.', 'A capa, a sua história nas paradas e a letra ocupam a tela.', 'Com o vídeo, a letra aparece como legenda. Aperte o botão da TV (ou Esc) para sair.']
+        },
+        remote: {
+          title: 'Use o celular como controle',
+          slides: ['Entre na conta na TV e no celular. Enquanto a TV está no modo TV, “{{t:yt_np_tvr_pill}}” aparece no celular.', 'Toque nele: Anterior, Tocar e Próxima, o volume e {{t:yt_np_art}} / {{t:yt_np_video}} comandam a TV.', 'Mude a fila da TV por aqui. Em qualquer música, ⋮ → {{t:yt_np_tvr_play_on_tv}} ou {{t:yt_np_tvr_add_tv_queue}}.']
         }
       },
       options: {
@@ -3423,14 +3474,15 @@ window.GL_TEXT['pt-BR'] = {
         'np.sleep': ['Ligue o timer para dormir', 'A lua na fileira de baixo.'],
         'np.stage': ['Abra o modo palco', 'O botão de tela em cima, ou G.'],
         'np.bar': ['Diminua o player', 'O ⌄ em cima, ou M.'],
-        'np.tour': ['Faça o tour do player', 'O ? na fileira de baixo.']
+        'np.tour': ['Faça o tour do player', 'O ? na fileira de baixo.'],
+        'np.tv': ['Abra o modo TV', '{{t:yt_np_tab_tools}} → {{t:yt_np_tool_tv}} → {{t:yt_np_tvh_start}}.']
       },
       quiz: {
         q1: ['O que a marca verde da barra de progresso mostra?', ['O meio da música', 'Onde a play é registrada (scrobble)', 'Onde começa o refrão'], 'Passou dela, a play conta. {{t:yt_np_scrobble_at}} em {{t:yt_np_tab_tools}} muda o lugar dela.'],
         q2: ['O vídeo está errado. O que dá para fazer?', ['Nada, é automático', 'Fechar o player e começar de novo', 'Apertar “{{t:yt_np_wrong}}” e escolher outro ou colar um link do YouTube'], '“{{t:yt_np_wrong}}” abre {{t:yt_np_tool_search}}: busque, ou cole o link certo.'],
         q3: ['Para onde vão as músicas que você marca com ♥?', ['Para uma playlist chamada Favorites', 'Para lugar nenhum, é só uma curtida', 'Para {{t:yt_np_tab_next}}'], 'Favorites é uma playlist normal na aba {{t:nav_playlists}}. Ela não pode ser apagada.']
       },
-      tips: ['A marca verde da barra de progresso é onde a play é registrada.', 'Vídeo errado? Cole o link certo do YouTube e o player lembra.', 'Clique em qualquer linha da letra para pular para essa parte da música.', 'Aperte G para o modo palco: o vídeo grande e a letra ao lado.', 'No celular, a música para se a tela bloquear. Ligue {{t:yt_np_tool_wake}} em {{t:yt_np_tab_tools}} para ela continuar.']
+      tips: ['A marca verde da barra de progresso é onde a play é registrada.', 'Vídeo errado? Cole o link certo do YouTube e o player lembra.', 'Clique em qualquer linha da letra para pular para essa parte da música.', 'Aperte G para o modo palco: o vídeo grande e a letra ao lado.', 'No celular, a música para se a tela bloquear. Ligue {{t:yt_np_tool_wake}} em {{t:yt_np_tab_tools}} para ela continuar.', 'No modo TV com o vídeo, a letra aparece como legenda.', 'Entrou na conta na TV e no celular? “{{t:yt_np_tvr_pill}}” no celular abre um controle.']
     },
     rawdata: {
       title: '{{t:nav_rawdata}}',

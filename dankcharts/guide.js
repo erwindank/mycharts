@@ -32,7 +32,7 @@
   'use strict';
 
   // Bump when the lesson files or the pictures change (it's their ?v=)
-  const GUIDE_V = '39';
+  const GUIDE_V = '40';
   const STORE = 'dc_guide_progress';
   const LANG_FILES = ['es', 'pt-BR', 'pt-PT'];
 
@@ -267,6 +267,7 @@
     'np.stage':      { lesson: 'player', fn: '_ytToggleStage', test: () => typeof _ytInStage === 'function' && _ytInStage() },
     'np.bar':        { lesson: 'player', fn: '_ytSetBar', test: a => !!a[0] },
     'np.tour':       { lesson: 'player', fn: '_ytStartTour' },
+    'np.tv':         { lesson: 'player', fn: '_ytToggleTv', test: () => typeof _ytInTv === 'function' && _ytInTv() },
     // Raw Data (app.js; the table's clicks are handled by one listener)
     'rd.filter':     { lesson: 'rawdata', input: '#rawFilterSong, #rawFilterArtist, #rawFilterAlbum, #rawFilterDate' },
     'rd.page':       { lesson: 'rawdata', click: '#rawDataView [data-raw-page]', input: '#rawDataView .raw-page-input' },
@@ -439,6 +440,7 @@
     'np.stage':      { prep: ['_ytGuideOpen'], ring: '#ytMiniExpandBtn, #ytMiniPlayer .yt-player-header' },
     'np.bar':        { prep: ['_ytGuideOpen'], ring: '#ytMiniCollapseBtn' },
     'np.tour':       { prep: ['_ytGuideOpen'], ring: '#ytMiniShortcutsBtn' },
+    'np.tv':         { prep: ['_ytGuideOpen'], ring: '#ytMiniPlayer .ytp-tab[data-tab="tools"]' },
     'rd.filter':     { nav: 'rawdata', ring: '#rawDataView .raw-filters' },
     'rd.page':       { nav: 'rawdata', ring: '#rawPagerTop .raw-pager-nav' },
     'rd.size':       { nav: 'rawdata', ring: '#rawPagerTop .raw-pager-size' },

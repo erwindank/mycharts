@@ -13,6 +13,15 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "TV mode for the music player":
+    ["Modo TV para o player",
+     "Ferramentas \u2192 Modo TV abre um visual para tela grande: uma TV, uma aba transmitida ou qualquer janela grande. Com a capa ele mostra uma capa grande, a m\u00fasica, a sua hist\u00f3ria nas paradas, a letra em modo karaok\u00ea e as pr\u00f3ximas quatro m\u00fasicas; com o v\u00eddeo, o v\u00eddeo ocupa a tela e a letra aparece como legenda. Os controles somem enquanto a m\u00fasica toca e voltam com qualquer tecla, clique ou toque, e a tela fica ligada. Funciona com o controle remoto da TV: as setas passam de um bot\u00e3o para outro, OK aperta e Voltar sai. O mesmo cart\u00e3o explica como levar para uma TV a partir do Chrome ou Edge, de um celular Android, de um iPhone, iPad ou Mac, ou do navegador da pr\u00f3pria TV, onde dankcharts.fm/?tv=1 j\u00e1 abre no modo TV. As teclas de tocar/pausar, pr\u00f3xima e anterior de teclados e controles agora funcionam em todo o site."],
+  "Use your phone as the remote for TV mode":
+    ["Use o celular como controle do modo TV",
+     "Quando um aparelho com a sua conta est\u00e1 no modo TV, os seus outros aparelhos mostram Na sua TV embaixo na tela. Toque para ter um controle: a m\u00fasica e o progresso, Anterior, Tocar e Pr\u00f3xima, o volume da TV, Capa ou V\u00eddeo, a fila da TV (tocar agora, subir, descer ou remover) e Desligar o modo TV na TV. O menu \u22ee de uma m\u00fasica ganha Tocar na TV e Adicionar \u00e0 fila da TV. S\u00f3 a TV toca a m\u00fasica, ent\u00e3o cada play conta uma vez s\u00f3."],
+  "The music player works sideways on phones":
+    ["O player funciona com o celular deitado",
+     "Virar o celular antes tirava voc\u00ea do player em tela cheia e levava para o pequeno flutuante. Agora o player tem o seu pr\u00f3prio visual deitado: capa ou v\u00eddeo \u00e0 esquerda, controles \u00e0 direita, e A seguir, Letra, Hist\u00f3rico e Ferramentas abrem por cima do lado direito, e o v\u00eddeo continua \u00e0 vista. Um novo bot\u00e3o de Tela cheia tamb\u00e9m vira a tela no Android; no iPhone aparece uma vez uma dica para virar o celular. Com o v\u00eddeo no celular em p\u00e9, uma se\u00e7\u00e3o aberta n\u00e3o cobre mais o v\u00eddeo."],
   "Genre Library: your sound, Quick Fix, genre pages and more":
     ["Biblioteca de gêneros: seu som, Ajuste rápido, páginas de gênero e mais",
      "A Biblioteca de gêneros agora abre com Seu som: uma frase sobre o que você ouve, suas famílias de gêneros numa barra de cores, três fatos rápidos e um mapa de bolhas para tocar, desde sempre, nos últimos 12 meses ou nos últimos 30 dias. O Ajuste rápido mostra os artistas sem gênero um por vez com os melhores palpites, um anel com quanto do que você ouve tem gênero, medalhas em 50, 75, 90 e 100%, e as teclas 1–6, Enter e → no computador. Cada gênero tem sua página com seus principais artistas, músicas e álbuns, os últimos 12 meses, a raridade (Comum, Raro ou Pérola escondida) e os gêneros parecidos, além de Tocar um mix, Criar playlist inteligente e um cartão para compartilhar. Também é novo: Arrumar (correções de um toque para tags que não são gêneros, gêneros adivinhados e artistas cujas músicas não batem), uma linha do tempo de gêneros, uma coleção de cartões de gênero, Logo ao lado com amostras de 30 segundos de gêneros que você ainda não ouviu, um gênero do dia, selecionar várias linhas para dar a todas os mesmos gêneros, e Agrupar por família. A origem dos gêneros agora diz Escolha sua, Da sua planilha, Votado no MusicBrainz ou Adivinhado online, e os gêneros nas janelas de música, álbum e artista abrem a página daquele gênero."],
@@ -4787,6 +4796,16 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 /* Highlight cards (DC_CL_HIGHLIGHTS in changelog.js), keyed by id. */
 window.DC_CL_HIGHLIGHTS_I18N = window.DC_CL_HIGHLIGHTS_I18N || {};
 window.DC_CL_HIGHLIGHTS_I18N["pt-BR"] = {
+  "tv-mode": {
+    title: "O player na sua TV",
+    intro: "Um modo TV para tela grande, um visual deitado para o celular e o celular como controle.",
+    points: [
+      "Modo TV: uma capa grande com a letra em karaok\u00ea, ou o v\u00eddeo com a letra como legenda.",
+      "Ferramentas \u2192 Modo TV mostra como levar para a sua TV.",
+      "Entrou na conta nos dois? O celular vira o controle.",
+      "No celular, \u00e9 s\u00f3 deitar para ver em tela grande.",
+    ],
+  },
   "genre-library-fun": {
     title: "Uma Biblioteca de gêneros mais viva",
     intro: "Seus gêneros agora contam uma história, e corrigir é rápido.",

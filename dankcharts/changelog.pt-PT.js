@@ -13,6 +13,15 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "TV mode for the music player":
+    ["Modo TV para o leitor",
+     "Ferramentas \u2192 Modo TV abre uma vista para ecr\u00e3 grande: uma TV, um separador transmitido ou qualquer janela grande. Com a capa mostra uma capa grande, a m\u00fasica, a tua hist\u00f3ria nos tops, a letra em modo karaoke e as quatro m\u00fasicas seguintes; com o v\u00eddeo, o v\u00eddeo enche o ecr\u00e3 e a letra aparece como legendas. Os controlos desaparecem enquanto a m\u00fasica toca e voltam com qualquer tecla, clique ou toque, e o ecr\u00e3 fica ligado. Funciona com o comando da TV: as setas passam de bot\u00e3o em bot\u00e3o, OK carrega e Voltar sai. O mesmo cart\u00e3o explica como o levar para uma TV a partir do Chrome ou Edge, de um telem\u00f3vel Android, de um iPhone, iPad ou Mac, ou do navegador da pr\u00f3pria TV, onde dankcharts.fm/?tv=1 abre logo em modo TV. As teclas de tocar/pausa, seguinte e anterior de teclados e comandos funcionam agora em todo o site."],
+  "Use your phone as the remote for TV mode":
+    ["Usa o telem\u00f3vel como comando do modo TV",
+     "Quando um dispositivo com a tua conta est\u00e1 em modo TV, os teus outros dispositivos mostram Na tua TV no fundo do ecr\u00e3. Toca-lhe para teres um comando: a m\u00fasica e o progresso, Anterior, Tocar e Seguinte, o volume da TV, Capa ou V\u00eddeo, a fila da TV (p\u00f4r a tocar j\u00e1, subir, descer ou remover) e Desligar o modo TV na TV. O menu \u22ee de uma m\u00fasica passa a ter Tocar na TV e Adicionar \u00e0 fila da TV. S\u00f3 a TV toca a m\u00fasica, por isso cada audi\u00e7\u00e3o conta uma s\u00f3 vez."],
+  "The music player works sideways on phones":
+    ["O leitor funciona com o telem\u00f3vel deitado",
+     "Rodar o telem\u00f3vel tirava-te do leitor em ecr\u00e3 inteiro e levava-te para o pequeno flutuante. Agora o leitor tem a sua pr\u00f3pria vista deitada: capa ou v\u00eddeo \u00e0 esquerda, controlos \u00e0 direita, e A seguir, Letra, Hist\u00f3rico e Ferramentas abrem por cima do lado direito, para o v\u00eddeo continuar \u00e0 vista. Um novo bot\u00e3o de Ecr\u00e3 inteiro tamb\u00e9m roda o ecr\u00e3 no Android; no iPhone aparece uma vez uma dica para rodar o telem\u00f3vel. Com o v\u00eddeo num telem\u00f3vel ao alto, uma sec\u00e7\u00e3o aberta j\u00e1 n\u00e3o tapa o v\u00eddeo."],
   "Genre Library: your sound, Quick Fix, genre pages and more":
     ["Biblioteca de géneros: o teu som, Correção rápida, páginas de género e mais",
      "A Biblioteca de géneros abre agora com O teu som: uma frase sobre o que ouves, as tuas famílias de géneros numa barra de cores, três factos rápidos e um mapa de bolhas para tocar, desde sempre, nos últimos 12 meses ou nos últimos 30 dias. A Correção rápida mostra os artistas sem género um de cada vez com os melhores palpites, um anel com quanto do que ouves tem género, medalhas aos 50, 75, 90 e 100%, e as teclas 1–6, Enter e → no computador. Cada género tem a sua página com os teus principais artistas, músicas e álbuns, os últimos 12 meses, a raridade (Comum, Raro ou Pérola escondida) e os géneros parecidos, além de Tocar uma mistura, Criar playlist inteligente e um cartão para partilhar. Também é novo: Arrumar (correções de um toque para etiquetas que não são géneros, géneros adivinhados e artistas cujas músicas não batem certo), uma linha do tempo de géneros, uma coleção de cartões de género, Mesmo ao lado com amostras de 30 segundos de géneros que ainda não experimentaste, um género do dia, selecionar várias linhas para lhes dar os mesmos géneros, e Agrupar por família. A origem dos géneros diz agora Escolha tua, Da tua folha, Votado no MusicBrainz ou Adivinhado online, e os géneros nas janelas de música, álbum e artista abrem a página desse género."],
@@ -4787,6 +4796,16 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 /* Highlight cards (DC_CL_HIGHLIGHTS in changelog.js), keyed by id. */
 window.DC_CL_HIGHLIGHTS_I18N = window.DC_CL_HIGHLIGHTS_I18N || {};
 window.DC_CL_HIGHLIGHTS_I18N["pt-PT"] = {
+  "tv-mode": {
+    title: "O leitor na tua TV",
+    intro: "Um modo TV para ecr\u00e3 grande, uma vista deitada para o telem\u00f3vel e o telem\u00f3vel como comando.",
+    points: [
+      "Modo TV: uma capa grande com a letra em karaoke, ou o v\u00eddeo com a letra como legendas.",
+      "Ferramentas \u2192 Modo TV mostra como o levar para a tua TV.",
+      "Sess\u00e3o iniciada nos dois? O telem\u00f3vel passa a ser o comando.",
+      "No telem\u00f3vel, basta deit\u00e1-lo para ver em grande.",
+    ],
+  },
   "genre-library-fun": {
     title: "Uma Biblioteca de géneros com mais vida",
     intro: "Os teus géneros contam agora uma história, e corrigi-los é rápido.",

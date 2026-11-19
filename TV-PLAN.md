@@ -4,7 +4,7 @@ The Now Playing player (`#ytMiniPlayer`) works well upright on phones and as a
 card or Stage on big screens. Two things are missing: a good **sideways**
 layout, and a way to enjoy it **on a TV**.
 
-**Status: in progress** — steps 1–8 done 2026-11-18 (1–4 pushed). Left: step 10. This round = steps 1–8
+**Status: finished 2026-11-18** — steps 1–8 and 10 done and pushed. Step 9 saved for later. This round = steps 1–8
 and step 10. Step 9 (Play queue on YouTube) is saved for later.
 
 Decisions so far (2026-11-18):
@@ -149,7 +149,7 @@ Decisions so far (2026-11-18):
 
 ## Finish
 
-### Step 10. Guide, languages, What's New
+### Step 10. Guide, languages, What's New — DONE 2026-11-18
 - Charts Guide player lesson: new stops for sideways, TV mode and the remote;
   new shots in all four languages.
 - All new text through `t()` (`yt_np_*` keys) in 4 languages.

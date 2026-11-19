@@ -1012,7 +1012,7 @@ window.GL = {
     /* ── The music player (PLAYER-PLAN.md step 13) ─────────────────
        Not a tab: it opens from any Play. "Show me" opens it with this
        week's top song (app.js _ytGuideOpen). */
-    { id: 'player', area: 'more', nav: null, mins: 6, cover: 'np-card',
+    { id: 'player', area: 'more', nav: null, mins: 8, cover: 'np-card',
       scenes: [
         // One picture, two scenes, so the dots don't crowd: the top half, then the controls
         { id: 'card', shot: 'np-card', phone: true,
@@ -1020,12 +1020,19 @@ window.GL = {
         { id: 'play', shot: 'np-card', phone: true,
           spots: ['seek', 'mark', 'note', 'shuffle', 'prev', 'play', 'next', 'repeat', 'tabs', 'queue', 'vol', 'speed', 'sleep', 'help'] },
         { id: 'tools', shot: 'np-tools',
-          spots: ['search', 'similar', 'sleep', 'speed', 'xfade', 'scrobble', 'lists', 'share', 'pip', 'youtube', 'wake', 'keys', 'tour'] },
+          spots: ['search', 'similar', 'sleep', 'speed', 'xfade', 'scrobble', 'lists', 'share', 'pip', 'youtube', 'tv', 'wake', 'keys', 'tour'] },
         { id: 'lyrics', shot: 'np-lyrics', phone: true, spots: ['pill', 'nudge', 'now', 'line'] },
         { id: 'find', shot: 'np-find', spots: ['back', 'search', 'paste', 'use'] },
         { id: 'small', shot: 'np-bar', spots: ['who', 'love', 'play', 'open', 'close'] },
         { id: 'filled', shot: 'np-filled', spots: ['who', 'seek', 'next', 'queue', 'vol'] },
-        { id: 'stage', shot: 'np-stage', spots: ['video', 'hint', 'full', 'back', 'tabs', 'lyrics', 'controls'] }
+        { id: 'stage', shot: 'np-stage', spots: ['video', 'hint', 'full', 'back', 'tabs', 'lyrics', 'controls'] },
+        // TV-PLAN.md step 10: sideways phone, TV mode, Show on TV, phone remote
+        { id: 'side', shot: 'np-side', spots: ['media', 'seg', 'tabs', 'controls', 'full'] },
+        { id: 'tv', shot: 'np-tv', spots: ['cover', 'title', 'story', 'lyrics', 'next'] },
+        { id: 'tvvideo', shot: 'np-tv-video', spots: ['subs', 'seek', 'controls', 'seg', 'exit', 'note'] },
+        { id: 'tvhow', shot: 'np-tvhow', spots: ['start', 'mine', 'link', 'remote'] },
+        { id: 'pill', shot: 'np-pill', spots: ['pill', 'play', 'hide'] },
+        { id: 'remote', shot: 'np-remote', phone: true, spots: ['now', 'seek', 'ctrls', 'vol', 'seg', 'queue', 'exit'] }
       ],
       howto: [
         { id: 'video', challenge: 'np.find', slides: [
@@ -1037,7 +1044,11 @@ window.GL = {
         { id: 'big', challenge: 'np.stage', slides: [
           { shot: 'np-card', spot: 'stage' }, { shot: 'np-stage', spot: 'video' }, { shot: 'np-stage', spot: 'back' } ] },
         { id: 'small', challenge: 'np.bar', slides: [
-          { shot: 'np-card', spot: 'bar' }, { shot: 'np-bar', spot: 'who' }, { shot: 'np-setting', spot: 'switch' } ] }
+          { shot: 'np-card', spot: 'bar' }, { shot: 'np-bar', spot: 'who' }, { shot: 'np-setting', spot: 'switch' } ] },
+        { id: 'tv', challenge: 'np.tv', slides: [
+          { shot: 'np-tools', spot: 'tv' }, { shot: 'np-tvhow', spot: 'start' }, { shot: 'np-tv', spot: 'lyrics' }, { shot: 'np-tv-video', spot: 'exit' } ] },
+        { id: 'remote', slides: [
+          { shot: 'np-pill', spot: 'pill' }, { shot: 'np-remote', spot: 'ctrls' }, { shot: 'np-remote', spot: 'queue' } ] }
       ],
       options: [
         { id: 'mini', items: [
@@ -1049,9 +1060,9 @@ window.GL = {
           { id: 'shuffle', shot: 'np-card', spot: 'shuffle', def: 'off' }, { id: 'repeat', shot: 'np-card', spot: 'repeat', def: 'off' },
           { id: 'wake', shot: 'np-tools', spot: 'wake', def: 'off' } ] }
       ],
-      challenges: ['np.open', 'np.tab', 'np.love', 'np.find', 'np.sleep', 'np.stage', 'np.bar', 'np.tour'],
+      challenges: ['np.open', 'np.tab', 'np.love', 'np.find', 'np.sleep', 'np.stage', 'np.bar', 'np.tour', 'np.tv'],
       quiz: [ { id: 'q1', answer: 1 }, { id: 'q2', answer: 2 }, { id: 'q3', answer: 0 } ],
-      tips: [ ['np-card', 'mark', 'np.open'], ['np-find', 'paste', 'np.find'], ['np-lyrics', 'now', 'np.tab'], ['np-stage', 'video', 'np.stage'], ['np-tools', 'wake', 'np.tab'] ]
+      tips: [ ['np-card', 'mark', 'np.open'], ['np-find', 'paste', 'np.find'], ['np-lyrics', 'now', 'np.tab'], ['np-stage', 'video', 'np.stage'], ['np-tools', 'wake', 'np.tab'], ['np-tv-video', 'subs', 'np.tv'], ['np-pill', 'pill', 'np.tv'] ]
     },
     { id: 'rawdata', area: 'more', nav: 'rawdata', mins: 5, cover: 'rd-top',
       scenes: [
@@ -4482,6 +4493,7 @@ window.GL_TEXT.en = {
           share: ['Share', 'Copies the song and its YouTube link.'],
           pip: ['Pop-out window', 'A small player that stays on top of other apps.'],
           youtube: ['Open on YouTube', 'The video on youtube.com.'],
+          tv: ['TV mode', 'The big-screen view, and how to get it on your TV.'],
           wake: ['Keep screen on', 'On a phone, the music stops if the screen locks. Turn this on to keep it going.'],
           keys: ['Keys & settings', 'Every key the player knows.'],
           tour: ['Take the tour', 'The one-minute walk through the player.']
@@ -4520,6 +4532,48 @@ window.GL_TEXT.en = {
           tabs: ['The sections', 'Stage opens on Lyrics; Up Next, History and Tools are here too.'],
           lyrics: ['Big lyrics', 'Easy to follow from across the room.'],
           controls: ['Controls', 'Along the bottom.']
+        } },
+        side: { title: 'On a phone, sideways', spots: {
+          media: ['Cover or video', 'Stays on the left while you use the rest.'],
+          seg: ['Artwork / Video', 'Switch between the cover and the music video.'],
+          tabs: ['The sections', 'Up Next, Lyrics, History and Tools open on the right, so the video stays in view.'],
+          controls: ['Controls', 'On the right, with the song and your chart story above them.'],
+          full: ['Full screen', 'On Android it also turns the screen sideways. iPhones don’t allow it: just turn the phone.']
+        } },
+        tv: { title: 'TV mode', spots: {
+          cover: ['The cover', 'Big, over the cover’s own colours.'],
+          title: ['The song', 'Big enough to read from the sofa.'],
+          story: ['Your chart story', 'Peak, your plays and weeks on the chart.'],
+          lyrics: ['Karaoke', 'The line being sung, big. The lines around it smaller.'],
+          next: ['Up next', 'The next four songs.']
+        } },
+        tvvideo: { title: 'TV mode with the video', spots: {
+          subs: ['Lyrics as subtitles', 'Over the video, like a film. The next line is smaller underneath.'],
+          seek: ['Progress', 'The controls fade out while the music plays. Any key, click or touch brings them back.'],
+          controls: ['Controls', 'A TV remote works too: the arrows move between the buttons, OK presses, Back leaves.'],
+          seg: ['Artwork / Video', 'Switch between the big cover and the video.'],
+          exit: ['Leave TV mode', 'Or Esc. The player goes back to how it was.'],
+          note: ['Your phone as the remote', 'Signed in on the TV and your phone? The phone becomes the remote by itself.']
+        } },
+        tvhow: { title: 'Show on TV', spots: {
+          start: ['Start TV mode', 'Fills this screen.'],
+          mine: ['This device', 'How to get it onto a TV from the device you’re using: cast the tab, cast the screen or mirror it.'],
+          link: ['The TV’s own browser', 'Open dankcharts.fm/?tv=1 on the TV and it starts straight in TV mode.'],
+          remote: ['The remote', 'Arrows and OK work the player. Back leaves TV mode.']
+        } },
+        pill: { title: 'On your TV', spots: {
+          pill: ['On your TV', 'Shows on your other devices while a TV is in TV mode. Tap it for the remote.'],
+          play: ['Play / Pause', 'Right from the pill.'],
+          hide: ['Hide', 'Hides the pill until the TV starts TV mode again.']
+        } },
+        remote: { title: 'The phone remote', spots: {
+          now: ['What the TV plays', 'The song and its cover.'],
+          seek: ['Progress', 'Drag to jump anywhere in the song.'],
+          ctrls: ['Previous · Play · Next', 'The TV follows straight away.'],
+          vol: ['TV volume', 'Quieter or louder, ten steps at a time.'],
+          seg: ['Artwork / Video', 'What the TV shows.'],
+          queue: ['Up next on the TV', 'Tap a song to play it now, move it up or down, or remove it. A song’s ⋮ has Play on TV and Add to TV queue.'],
+          exit: ['Turn off TV mode on the TV', 'The TV goes back to the normal player.']
         } }
       },
       howto: {
@@ -4546,6 +4600,17 @@ window.GL_TEXT.en = {
           'Press ⌄ at the top (or M).',
           'The player becomes a small capsule in the corner. Click the song to open it again.',
           'Prefer it along the bottom? Settings → Profile → Music player.'
+        ] },
+        tv: { title: 'Play it on your TV', slides: [
+          'In Tools, press TV mode.',
+          'Press Start TV mode. To get it onto the TV, follow the steps for your device just below.',
+          'The cover, your chart story and the lyrics fill the screen.',
+          'In video mode the lyrics show as subtitles. Press the TV button (or Esc) to leave.'
+        ] },
+        remote: { title: 'Use your phone as the remote', slides: [
+          'Sign in on the TV and on your phone. While the TV is in TV mode, “On your TV” shows on the phone.',
+          'Tap it: Previous, Play and Next, volume and Artwork / Video work the TV.',
+          'Change the TV’s Up Next from here. On any song, ⋮ → Play on TV or Add to TV queue.'
         ] }
       },
       options: {
@@ -4572,7 +4637,8 @@ window.GL_TEXT.en = {
         'np.sleep': ['Set a sleep timer', 'The moon in the bottom row.'],
         'np.stage': ['Open Stage mode', 'The screen button at the top, or G.'],
         'np.bar': ['Shrink the player', 'The ⌄ at the top, or M.'],
-        'np.tour': ['Take the player tour', 'The ? in the bottom row.']
+        'np.tour': ['Take the player tour', 'The ? in the bottom row.'],
+        'np.tv': ['Open TV mode', 'Tools → TV mode → Start TV mode.']
       },
       quiz: {
         q1: ['What does the green mark on the progress bar show?',
@@ -4590,7 +4656,9 @@ window.GL_TEXT.en = {
         'Wrong video? Paste the right YouTube link and the player remembers it.',
         'Click any line of the lyrics to jump to that part of the song.',
         'Press G for Stage mode: the video big, the lyrics beside it.',
-        'On a phone, the music stops if the screen locks. Turn on Keep screen on in Tools to keep it going.'
+        'On a phone, the music stops if the screen locks. Turn on Keep screen on in Tools to keep it going.',
+        'In TV mode with the video, the lyrics show as subtitles.',
+        'Signed in on the TV and your phone? “On your TV” on the phone opens a remote.'
       ]
     },
     rawdata: {

@@ -25417,7 +25417,10 @@ body.ytp-stage-open { overflow: hidden; }
 body.ytp-bar-open .tvr-pill { bottom: calc(100px + env(safe-area-inset-bottom, 0px)); }
 .tvr-pill-main { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1; padding: 0 6px 0 0; border: 0; background: none; color: var(--text); text-align: left; cursor: pointer; font-family: var(--font-sans); }
 .tvr-pill-art { width: 40px; height: 40px; flex-shrink: 0; border-radius: 50%; overflow: hidden; background: var(--bg2); }
-.tvr-pill-art img { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* A TV icon until (or unless) the song has a cover; the cover sits on top of it */
+.tvr-pill-art { position: relative; display: flex; align-items: center; justify-content: center; color: var(--accent); }
+.tvr-pill-art svg { width: 20px; height: 20px; }
+.tvr-pill-art img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
 .tvr-pill-txt { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
 .tvr-pill-txt small { display: flex; align-items: center; gap: 5px; font: 700 10px var(--font-mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); }
 .tvr-pill-txt small svg { width: 13px; height: 13px; }

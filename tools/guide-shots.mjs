@@ -661,6 +661,34 @@ async function npOpen(pg, { tab = 'next', tool = '', bar = false, stage = false,
   await wait(pg, tab === 'lyrics' ? 4500 : 2500);
 }
 
+// TV-PLAN.md step 10: the phone-remote pictures need a TV in TV mode on the
+// same account. The pictures can't sign in, so this stands in for the
+// account's users/{uid}/data/tvRemote document (tvremote.js reads it through
+// _ensureDb) with a TV playing this week's top song and three songs lined up.
+async function tvFake(pg) {
+  await pg.evaluate(async () => {
+    if (!window.__tvFake) {
+      window.__tvFake = true;
+      let doc = null; const subs = [];
+      const emit = () => subs.forEach(f => f({ exists: !!doc, data: () => doc }));
+      const ref = { set: async d => { doc = JSON.parse(JSON.stringify(d)); emit(); }, update: async () => {},
+        onSnapshot: f => { subs.push(f); setTimeout(() => f({ exists: !!doc, data: () => doc }), 0); return () => {}; } };
+      const noop = { get: async () => ({ exists: false, data: () => null }), set: async () => {}, update: async () => {}, delete: async () => {}, onSnapshot: () => () => {} };
+      const mk = path => ({ collection: n => mk(path + '/' + n), doc: n => (path + '/' + n).endsWith('/data/tvRemote') ? ref : mk(path + '/' + n), ...noop });
+      window._ensureDb = async () => mk('');
+      window.__tvSet = d => ref.set(d);
+      _currentUser = { uid: 'guide' };
+    }
+    const seen = new Set(), songs = [];
+    for (const x of allPlays) { const k = songKey(x); if (!seen.has(k)) { seen.add(k); songs.push({ title: x.title, artist: x.artist, album: x.album || '' }); } if (songs.length === 4) break; }
+    let art = '';
+    try { art = (songs[0].album ? await getArtAuto('album', songs[0].album, songs[0].artist, songs[0].album) : '') || await getArtAuto('song', songs[0].title, songs[0].artist) || ''; } catch (e) {}
+    await window.__tvSet({ tv: { id: 'guide-tv', kind: 'tv', at: Date.now(), on: true },
+      now: { ...songs[0], art, playing: true, pos: 52, dur: 214, at: Date.now(), media: 'video', vol: 80 }, queue: songs.slice(1), cmds: {} });
+  });
+  await wait(pg, 4000);   // tvremote.js checks who is signed in every 3 s
+}
+
 const SHOTS = [
   { id: 'week-top', lesson: 'week', phone: true,
     setup: async pg => { await lastWeek(pg); },
@@ -1872,9 +1900,11 @@ const SHOTS = [
     clip: { from: '#ytMiniPlayer', to: '#ytMiniPlayer', pad: 12, narrow: true },
     spots: { search: '.ytp-tool-search', similar: '.ytp-tool-similar', sleep: '.ytp-tool-sleep', speed: '.ytp-tool-speed', xfade: '.ytp-tool-xfade',
       scrobble: '.ytp-tool-scrobble', lists: '.ytp-tool-lists', share: '.ytp-tool-share', pip: '.ytp-tool-pip', youtube: '.ytp-tool-youtube', wake: '.ytp-tool-wake',
-      keys: '.ytp-tool-keys', tour: '.ytp-tool-tour' } },
+      tv: '.ytp-tool-tv', keys: '.ytp-tool-keys', tour: '.ytp-tool-tour' } },
   { id: 'np-lyrics', lesson: 'player', phone: true, vpm: { width: 390, height: 844 },
-    setup: async pg => { await npOpen(pg, { tab: 'lyrics' }); await pg.evaluate(() => { try { _ytPlayer.seekTo(45, true); } catch (e) {} }); await wait(pg, 2500); },
+    // Lyrics can take a while to arrive: wait for the line being sung (it was missed now and then)
+    setup: async pg => { await npOpen(pg, { tab: 'lyrics' }); await pg.evaluate(() => { try { _ytPlayer.seekTo(45, true); } catch (e) {} });
+      await pg.waitForSelector('#ytMiniPlayer .ytp-lyr-line.now', { timeout: 25000 }).catch(() => {}); await wait(pg, 1500); },
     clip: { from: '#ytMiniPlayer', to: '#ytMiniPlayer', pad: 12, narrow: true },
     spots: { pill: '#ytMiniPlayer .ytp-lyr-pill', nudge: '#ytMiniPlayer .ytp-lyr-nudge', now: '#ytMiniPlayer .ytp-lyr-line.now', line: '#ytMiniPlayer .ytp-lyr-line.next' } },
   { id: 'np-find', lesson: 'player',
@@ -1895,11 +1925,50 @@ const SHOTS = [
     clip: { from: '#ytMiniPlayer', to: '#ytMiniPlayer', pad: 0, narrow: true },
     spots: { video: '#ytMiniPlayer .ytp-media', hint: '#ytMiniPlayer .ytp-stage-hint', full: '#ytFullBtn', back: '#ytMiniExpandBtn',
       tabs: '#ytMiniPlayer .ytp-tabs', lyrics: '#ytMiniPlayer .yt-panels-zone', controls: '#ytMiniPlayer .yt-primary-controls' } },
+  /* TV-PLAN.md step 10: sideways phone, TV mode, Show on TV, phone remote */
+  // own: taken in a phone browser of its own (touch, no mouse) at this size —
+  // the sideways layout only shows on a touch screen held sideways
+  { id: 'np-side', lesson: 'player', own: { width: 844, height: 390 },
+    // the section panel closed, so the controls on the right show
+    setup: async pg => { await npOpen(pg); await pg.evaluate(() => _ytCloseSheet()); await wait(pg, 600); },
+    clip: { from: '#ytMiniPlayer', to: '#ytMiniPlayer', pad: 0, narrow: true },
+    spots: { media: '#ytMiniPlayer .ytp-media', seg: '#ytMiniPlayer .ytp-seg', tabs: '#ytMiniPlayer .ytp-tabs', controls: '#ytMiniPlayer .yt-primary-controls', full: '#ytFullBtn' } },
+  { id: 'np-tv', lesson: 'player', vp: { width: 1280, height: 720 },
+    setup: async pg => { await npOpen(pg, { tab: 'lyrics' });
+      await pg.evaluate(() => { _ytToggleTv(true); _ytSetMediaMode('art', true); try { _ytPlayer.seekTo(45, true); } catch (e) {} });
+      await wait(pg, 6000); },   // the controls fade out after 4 s
+    clip: { from: '#ytMiniPlayer', to: '#ytMiniPlayer', pad: 0, narrow: true },
+    spots: { cover: '#ytTvLayer .ytp-tv-cover', title: '#ytTvTitle', story: '#ytTvStory', lyrics: '#ytTvLyrics', next: '#ytTvNext' } },
+  { id: 'np-tv-video', lesson: 'player', vp: { width: 1280, height: 720 },
+    setup: async pg => { await npOpen(pg, { tab: 'lyrics' });
+      await pg.evaluate(() => { _ytToggleTv(true); _ytSetMediaMode('video', true); try { _ytPlayer.seekTo(45, true); } catch (e) {} });
+      await wait(pg, 3500);
+      // Controls up, and kept up for the picture
+      await pg.evaluate(() => { _ytTvPoke(); clearTimeout(_ytTvAwakeT); }); },
+    clip: { from: '#ytMiniPlayer', to: '#ytMiniPlayer', pad: 0, narrow: true },
+    spots: { subs: '#ytTvSubs', seek: '#ytMiniPlayer .yt-seek-bar-wrap', controls: '#ytMiniPlayer .yt-primary-controls', seg: '#ytMiniPlayer .ytp-media-bar',
+      exit: '#ytTvBtn', note: '#ytTvRemoteNote' } },
+  { id: 'np-tvhow', lesson: 'player',
+    setup: async pg => { await npOpen(pg, { tab: 'tools' });
+      await pg.evaluate(() => { _ytToggleTvHelp(); document.querySelector('#ytMiniPlayer .yt-panels-zone').style.maxHeight = 'none'; }); await wait(pg, 600); },
+    clip: { from: '#ytMiniPlayer', to: '#ytMiniPlayer', pad: 12, narrow: true },
+    spots: { start: '.ytp-tvhow-start', mine: '.ytp-tvhow-way.mine', link: '.ytp-tvhow-link', remote: '.ytp-tvhow-note' } },
+  { id: 'np-pill', lesson: 'player',
+    setup: async pg => { await npOpen(pg); await pg.evaluate(() => closeYtPlayer()); await tvFake(pg); },
+    clip: { from: '#tvrPill', to: '#tvrPill', pad: 14, narrow: true },
+    spots: { pill: '#tvrPill .tvr-pill-main', play: '#tvrPill .tvr-pill-play', hide: '#tvrPill .tvr-pill-x' } },
+  { id: 'np-remote', lesson: 'player', phone: true,
+    setup: async pg => { await tvFake(pg); await pg.evaluate(() => dcTvRemote.openRemote()); await wait(pg, 1500); },
+    // up to the last button: on a tall picture window the box itself runs to the bottom
+    clip: { from: '#tvrSheet .tvr-head', to: '#tvrSheet .tvr-exit', pad: 18, narrow: true },
+    spots: { now: '#tvrSheet .tvr-now', seek: '#tvrSheet .tvr-seek', ctrls: '#tvrSheet .tvr-ctrls', vol: '#tvrSheet .tvr-vol', seg: '#tvrSheet .tvr-seg',
+      queue: '#tvrSheet .tvr-q', exit: '#tvrSheet .tvr-exit' } },
   { id: 'np-setting', lesson: 'player',
     setup: async pg => { await npOpen(pg); await pg.evaluate(() => closeYtPlayer()); await setView(pg, 'profile');
       await pg.evaluate(() => document.getElementById('playerMiniSwitcher').scrollIntoView({ block: 'center' })); await wait(pg, 800); },
     clip: { from: { js: "document.getElementById('playerMiniSwitcher').closest('.cert-config-group')" }, to: { js: "document.getElementById('playerMiniSwitcher').closest('.cert-config-group')" }, pad: 12, narrow: true },
     spots: { switch: '#playerMiniSwitcher', capsule: '#playerMiniSwitcher [data-st="capsule"]', filled: '#playerMiniSwitcher [data-st="filled"]', bar: '#playerMiniSwitcher [data-st="bar"]' } },
+
   { id: 'rd-top', lesson: 'rawdata', phone: true,
     setup: async pg => { await rdView(pg); },
     clip: { from: '#rawDataView .raw-header', to: { js: "document.querySelectorAll('#rawBody tr')[9]" }, pad: 14 },
@@ -2007,7 +2076,7 @@ async function run() {
     const mf = path.join(dir, 'shots.json');
     const manifest = fs.existsSync(mf) ? JSON.parse(fs.readFileSync(mf, 'utf8')) : {};
     for (const phone of [false, true]) {
-      const list = shots.filter(s => !phone || s.phone);
+      const list = shots.filter(s => !phone || (s.phone && !s.own));
       if (!list.length) continue;
       let app = await openApp(b, lang, phone), lastLesson = list[0].lesson;
       for (const s of list) {
@@ -2016,22 +2085,27 @@ async function run() {
         // the streaks window…) would otherwise darken every picture of the next one
         if (s.lesson !== lastLesson) { lastLesson = s.lesson; await app.ctx.close(); app = await openApp(b, lang, phone); }
         // Two tries: a slow page load is the usual reason a shot fails
+        // own: this one shot in a phone browser of its own at its own size (np-side)
+        const own = s.own ? await openApp(b, lang, true) : null;
+        const use = own || app;
         for (let attempt = 1; attempt <= 2; attempt++) try {
           // A fresh start per shot keeps one shot's open menu out of the next
-          await app.pg.evaluate(() => { window.scrollTo(0, 0); document.querySelectorAll('.kebab-menu-wrap.open').forEach(e => e.classList.remove('open'));
+          await use.pg.evaluate(() => { window.scrollTo(0, 0); document.querySelectorAll('.kebab-menu-wrap.open').forEach(e => e.classList.remove('open'));
             // The Day recap story pauses while the mouse is over it, so it never closes by
             // itself; it and the Daily calendar would dim every picture after them
             if (typeof dyCloseRecap === 'function') dyCloseRecap();
             if (typeof dyCloseCalendar === 'function') dyCloseCalendar(); });
-          await closeMenus(app.pg);
+          await closeMenus(use.pg);
           // vp: a shot that needs its own window size (a full-screen layer); put back after
-          await app.pg.setViewportSize(s.vp && !phone ? s.vp : (phone ? (s.vpm || PHONE) : DESK));
-          await s.setup(app.pg);
-          await wait(app.pg, 600);
-          const m = await measure(app.pg, s.clip, s.spots);
+          await use.pg.setViewportSize(s.own || (s.vp && !phone ? s.vp : (phone ? (s.vpm || PHONE) : DESK)));
+          await s.setup(use.pg);
+          await wait(use.pg, 600);
+          const m = await measure(use.pg, s.clip, s.spots);
           if (m.err) { console.log(`  ${lang} ${id}: ${m.err}`); continue; }
           const png = path.join(dir, id + '.png');
-          await app.pg.screenshot({ path: png, clip: m.clip, fullPage: true });
+          // own: a fixed-size phone window — a full-page capture would stretch it
+          // (and a stretched window is no longer held sideways)
+          await use.pg.screenshot({ path: png, clip: m.clip, fullPage: !s.own });
           execFileSync('python', ['-c', 'import sys;from PIL import Image;im=Image.open(sys.argv[1]).convert("RGB");im.save(sys.argv[2],"WEBP",quality=80,method=6)', png, png.replace(/\.png$/, '.webp')]);
           fs.unlinkSync(png);
           manifest[id] = { w: Math.round(m.clip.width), h: Math.round(m.clip.height), spots: m.spots };
@@ -2041,8 +2115,10 @@ async function run() {
         } catch (e) {
           console.log(`  ${lang} ${id}: ${attempt === 1 ? 'retrying' : 'FAILED'} ${e.message.split('\n')[0]}`);
           // A failed setup can leave the page in any state: start again
-          await app.ctx.close(); app = await openApp(b, lang, phone);
+          if (own) { await own.ctx.close(); Object.assign(own, await openApp(b, lang, true)); }
+          else { await app.ctx.close(); app = await openApp(b, lang, phone); }
         }
+        if (own) await own.ctx.close();
       }
       await app.ctx.close();
     }

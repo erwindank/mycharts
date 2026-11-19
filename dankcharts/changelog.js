@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 504;
+const DC_CL_I18N_V = 505;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -98,6 +98,16 @@ const DC_CL_AREAS = {
    by id, as { title, intro, points }. A missing one shows in English.
    ------------------------------------------------------------------------- */
 const DC_CL_HIGHLIGHTS = [
+  { id: "tv-mode", d: "2026-11-18", a: "player", img: "whatsnew/tv-mode.webp", go: "week", then: [["_ytGuideOpen"]],
+    title: "The music player on your TV",
+    intro: "A big-screen TV mode, a sideways look for phones, and your phone as the remote.",
+    points: [
+      "TV mode: a big cover with karaoke lyrics, or the video with lyrics as subtitles.",
+      "Tools \u2192 TV mode shows how to get it onto your TV.",
+      "Signed in on both? Your phone becomes the remote.",
+      "On a phone, just turn it sideways for the big view.",
+    ],
+    also: ["TV mode for the music player", "Use your phone as the remote for TV mode", "The music player works sideways on phones"] },
   { id: "genre-library-fun", d: "2026-11-18", a: "data", img: "whatsnew/genre-library-fun.webp", go: "genrelib",
     title: "A livelier Genre Library",
     intro: "Your genres now tell a story, and fixing them is quick.",
@@ -439,6 +449,15 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-18', t: 'feature', a: 'player',
+    title: "TV mode for the music player",
+    detail: "Tools \u2192 TV mode in the music player opens a big-screen view for a TV, a cast tab or any big window. With the artwork it shows a big cover, the song, your chart story, karaoke lyrics and the next four songs; with the video, the video fills the screen and the lyrics show like subtitles. The controls fade out while the music plays and come back on any key, click or touch, and the screen stays on. It works with a TV remote: the arrows move between the buttons, OK presses and Back leaves. The same card explains how to get it onto a TV from Chrome or Edge, an Android phone, an iPhone, iPad or Mac, or the TV's own browser, where dankcharts.fm/?tv=1 opens straight into TV mode. Play/pause, next and previous keys on keyboards and remotes now work everywhere." },
+  { d: '2026-11-18', t: 'feature', a: 'player',
+    title: "Use your phone as the remote for TV mode",
+    detail: "When a device signed in to your account is in TV mode, your other devices show On your TV at the bottom of the screen. Tap it for a remote: the song and its progress, Previous, Play and Next, the TV's volume, Artwork or Video, the TV's Up Next (play, move up or down, remove) and Turn off TV mode on the TV. A song's \u22ee menu gets Play on TV and Add to TV queue. Only the TV plays the music, so plays are only scrobbled once." },
+  { d: '2026-11-18', t: 'change', a: 'player',
+    title: "The music player works sideways on phones",
+    detail: "Turning a phone sideways used to drop you out of the full-screen player into the small floating one. Now the player has its own sideways layout: cover or video on the left, controls on the right, and Up Next, Lyrics, History and Tools slide in over the right side so the video stays in view. A new Full screen button also turns the screen sideways on Android; iPhones get a one-time tip to turn the phone. In video mode on an upright phone, an open section no longer covers the video." },
   { d: '2026-11-18', t: 'feature', a: 'data',
     title: "Genre Library: your sound, Quick Fix, genre pages and more",
     detail: "The Genre Library now opens on Your sound: a line about what you listen to, your genre families as one colour bar, three quick facts and a bubble map you can tap into, for all time, the last 12 months or the last 30 days. Quick Fix shows the artists with no genre one card at a time with the best guesses, a ring for how much of your listening has a genre, badges at 50, 75, 90 and 100%, and keys 1–6, Enter and → on a computer. Every genre has its own page with your top artists, songs and albums, its last 12 months, its rarity (Common, Rare or Deep cut) and the genres next to it, plus Play a mix, Make Smart Playlist and a share card. Also new: Tidy up (one-tap fixes for tags that aren't genres, guessed genres and artists whose songs disagree), a genre timeline, a shelf of collectible genre cards, Next door with 30-second samples of genres you haven't tried, a genre of the day, selecting many rows to give them all the same genres, and Group by family. Where genres come from now reads Your pick, From your sheet, Voted on MusicBrainz or Guessed online, and the genre chips in the song, album and artist windows open that genre's page." },

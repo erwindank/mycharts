@@ -223,7 +223,7 @@
     pill.id = 'tvrPill'; pill.className = 'tvr-pill'; pill.style.display = 'none';
     pill.innerHTML =
       `<button type="button" class="tvr-pill-main" onclick="dcTvRemote.openRemote()">` +
-        `<span class="tvr-pill-art"><img alt="" style="display:none"></span>` +
+        `<span class="tvr-pill-art">${svg(ICON.tv)}<img alt="" style="display:none"></span>` +
         `<span class="tvr-pill-txt"><small>${svg(ICON.tv)}<span class="tvr-pill-k"></span></small><b></b></span></button>` +
       `<button type="button" class="tvr-pill-btn tvr-pill-play" onclick="dcTvRemote.send('toggle')"></button>` +
       `<button type="button" class="tvr-pill-btn tvr-pill-x" onclick="dcTvRemote.dismiss()">${svg(ICON.x)}</button>`;
