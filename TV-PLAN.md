@@ -4,7 +4,7 @@ The Now Playing player (`#ytMiniPlayer`) works well upright on phones and as a
 card or Stage on big screens. Two things are missing: a good **sideways**
 layout, and a way to enjoy it **on a TV**.
 
-**Status: in progress** — steps 1–3 done 2026-11-18. This round = steps 1–8
+**Status: in progress** — steps 1–4 done 2026-11-18. This round = steps 1–8
 and step 10. Step 9 (Play queue on YouTube) is saved for later.
 
 Decisions so far (2026-11-18):
@@ -88,13 +88,19 @@ Decisions so far (2026-11-18):
   your top song of the week (_ytGuideOpen). Browsers may block sound until
   the first click when opened from the link. Check: C:/tmp/tv3.mjs, tv3b, tv3d.
 
-### Step 4. Remote-friendly controls
+### Step 4. Remote-friendly controls — DONE 2026-11-18
 - Arrow keys move between controls with a big visible focus ring; Enter
   presses; Back / Esc leaves.
 - Media keys (play/pause, next, previous) work through the Media Session API,
   which also fills the TV / phone lock screen with song + cover.
 - Slow drift of the layout so a TV left playing doesn't burn in.
 - Check with keyboard only, no mouse.
+- Built as: window capture keydown in TV mode, rows _YT_TV_ROWS (header /
+  progress bar / controls + Artwork·Video). First key while hidden only wakes
+  (ring on Play). Back = Escape, Backspace, GoBack, BrowserBack. Media keys
+  (_ytMediaKey) work everywhere; a press that arrives twice (key + Media
+  Session) within 400 ms is skipped (_ytMediaDup). Drift = 12-minute loop
+  on the TV layer (CSS has no "min" unit — use seconds). Check: C:/tmp/tv4.mjs.
 
 ### Step 5. "Show on TV" card
 - Tools card that explains, per device, in plain steps:

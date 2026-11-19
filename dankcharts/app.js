@@ -38777,6 +38777,7 @@ function _ytToggleTv(force) {
     _ytTvBtnSync();
     _ytWakeSync();
     _ytToolsRefresh();
+    setTimeout(_ytTvFocusPlay, 50);   // step 4: a remote starts on Play
   } else {
     _ytTvTeardown();
     if (!_ytTvStageBefore) _ytToggleStage(false);
@@ -38811,8 +38812,115 @@ function _ytTvPoke() {
     p.classList.remove('ytp-tv-awake');
   }, 4000);
 }
-['mousemove', 'pointerdown', 'keydown', 'touchstart', 'wheel'].forEach(ev =>
+['mousemove', 'pointerdown', 'touchstart', 'wheel'].forEach(ev =>   // keys: see the remote handler below
   document.addEventListener(ev, () => { if (_ytTvOn) _ytTvPoke(); }, { passive: true, capture: true }));
+
+// ── TV mode with a remote (TV-PLAN.md step 4) ───────────────────────────
+// TV remotes and smart-TV browsers send arrow keys, Enter and Back. In TV
+// mode the arrows move a big focus ring between the controls instead of
+// seeking / changing the volume:
+//   row 1  header: Full screen · TV · Close
+//   row 2  the progress bar (← → jump 10 s back / forward)
+//   row 3  Shuffle · Previous · Play · Next · Repeat · Artwork · Video
+// ← → move along a row, ↑ ↓ to the row above / below, Enter presses.
+// While the controls are hidden the first key only brings them back (with
+// the ring on Play), so nothing invisible gets pressed. Back / Esc leaves
+// TV mode. The letter keys (N, B, V…) work as everywhere else.
+const _YT_TV_ROWS = [
+  ['#ytFullBtn', '#ytTvBtn', '#ytMiniPlayer .yt-hdr-close'],
+  ['#ytSeekBar'],
+  ['#ytMiniShuffleBtn', '#ytMiniPrevBtn', '#ytMiniPauseBtn', '#ytMiniNextBtn', '#ytMiniRepeatBtn', '#ytMediaArtBtn', '#ytMediaVideoBtn'],
+];
+function _ytTvRows() {
+  const shown = el => !!(el && el.getClientRects().length && getComputedStyle(el).visibility !== 'hidden');
+  return _YT_TV_ROWS.map(row => row.map(sel => document.querySelector(sel)).filter(shown)).filter(r => r.length);
+}
+function _ytTvFocus(el) {
+  if (!el) return;
+  try { el.focus({ preventScroll: true }); } catch (e) { el.focus(); }
+}
+function _ytTvFocusPlay() { _ytTvFocus(document.getElementById('ytMiniPauseBtn')); }
+// Move the ring one step: dx = -1/+1 along the row, dy = -1/+1 between rows
+function _ytTvMove(dx, dy) {
+  const rows = _ytTvRows();
+  const cur = document.activeElement;
+  let r = rows.findIndex(row => row.includes(cur));
+  if (r < 0) { _ytTvFocusPlay(); return; }
+  if (dx) {
+    const i = rows[r].indexOf(cur) + dx;
+    if (i >= 0 && i < rows[r].length) _ytTvFocus(rows[r][i]);
+    return;
+  }
+  const to = r + dy;
+  if (to < 0 || to >= rows.length) return;
+  // The button in the next row that sits closest under / over this one
+  const x = cur.getBoundingClientRect(), cx = x.left + x.width / 2;
+  let best = rows[to][0], bestD = Infinity;
+  rows[to].forEach(el => { const b = el.getBoundingClientRect(); const d = Math.abs(b.left + b.width / 2 - cx); if (d < bestD) { bestD = d; best = el; } });
+  _ytTvFocus(best);
+}
+const _YT_BACK_KEYS = ['Escape', 'Backspace', 'GoBack', 'BrowserBack'];
+// Runs before every other key handler (window, capture) while TV mode is on
+window.addEventListener('keydown', e => {
+  if (!_ytTvOn) return;
+  const p = document.getElementById('ytMiniPlayer');
+  if (!p) return;
+  const tag = document.activeElement && document.activeElement.tagName;
+  const typing = (tag === 'INPUT' && document.activeElement.type !== 'range') || tag === 'TEXTAREA' || tag === 'SELECT';
+  if (typing) return;
+  // Media keys are handled by _ytMediaKey (below); leave them alone here
+  if (e.key && e.key.indexOf('Media') === 0) return;
+  const stop = () => { e.preventDefault(); e.stopImmediatePropagation(); };
+  if (_YT_BACK_KEYS.includes(e.key)) { stop(); _ytToggleTv(false); return; }
+  const nav = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Enter', ' '].includes(e.key);
+  if (!nav) { _ytTvPoke(); return; }   // letter keys: just show the controls, the usual handler does the rest
+  // Controls hidden: the first key only brings them back
+  if (!p.classList.contains('ytp-tv-awake') || !p.contains(document.activeElement)) {
+    stop(); _ytTvPoke(); if (!p.contains(document.activeElement)) _ytTvFocusPlay(); return;
+  }
+  _ytTvPoke();
+  const onSeek = document.activeElement && document.activeElement.id === 'ytSeekBar';
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+    stop();
+    if (onSeek) {
+      if (_ytPlayer) { try { const now = _ytPlayer.getCurrentTime(); _ytPlayer.seekTo(Math.max(0, now + (e.key === 'ArrowLeft' ? -10 : 10)), true); } catch (ex) {} }
+    } else _ytTvMove(e.key === 'ArrowLeft' ? -1 : 1, 0);
+    return;
+  }
+  if (e.key === 'ArrowUp' || e.key === 'ArrowDown') { stop(); _ytTvMove(0, e.key === 'ArrowUp' ? -1 : 1); return; }
+  // Enter / Space on a focused button press it (the browser does that); only
+  // keep the player's own Space = pause from firing as well
+  if (document.activeElement && document.activeElement.tagName === 'BUTTON') { e.stopImmediatePropagation(); return; }
+  // On the progress bar Enter / Space = play / pause
+  stop(); _ytPauseToggle();
+}, true);
+
+// Media keys (remotes, keyboards): play/pause, next, previous, stop. Some
+// browsers send these to the Media Session handlers instead — those run the
+// same functions, so a key that already arrived that way is skipped.
+let _ytMediaKeyAt = 0;
+function _ytMediaKey(e) {
+  const p = document.getElementById('ytMiniPlayer');
+  if (!p || p.style.display === 'none' || !_ytPlayer) return;
+  const map = {
+    MediaPlayPause: () => _ytPauseToggle(),
+    MediaPlay: () => { if (!p.classList.contains('yt-is-playing')) _ytPauseToggle(); },
+    MediaPause: () => { if (p.classList.contains('yt-is-playing')) _ytPauseToggle(); },
+    MediaStop: () => { if (p.classList.contains('yt-is-playing')) _ytPauseToggle(); },
+    MediaTrackNext: () => _ytSkip(),
+    MediaTrackPrevious: () => _ytPrev(),
+    MediaFastForward: () => { try { _ytPlayer.seekTo(_ytPlayer.getCurrentTime() + 10, true); } catch (ex) {} },
+    MediaRewind: () => { try { _ytPlayer.seekTo(Math.max(0, _ytPlayer.getCurrentTime() - 10), true); } catch (ex) {} },
+  };
+  const fn = map[e.key];
+  if (!fn) return;
+  e.preventDefault();
+  if (Date.now() - _ytMediaKeyAt < 400) return;   // the same press, twice
+  _ytMediaKeyAt = Date.now();
+  fn();
+  if (_ytTvOn) _ytTvPoke();
+}
+document.addEventListener('keydown', _ytMediaKey);
 
 // Song, artist, cover, chart story and Up Next into the TV layer
 function _ytTvFill() {
@@ -39873,6 +39981,14 @@ function _ytShowArt(url, isStill) {
 // ── Media Session API ──────────────────────────────────────────────────────
 // Registers the current track with the OS so playback can continue on the
 // lock screen and hardware media keys (headphones, Bluetooth) work correctly.
+// A media key can reach the page twice (as a key and as a Media Session
+// action, TV-PLAN.md step 4) — the second one within 400 ms is skipped
+function _ytMediaDup() {
+  if (typeof _ytMediaKeyAt === 'undefined') return false;
+  const dup = Date.now() - _ytMediaKeyAt < 400;
+  _ytMediaKeyAt = Date.now();
+  return dup;
+}
 function _ytSetMediaSession() {
   if (!('mediaSession' in navigator) || !_ytCurrentTrack) return;
   const { title, artist, album } = _ytCurrentTrack;
@@ -39884,12 +40000,12 @@ function _ytSetMediaSession() {
   ] : [];
   navigator.mediaSession.metadata = new MediaMetadata({ title, artist, album: album || '', artwork });
   // Wire OS/hardware controls to the existing player functions
-  navigator.mediaSession.setActionHandler('play',          () => { if (_ytPlayer) _ytPlayer.playVideo(); });
-  navigator.mediaSession.setActionHandler('pause',         () => { if (_ytPlayer) _ytPlayer.pauseVideo(); });
+  navigator.mediaSession.setActionHandler('play',          () => { if (_ytMediaDup()) return; if (_ytPlayer) _ytPlayer.playVideo(); });
+  navigator.mediaSession.setActionHandler('pause',         () => { if (_ytMediaDup()) return; if (_ytPlayer) _ytPlayer.pauseVideo(); });
   navigator.mediaSession.setActionHandler('stop',          () => closeYtPlayer());
-  navigator.mediaSession.setActionHandler('nexttrack',     () => _ytSkip());
+  navigator.mediaSession.setActionHandler('nexttrack',     () => { if (_ytMediaDup()) return; _ytSkip(); });
   // Previous: restart the track (or seek to 0 if already near the start)
-  navigator.mediaSession.setActionHandler('previoustrack', () => _ytPrev());
+  navigator.mediaSession.setActionHandler('previoustrack', () => { if (_ytMediaDup()) return; _ytPrev(); });
   navigator.mediaSession.setActionHandler('seekto', e => {
     if (_ytPlayer && e.seekTime != null) {
       try { _ytPlayer.seekTo(e.seekTime, true); } catch(e2) {}

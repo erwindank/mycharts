@@ -25333,6 +25333,26 @@ body.ytp-stage-open { overflow: hidden; }
 /* Artwork / Video switch, bottom right next to the controls */
 .yt-mini-player.ytp-stage.ytp-tv .ytp-media-bar { right: 4vw; bottom: 5.5vh; left: auto; padding: 0; }
 
+/* ── TV-PLAN.md step 4: remote control + burn-in drift ──
+   A big ring shows which control the remote's arrows are on. */
+.yt-mini-player.ytp-stage.ytp-tv :focus-visible { outline: max(3px, 0.45vh) solid var(--accent); outline-offset: max(3px, 0.5vh); border-radius: 999px; }
+.yt-mini-player.ytp-stage.ytp-tv .yt-seek-bar:focus-visible { border-radius: 8px; outline-offset: max(6px, 1vh); }
+.yt-mini-player.ytp-stage.ytp-tv .ytp-seg button:focus-visible { outline-offset: 2px; }
+/* A TV left on with the same picture can keep a shadow of it (burn-in):
+   the text and covers drift very slowly (a few pixels a minute, too slow to
+   notice), so nothing sits in one spot for hours. Kept with reduced motion
+   on purpose — it can't be seen moving. */
+@keyframes ytpTvDrift {
+  0%   { translate: 0 0; }
+  25%  { translate: 1.2vw -0.8vh; }
+  50%  { translate: -0.6vw 1vh; }
+  75%  { translate: -1.2vw -0.4vh; }
+  100% { translate: 0 0; }
+}
+.yt-mini-player.ytp-stage.ytp-tv .ytp-tv-hero,
+.yt-mini-player.ytp-stage.ytp-tv .ytp-tv-next,
+.yt-mini-player.ytp-stage.ytp-tv .ytp-tv-subs { animation: ytpTvDrift 720s ease-in-out infinite;   /* 12 minutes per loop */ }
+
 /* ── Step 12: tour + first-visit hint ── */
 .yt-mini-player .ytp-foot .ytp-help-btn { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border); font: 700 var(--fs-sm) var(--font-sans); color: var(--text2); }
 .yt-mini-player .ytp-foot .ytp-help-btn:hover { border-color: var(--border2); color: var(--text); }
