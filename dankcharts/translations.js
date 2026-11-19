@@ -6914,6 +6914,19 @@ const TRANSLATIONS = {
     rf_run_full: "Fully yours!",
     rf_run_full_sub: "Every song you play from it has your score. Album: {{score}}",
     rf_run_aspects: "Add the album aspects",
+    // Step 7: daily goal and streak
+    rf_goal_title: "Today's rating goal",
+    rf_goal_prog: "{{n}} of {{g}} rated today",
+    rf_goal_done: "Goal reached: {{n}} rated today",
+    rf_goal_pick: "Goal",
+    rf_goal_mini: "Today {{n}} / {{g}}",
+    rf_goal_hit_toast: "Daily goal reached! 🔥 {{n}} in a row",
+    rf_streak_day: "day in a row",
+    rf_streak_days: "days in a row",
+    rf_streak_best: "Best: {{n}} days",
+    rf_streak_risk: "Rate today to keep it",
+    nt_cat_ratings: "Ratings",
+    nt_rt_streak: "Your {{n}}-day rating streak ends tonight. {{left}} more to keep it going.",
     // ── end rating fun ──
   },
 

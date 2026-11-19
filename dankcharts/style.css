@@ -52398,3 +52398,34 @@ body.rf-stage-on { overflow: hidden; }
   .rf-run-s { grid-column: 4; grid-row: 1; }
   .rf-run-ten { grid-column: 1 / -1; grid-row: 2; grid-template-columns: repeat(10, minmax(0, 1fr)); }
 }
+
+/* Daily goal and streak (step 7) */
+.rf-goal { display: flex; align-items: center; gap: var(--sp-4); flex-wrap: wrap; }
+.rf-goal.is-new { animation: rfPop .5s var(--ease); }
+.rf-goal-ring { position: relative; width: 72px; height: 72px; flex-shrink: 0; }
+.rf-goal-track { fill: none; stroke: color-mix(in srgb, var(--text) 10%, transparent); stroke-width: 7; }
+.rf-goal-arc { fill: none; stroke: var(--amber); stroke-width: 7; stroke-linecap: round; transition: stroke-dashoffset .5s var(--ease); }
+.rf-goal.is-done .rf-goal-arc { stroke: var(--green); }
+.rf-goal-n { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font: 800 1.35rem var(--font-display); color: var(--text); }
+.rf-goal.is-done .rf-goal-n { color: var(--green); }
+.rf-goal-txt { flex: 1; min-width: 180px; display: flex; flex-direction: column; gap: 4px; }
+.rf-goal-big { font: 800 var(--fs-md) var(--font-display); color: var(--text); }
+.rf-goal-pick { display: inline-flex; align-items: center; gap: 4px; font-size: var(--fs-xs); color: var(--text3); }
+.rf-goal-pick > span { margin-right: 4px; }
+.rf-goal-b { min-width: 34px; padding: 3px 8px; border-radius: 99px; border: 1px solid var(--border2); background: transparent; color: var(--text2); font: 700 var(--fs-xs) var(--font-mono); cursor: pointer; }
+.rf-goal-b.is-on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.rf-goal-b:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.rf-streak { display: flex; flex-direction: column; align-items: center; text-align: center; min-width: 110px; padding: 8px 12px; border-radius: var(--r-md); background: color-mix(in srgb, var(--amber) 12%, transparent); border: 1px solid color-mix(in srgb, var(--amber) 35%, transparent); }
+.rf-streak.is-zero { background: color-mix(in srgb, var(--text) 5%, transparent); border-color: var(--border); }
+.rf-streak.is-zero .rf-streak-n { filter: grayscale(1); opacity: .6; }
+.rf-streak-n { font: 800 1.5rem var(--font-display); line-height: 1.1; }
+.rf-streak-l { font-size: var(--fs-xs); color: var(--text2); }
+.rf-streak-risk { margin-top: 4px; font: 700 var(--fs-xs) var(--font-sans); color: var(--amber); }
+.rf-streak-best { margin-top: 4px; font-size: var(--fs-xs); color: var(--text3); }
+.rf-streak.is-risk { animation: rfRisk 2.4s var(--ease) infinite; }
+@keyframes rfRisk { 0%, 100% { box-shadow: 0 0 0 0 transparent; } 50% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--amber) 25%, transparent); } }
+@media (prefers-reduced-motion: reduce) { .rf-streak.is-risk, .rf-goal.is-new { animation: none; } }
+@media (max-width: 600px) { .rf-streak { flex-direction: row; gap: 6px; flex-wrap: wrap; width: 100%; justify-content: center; } }
+.rf-goal-mini { display: flex; align-items: center; gap: var(--sp-2); max-width: 360px; margin: var(--sp-3) auto 0; font-size: var(--fs-sm); color: var(--text2); }
+.rf-goal-mini .rf-prog { flex: 1; margin: 0; }
+.nt-tone-ratings { --nt-tone: var(--amber); }

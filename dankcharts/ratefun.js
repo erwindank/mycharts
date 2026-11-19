@@ -154,6 +154,8 @@ function _rfCountToday(kind, key) {
   if (f.dayKeys.k.includes(id)) return;
   f.dayKeys.k.push(id);
   f.days[d] = (f.days[d] || 0) + 1;
+  // Today's goal (step 7) may just have been reached
+  if (typeof _rfCheckGoal === 'function') _rfCheckGoal();
   // Keep about a year and a half of days
   const ks = Object.keys(f.days);
   if (ks.length > 550) ks.sort().slice(0, ks.length - 550).forEach(k => delete f.days[k]);
@@ -198,6 +200,11 @@ function rfMerge(remote) {
     const f = _rfFun(), r = remote.fun;
     for (const [d, n] of Object.entries(r.days || {})) if ((n || 0) > (f.days[d] || 0)) { f.days[d] = n; changed = true; }
     for (const [b, ts] of Object.entries(r.badges || {})) if (!f.badges[b] || ts < f.badges[b]) { f.badges[b] = ts; changed = true; }
+    // Days the goal was reached: from either side
+    if (r.hit && typeof r.hit === 'object') {
+      if (!f.hit || typeof f.hit !== 'object') f.hit = {};
+      for (const [d, g] of Object.entries(r.hit)) if (!f.hit[d]) { f.hit[d] = g; changed = true; }
+    }
     if ((r.funTs || 0) > (f.funTs || 0)) {
       for (const k of ['goal', 'settled', 'ok', 'told', 'dayKeys']) if (r[k] !== undefined) f[k] = r[k];
       f.funTs = r.funTs;
@@ -863,3 +870,121 @@ function rfRunPlay(btn, key) {
 window.rfSpeedOpen = rfSpeedOpen;
 window.rfRunPick = rfRunPick;
 window.rfRunPlay = rfRunPlay;
+
+// ── Daily goal and rating streak (6) ─────────────────────────────────────
+/* Pick a goal (5, 10 or 25 a day). A ring fills as you rate, and a 🔥 streak
+   counts the days in a row you hit it. fun.hit keeps the days the goal was
+   reached (with the goal of that day), so changing the goal later doesn't
+   rewrite old days. In the evening, with a streak going and today's goal
+   not reached yet, one notification says the streak is at risk. */
+const RF_GOALS = [5, 10, 25];
+const RF_GOAL_DEFAULT = 10;
+const RF_RISK_HOUR = 18;   // the reminder waits until 6 pm, the user's time
+
+function rfGoal() { const g = _rfFun().goal; return RF_GOALS.includes(g) ? g : RF_GOAL_DEFAULT; }
+function rfTodayCount() { return _rfFun().days[rfToday()] || 0; }
+
+function _rfHits() {
+  const f = _rfFun();
+  if (!f.hit || typeof f.hit !== 'object') f.hit = {};
+  return f.hit;
+}
+
+// Marks today when the goal is reached (called after each count)
+function _rfCheckGoal() {
+  const d = rfToday(), n = rfTodayCount(), g = rfGoal(), H = _rfHits();
+  if (n < g || H[d]) return;
+  H[d] = g;
+  _rfFunTouch();
+  const s = rfStreak();
+  if (typeof dcPlToast === 'function') dcPlToast(t('rf_goal_hit_toast', { n: s.cur }));
+  const card = document.getElementById('rfGoalCard');
+  if (card) { card.outerHTML = rfGoalCardHTML(true); }
+}
+
+/* { cur, best, today, atRisk }. A streak still counts while today isn't
+   over: it runs up to yesterday until today's goal is reached. */
+function rfStreak() {
+  const H = _rfHits(), today = rfToday();
+  const hitToday = !!H[today];
+  let cur = 0, d = hitToday ? today : dyShift(today, -1);
+  while (H[d]) { cur++; d = dyShift(d, -1); }
+  // Best ever: the longest run in the kept days
+  const days = Object.keys(H).sort();
+  let best = 0, run = 0, prev = null;
+  for (const x of days) { run = prev && dyShift(prev, 1) === x ? run + 1 : 1; prev = x; if (run > best) best = run; }
+  return { cur, best: Math.max(best, cur), today: hitToday, atRisk: !hitToday && cur > 0 };
+}
+
+function rfSetGoal(g) {
+  if (!RF_GOALS.includes(g)) return;
+  _rfFun().goal = g;
+  _rfFunTouch();
+  ratingsPersist(true);
+  _rfCheckGoal();
+  const card = document.getElementById('rfGoalCard');
+  if (card) card.outerHTML = rfGoalCardHTML();
+}
+
+// The card on the Ratings page: today's ring, the goal picker, the streak
+function rfGoalCardHTML(justHit) {
+  const n = rfTodayCount(), g = rfGoal(), s = rfStreak();
+  const pct = Math.min(1, n / g), R = 30, C = 2 * Math.PI * R;
+  const done = n >= g;
+  return `<div class="rf-card rf-goal${done ? ' is-done' : ''}${justHit ? ' is-new' : ''}" id="rfGoalCard">
+    <div class="rf-goal-ring" aria-hidden="true">
+      <svg viewBox="0 0 72 72" width="72" height="72"><circle cx="36" cy="36" r="${R}" class="rf-goal-track"/><circle cx="36" cy="36" r="${R}" class="rf-goal-arc" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${(C * (1 - pct)).toFixed(1)}" transform="rotate(-90 36 36)"/></svg>
+      <span class="rf-goal-n">${done ? '✓' : n}</span>
+    </div>
+    <div class="rf-goal-txt">
+      <span class="rf-kicker">${esc(t('rf_goal_title'))}</span>
+      <b class="rf-goal-big">${esc(done ? t('rf_goal_done', { n }) : t('rf_goal_prog', { n, g }))}</b>
+      <span class="rf-goal-pick" role="group" aria-label="${esc(t('rf_goal_pick'))}"><span>${esc(t('rf_goal_pick'))}</span>${RF_GOALS.map(x =>
+        `<button type="button" class="rf-goal-b${x === g ? ' is-on' : ''}" aria-pressed="${x === g}" onclick="rfSetGoal(${x})">${x}</button>`).join('')}</span>
+    </div>
+    <div class="rf-streak${s.atRisk ? ' is-risk' : ''}${s.cur ? '' : ' is-zero'}" title="${esc(t('rf_streak_best', { n: s.best }))}">
+      <span class="rf-streak-n">🔥 ${s.cur}</span>
+      <span class="rf-streak-l">${esc(t(s.cur === 1 ? 'rf_streak_day' : 'rf_streak_days'))}</span>
+      ${s.atRisk ? `<span class="rf-streak-risk">${esc(t('rf_streak_risk'))}</span>` : s.best > s.cur ? `<span class="rf-streak-best">${esc(t('rf_streak_best', { n: s.best }))}</span>` : ''}
+    </div>
+  </div>`;
+}
+
+// One line for the end of a Rate Rush round
+function rfGoalMiniHTML() {
+  const n = rfTodayCount(), g = rfGoal(), s = rfStreak();
+  return `<div class="rf-goal-mini"><span>${esc(t('rf_goal_mini', { n, g }))}</span><span class="rf-prog"><i style="width:${Math.min(100, n / g * 100).toFixed(1)}%"></i></span><b>🔥 ${s.cur}</b></div>`;
+}
+
+/* The evening reminder: signed in, own library (not the demo), a streak of
+   two days or more, today not reached yet, after RF_RISK_HOUR, once a day.
+   rfWatch runs with the notification watchers (notifications.js). */
+function _rfWatchStreak() {
+  const s = rfStreak(), d = rfToday(), f = _rfFun();
+  if (!s.atRisk || s.cur < 2 || tzNow().getHours() < RF_RISK_HOUR || f.told.streak === d) return;
+  f.told.streak = d;
+  _rfFunTouch();
+  ratingsPersist(true);
+  dcNotify({ kind: 'rt_streak', n: s.cur, left: Math.max(1, rfGoal() - rfTodayCount()), link: { tab: 'ratings' } });
+}
+
+const _rfWatchers = [_rfWatchStreak];
+function rfWatch() {
+  if (typeof dcIsSignedIn !== 'function' || !dcIsSignedIn() || typeof dcNotify !== 'function') return;
+  if (typeof _apAllowed === 'function' && !_apAllowed()) return;
+  if (!allPlays || !allPlays.length) return;
+  for (const w of _rfWatchers) { try { w(); } catch (e) { console.warn('[dankcharts] rating watch:', e); } }
+}
+
+window.rfSetGoal = rfSetGoal;
+window.rfWatch = rfWatch;
+
+/* Where a rating notification leads (notifications.js ntFollow, link.tab
+   'rfun'): link.what picks the handler; later steps add theirs. */
+const _rfFollowers = {};
+function rfFollow(link) {
+  const h = link && _rfFollowers[link.what];
+  if (h) { try { h(link); return; } catch (e) { console.warn('[dankcharts] rating link:', e); } }
+  if (typeof dcGoTab === 'function') dcGoTab('ratings');
+}
+window.rfFollow = rfFollow;

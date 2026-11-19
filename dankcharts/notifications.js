@@ -102,7 +102,9 @@ const NT_KINDS = {
   // A one-time note from the site about a change that moved the user's
   // numbers (p.key names the text, nt_notice_<key>). The first one
   // (2026-11-09) explains the singles/EPs Records fix — see NT_NOTICE_REC_UNTIL.
-  notice: { emoji: '📣', cat: 'news', text: p => t('nt_notice_' + p.key) }
+  notice: { emoji: '📣', cat: 'news', text: p => t('nt_notice_' + p.key) },
+  // Rating fun (ratefun.js): the daily rating streak is at risk tonight (p.n days, p.left to go)
+  rt_streak: { emoji: '🔥', cat: 'ratings', text: p => t('nt_rt_streak', { n: p.n, left: p.left }) }
 };
 
 /* Record notifications that cover several lists (one holder taking many,
@@ -455,6 +457,8 @@ function ntFollow(link) {
   // A certified song or album: its own window, over whatever is on screen.
   // Needs the plays loaded; before that (or if it's gone from the library
   // since) the window would be empty, so go to Records instead.
+  // Rating fun (ratefun.js): a song or album to rate, the weekly report…
+  if (link.tab === 'rfun' && typeof rfFollow === 'function') { rfFollow(link); return; }
   if (link.tab === 'cert') {
     const has = allPlays && allPlays.some(p => link.type === 'album' ? albumKeyOf(p) === link.key : songKey(p) === link.key);
     if (!has) { dcGoTab('records'); return; }
@@ -514,6 +518,8 @@ async function ntWatch() {
       if (typeof spNotifyWatch === 'function') await spNotifyWatch();
       // Today's Game of the day (stats.js): told once a day, also after midnight
       if (typeof sxSyncGamesDot === 'function') sxSyncGamesDot();
+      // Rating streak, nudges and the weekly critic's report (ratefun.js)
+      if (typeof rfWatch === 'function') rfWatch();
     }
     await _ntWatchBoard();
   } catch (e) {
