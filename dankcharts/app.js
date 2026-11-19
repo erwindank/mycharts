@@ -69592,7 +69592,7 @@ function renderRatingsPage() {
     ? `<div class="rp-block"><div class="ao-head rk-head">${esc(t('rtg_unrated'))}</div>${_ratingsUnratedHTML()}</div>` : '';
 
   // .dp-body: the details window's styles for these parts apply here too
-  view.innerHTML = `${head}<div class="dp-body rp-page"><div class="ar rp" id="ratingsPageBody">${hero}${srcBar}${typeof rfGoalCardHTML === 'function' ? rfGoalCardHTML() : ''}${next}${typeof rfRushPromoHTML === 'function' ? rfRushPromoHTML() : ''}${typeof rfAgreeCardHTML === 'function' ? rfAgreeCardHTML() : ''}${empty}${highs}${vsHtml}${typeof rfScaleHTML === 'function' ? rfScaleHTML(sum) : ''}${recsHtml}${duo}<div class="ar-body"></div></div></div>`;
+  view.innerHTML = `${head}<div class="dp-body rp-page"><div class="ar rp" id="ratingsPageBody">${hero}${srcBar}${typeof rfGoalCardHTML === 'function' ? rfGoalCardHTML() : ''}${next}${typeof rfRushPromoHTML === 'function' ? rfRushPromoHTML() : ''}${typeof rfAgreeCardHTML === 'function' ? rfAgreeCardHTML() : ''}${empty}${highs}${vsHtml}${typeof rfScaleHTML === 'function' ? rfScaleHTML(sum) : ''}${typeof rfLevelHTML === 'function' ? rfLevelHTML() : ''}${recsHtml}${duo}<div class="ar-body"></div></div></div>`;
   if (vs) {
     const vsItems = [...vs.love, ...vs.play];
     const va = [], vso = [];

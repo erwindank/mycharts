@@ -691,6 +691,8 @@ function _rfRushEnd() {
   const avg = R.done.length ? Math.round(R.done.reduce((a, d) => a + d.s, 0) / R.done.length * 10) / 10 : null;
   const top = [...R.done].sort((a, b) => b.s - a.s)[0];
   const more = rfRushPool().length;
+  // A finished round counts toward the Rusher badge (step 9)
+  if (R.done.length) { const f = _rfFun(); f.rushes = (f.rushes || 0) + 1; _rfFunTouch(); ratingsPersist(true); setTimeout(() => rfCheckBadges(), 400); }
   rfStageSet(`<div class="rf-rush rf-end">
       <div class="rf-end-burst" aria-hidden="true">⚡</div>
       <h2 class="rf-end-h">${esc(R.done.length ? t('rf_rush_end', { n: R.done.length, s: secs }) : t('rf_rush_end_none'))}</h2>
@@ -1044,5 +1046,116 @@ function rfScaleHTML(sum) {
       <span><b>${s.low5}%</b> ${esc(t('rf_scale_low5'))}</span>
     </div>
     ${s.bunch ? `<p class="rf-scale-tip">💡 ${esc(t('rf_scale_tip', { pct: s.bunch.pct, range }))}</p>` : ''}
+  </div>`;
+}
+
+// ── Critic levels and badges (7) ─────────────────────────────────────────
+/* Listener → Reviewer → Critic → Tastemaker → Legend as you score more (your
+   own song and album scores; Listening Scores don't count). Badges mark
+   moments; once earned they stay (fun.badges, synced, earliest date wins). */
+const RF_LEVELS = [
+  { key: 'listener', min: 0 }, { key: 'reviewer', min: 25 }, { key: 'critic', min: 100 },
+  { key: 'tastemaker', min: 500 }, { key: 'legend', min: 2000 }
+];
+
+// What you have scored yourself: { songs, albums, all, scores: [every own score] }
+function rfOwnCounts() {
+  let songs = 0, albums = 0;
+  const scores = [];
+  for (const k of Object.keys(_ratings.songs)) { const s = ratingSongScore(k); if (s != null) { songs++; scores.push(s); } }
+  const albs = new Set(Object.keys(_ratings.albums));
+  for (const k of Object.keys(_ratings.songs)) for (const ak of rfAlbumsOfSong(k)) albs.add(ak);
+  let full = 0;
+  for (const ak of albs) {
+    const r = ratingAlbumScore(ak);
+    // An album counts once it is really yours: its aspects, or at least half
+    // of the tracks you play from it (one rated song puts it on every
+    // edition it was played from, which would count those too)
+    if (!r || (r.aspectAvg == null && r.ratedTracks < r.totalTracks / 2)) continue;
+    albums++; scores.push(r.score);
+    if (r.totalTracks >= 3 && r.ratedTracks === r.totalTracks) full++;
+  }
+  return { songs, albums, all: songs + albums, scores, full };
+}
+
+function rfLevel(n) {
+  let i = 0;
+  while (i + 1 < RF_LEVELS.length && n >= RF_LEVELS[i + 1].min) i++;
+  const cur = RF_LEVELS[i], next = RF_LEVELS[i + 1] || null;
+  return { i, key: cur.key, n, next, toNext: next ? next.min - n : 0,
+    pct: next ? (n - cur.min) / (next.min - cur.min) : 1 };
+}
+
+/* The badges, in shelf order. test(c) gets rfOwnCounts() plus the game
+   side; it says whether the badge is earned now. */
+const RF_BADGES = [
+  { id: 'first',    e: '🎯', test: c => c.all >= 1 },
+  { id: 'master',   e: '🏆', test: c => c.scores.some(s => s >= 9) },
+  { id: 'harsh',    e: '🧊', test: c => c.scores.some(s => s <= 2) },
+  { id: 'spread',   e: '🌈', test: c => c.scores.some(s => s <= 1) && c.scores.some(s => s >= 10) },
+  { id: 'century',  e: '💯', test: c => c.all >= 100 },
+  { id: 'thousand', e: '🏛️', test: c => c.all >= 1000 },
+  { id: 'album10',  e: '💿', test: c => c.full >= 10 },
+  { id: 'disco',    e: '🧱', test: c => c.discos >= 1 },
+  { id: 'streak7',  e: '🔥', test: c => c.best >= 7 },
+  { id: 'streak30', e: '☄️', test: c => c.best >= 30 },
+  { id: 'rush',     e: '⚡', test: c => (c.f.rushes || 0) >= 1 },
+  { id: 'run',      e: '🏁', test: c => (c.f.runs || 0) >= 1 },
+  { id: 'words',    e: '✍️', test: c => c.lines >= 10 },
+  { id: 'changed',  e: '🔄', test: c => c.changed >= 5 },
+  { id: 'settle',   e: '⚖️', test: c => Object.keys(c.f.settled || {}).length >= 10 }
+];
+
+function _rfBadgeCtx() {
+  const c = rfOwnCounts();
+  c.f = _rfFun();
+  c.best = rfStreak().best;
+  c.discos = typeof rfDiscos === 'function' ? rfDiscos().filter(d => d.done).length : 0;
+  c.lines = 0;
+  for (const b of ['songs', 'albums']) for (const e of Object.values(_ratings[b])) if (e && (e.line || '').trim()) c.lines++;
+  c.changed = 0;
+  for (const arr of Object.values(_ratings.hist || {})) if (Array.isArray(arr) && arr.length >= 2) c.changed++;
+  return c;
+}
+
+// Checks every badge; new ones are saved and told with a toast
+function rfCheckBadges(quiet) {
+  const c = _rfBadgeCtx(), f = _rfFun(), now = Date.now();
+  const fresh = [];
+  for (const b of RF_BADGES) if (!f.badges[b.id] && b.test(c)) { f.badges[b.id] = now; fresh.push(b); }
+  if (fresh.length) {
+    _rfFunTouch();
+    ratingsPersist(true);
+    if (!quiet && typeof dcPlToast === 'function') dcPlToast(`${fresh[0].e} ${t('rf_badge_new', { name: t('rf_b_' + fresh[0].id) })}`);
+  }
+  return c;
+}
+_rfAfterHooks.push(() => rfCheckBadges());
+
+function rfLevelHTML() {
+  // Quiet: badges earned before this update (or on another device) are
+  // filed without a toast each
+  const c = rfCheckBadges(true), f = _rfFun();
+  const L = rfLevel(c.all);
+  const got = RF_BADGES.filter(b => f.badges[b.id]).length;
+  return `<div class="rp-block rf-level">
+    <div class="ao-head rk-head">${esc(t('rf_level_title'))}</div>
+    <div class="rf-level-top">
+      <span class="rf-level-steps" aria-hidden="true">${RF_LEVELS.map((x, i) => `<i class="${i <= L.i ? 'is-on' : ''}"></i>`).join('')}</span>
+      <div class="rf-level-txt">
+        <b class="rf-level-name">${esc(t('rf_lv_' + L.key))}</b>
+        <span class="rf-level-sub">${esc(t('rf_level_sub', { n: c.all.toLocaleString(), lv: L.i + 1 }))}${L.next ? ' · ' + esc(t('rf_level_next', { n: L.toNext.toLocaleString(), name: t('rf_lv_' + L.next.key) })) : ''}</span>
+        <span class="rf-prog"><i style="width:${(L.pct * 100).toFixed(1)}%"></i></span>
+      </div>
+    </div>
+    <div class="rf-badges-h"><span>${esc(t('rf_badges'))}</span><b>${got} / ${RF_BADGES.length}</b></div>
+    <div class="rf-badges">${RF_BADGES.map(b => {
+      const at = f.badges[b.id];
+      return `<div class="rf-badge${at ? ' is-on' : ''}" title="${esc(t('rf_b_' + b.id + '_d'))}${at ? ' · ' + esc(fmt(tzDate(new Date(at)))) : ''}">
+        <span class="rf-badge-e" aria-hidden="true">${b.e}</span>
+        <span class="rf-badge-n">${esc(t('rf_b_' + b.id))}</span>
+        <span class="rf-badge-d">${esc(at ? fmt(tzDate(new Date(at))) : t('rf_b_' + b.id + '_d'))}</span>
+      </div>`;
+    }).join('')}</div>
   </div>`;
 }
