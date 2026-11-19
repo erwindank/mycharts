@@ -49721,6 +49721,9 @@ let _awardsSheetGenreCache = null;
 function _awardsSheetGenres() {
   const c = _awardsSheetGenreCache;
   if (c && c.plays === allPlays && c.n === allPlays.length) return c;
+  // albums / artists hold song keys (not genres), so a song's own pick from the
+  // Genre Library can stand in for its sheet genres when they are counted up
+  // (_genreTrackTags below)
   const songs = new Map(), albums = new Map(), artists = new Map();
   for (const p of allPlays) {
     if (!p.genres) continue;
@@ -49730,16 +49733,102 @@ function _awardsSheetGenres() {
     if (p.album && p.album !== '—') {
       const ak = _ak(p);
       if (!albums.has(ak)) albums.set(ak, []);
-      albums.get(ak).push(p.genres);
+      albums.get(ak).push(sk);
     }
     // Every tagged song by an artist, so artist awards can use the sheet too
     const pk = _pk(p);
     if (!artists.has(pk)) artists.set(pk, []);
-    artists.get(pk).push(p.genres);
+    artists.get(pk).push(sk);
   }
-  // artistTop / albumTop memoise the "most common sheet genres" lists below, so
-  // a loop over thousands of plays doesn't re-count the same artist every play
-  return (_awardsSheetGenreCache = { plays: allPlays, n: allPlays.length, songs, albums, artists, artistTop: new Map(), albumTop: new Map() });
+  // artistTop / albumTop memoise the "most common genres" lists below, and
+  // albumTracks / artistTracks the per-song genre lists they count, so a loop
+  // over thousands of plays doesn't re-count the same artist every play.
+  // ver = the _genreEditVer they were worked out for (a new pick clears them).
+  return (_awardsSheetGenreCache = { plays: allPlays, n: allPlays.length, songs, albums, artists,
+    artistTop: new Map(), albumTop: new Map(), albumTracks: new Map(), artistTracks: new Map(),
+    pickHomes: null, ver: _genreEditVer });
+}
+
+/* Where each song picked by hand in the Genre Library lives: its album key and
+   artist key, from its newest play. Song keys don't hold the album, so this
+   looks the picked songs up in allPlays — once per change of picks, and only
+   the plays whose title matches a picked song are keyed in full. */
+function _genreSongPickHomes(c) {
+  if (c.pickHomes) return c.pickHomes;
+  const albums = new Map(), artists = new Map();
+  const picked = new Set(), titles = new Set();
+  for (const k of Object.keys(_genreEdits)) {
+    if (!k.startsWith('song:')) continue;
+    const sk = k.slice(5);
+    picked.add(sk);
+    titles.add(sk.slice(0, sk.indexOf('|||')));
+  }
+  if (picked.size) {
+    const done = new Set();
+    for (const p of allPlays) {
+      if (!titles.has((p.title || '').toLowerCase().trim())) continue;
+      const sk = _sk(p);
+      if (!picked.has(sk) || done.has(sk)) continue;
+      done.add(sk);
+      if (p.album && p.album !== '—') {
+        const ak = _ak(p);
+        if (!albums.has(ak)) albums.set(ak, []);
+        albums.get(ak).push(sk);
+      }
+      const pk = _pk(p);
+      if (!artists.has(pk)) artists.set(pk, []);
+      artists.get(pk).push(sk);
+      if (done.size === picked.size) break;
+    }
+  }
+  return (c.pickHomes = { albums, artists });
+}
+
+/* The genre list of every song on an album (kind 'album', key = _ak) or by an
+   artist (kind 'artist', key = _pk) that has any: the song's own pick from the
+   Genre Library first, else its sheet genres. Songs picked as "no genre" and
+   untagged songs are left out. undefined = no song has genres. Before
+   2026-11-18 only the sheet counted, so fixing every song of an album by hand
+   left the album on its old sheet genres. */
+function _genreTrackTags(kind, key) {
+  const c = _awardsSheetGenres();
+  if (c.ver !== _genreEditVer) {   // picks changed since these were counted
+    c.ver = _genreEditVer;
+    c.albumTop.clear(); c.artistTop.clear();
+    c.albumTracks.clear(); c.artistTracks.clear();
+    c.pickHomes = null;
+  }
+  const memo = kind === 'album' ? c.albumTracks : c.artistTracks;
+  if (memo.has(key)) return memo.get(key);
+  const sheetSks = (kind === 'album' ? c.albums : c.artists).get(key) || [];
+  const pickSks = _genreEditCount ? (_genreSongPickHomes(c)[kind === 'album' ? 'albums' : 'artists'].get(key) || []) : [];
+  const out = [], seen = new Set();
+  for (const sk of sheetSks.concat(pickSks)) {
+    if (seen.has(sk)) continue;
+    seen.add(sk);
+    const e = _genreEditCount ? _genreEdits['song:' + sk] : null;
+    const g = e && Array.isArray(e.g) ? e.g : c.songs.get(sk);
+    if (g && g.length) out.push(g);
+  }
+  const v = out.length ? out : undefined;
+  memo.set(key, v);
+  return v;
+}
+
+/* Count genre lists into one, most common first. Picks are lower-case ids
+   ("country pop") and the sheet has typed names ("Country Pop"), so they are
+   counted together case-blind. The sheet's spelling is kept when there is
+   one; a bare id is fine too (the pages show ids by their list name, the
+   same as an album or song pick). */
+function _genreTally(lists) {
+  if (!lists) return undefined;
+  const n = new Map(), shown = new Map();
+  for (const tags of lists) for (const t of tags) {
+    const k = String(t).toLowerCase();
+    n.set(k, (n.get(k) || 0) + 1);
+    if (!shown.has(k) || (shown.get(k) === k && t !== k)) shown.set(k, t);
+  }
+  return [...n.keys()].sort((a, b) => n.get(b) - n.get(a)).map(k => shown.get(k));
 }
 
 /* ─── GENRE LOOKUP: the one flow every tab uses ───────────────────────────────
@@ -49792,6 +49881,9 @@ let _genreEditCount = Object.keys(_genreEdits).length;
 // partial set first would wipe the edits made on the other devices)
 let _genreEditsMerged = false;
 let _genreEditsPushTimer = null;
+// Goes up on every change of picks, so the album / artist genre counts
+// (_genreTrackTags) know to count again
+let _genreEditVer = 0;
 
 function genreEditKey(kind, p) {
   return kind === 'artist' ? 'artist:' + _pk(p) : kind === 'album' ? 'album:' + _ak(p) : 'song:' + _sk(p);
@@ -49847,6 +49939,7 @@ function genreEditsPush() {
 }
 function _genreEditsChanged() {
   _genreEditCount = Object.keys(_genreEdits).length;
+  _genreEditVer++;
   _genreEditsSaveLocal();
   genreEditsPush();
   // Smart Playlists, Daily and the library page redraw on this
@@ -50146,22 +50239,19 @@ function _awardsAlbumSheetFits(p, f) {
   // An album the user gave genres by hand: those decide, not the tracks
   const own = genreEditGet('album', p);
   if (own) return _genreMatch(own, f);
-  const tracks = _awardsSheetGenres().albums.get(_ak(p));
+  const tracks = _genreTrackTags('album', _ak(p));   // song picks count too
   if (!tracks) return null;
   return tracks.filter(tags => _genreMatch(tags, f)).length * 2 >= tracks.length;
 }
 
-// An artist's most common sheet genres across their songs; undefined = none tagged
+// An artist's most common genres across their songs (each song's own pick from
+// the Genre Library, else its sheet genres); undefined = none tagged
 function _awardsArtistSheetTags(p) {
-  const c = _awardsSheetGenres(), pk = _pk(p);
+  const pk = _pk(p);
+  const tracks = _genreTrackTags('artist', pk);   // first: it clears stale counts
+  const c = _awardsSheetGenreCache;
   if (c.artistTop.has(pk)) return c.artistTop.get(pk);
-  const tracks = c.artists.get(pk);
-  let out;
-  if (tracks) {
-    const n = {};
-    for (const tags of tracks) for (const t of tags) n[t] = (n[t] || 0) + 1;
-    out = Object.keys(n).sort((a, b) => n[b] - n[a]);
-  }
+  const out = _genreTally(tracks);
   c.artistTop.set(pk, out);
   return out;
 }
@@ -50174,17 +50264,14 @@ function _awardsArtistTags(p) {
   return sheet ? sheet.slice(0, 5) : _genreArtistOutside(_pa(p));
 }
 
-// An album's most common sheet genres across its tracks, for the picker row
+// An album's most common genres across its tracks (each track's own pick from
+// the Genre Library, else its sheet genres), for the picker row
 function _awardsAlbumSheetTags(p) {
-  const c = _awardsSheetGenres(), ak = _ak(p);
+  const ak = _ak(p);
+  const tracks = _genreTrackTags('album', ak);   // first: it clears stale counts
+  const c = _awardsSheetGenreCache;
   if (c.albumTop.has(ak)) return c.albumTop.get(ak);
-  const tracks = c.albums.get(ak);
-  let out;
-  if (tracks) {
-    const n = {};
-    for (const tags of tracks) for (const t of tags) n[t] = (n[t] || 0) + 1;
-    out = Object.keys(n).sort((a, b) => n[b] - n[a]);
-  }
+  const out = _genreTally(tracks);
   c.albumTop.set(ak, out);
   return out;
 }
@@ -53161,7 +53248,7 @@ function _awardsPickerFitPct(item) {
   else return null;
   // An album the sheet has genres for: the average fit of its tracks
   if (_awardsPickerCatType === 'album') {
-    const tracks = _awardsSheetGenres().albums.get(_ak(item));
+    const tracks = _genreTrackTags('album', _ak(item));
     if (tracks && tracks.length) return Math.round(tracks.reduce((n, tags) => n + _genreFitScore(tags, g), 0) / tracks.length);
   }
   const tags = _awardsPickerItemTags(item);
