@@ -299,3 +299,133 @@ function rfBindLine(root) {
     ratingsPersist();
   }));
 }
+
+// ── Agree with your listening (2) ────────────────────────────────────────
+/* Under a Listening Score: lower / agree / higher. One tap turns the
+   automatic score into one of yours.
+     song   the song gets a quick score (the Listening Score, ±0.5)
+     album  each played track you haven't scored gets ITS song's Listening
+            Score (±0.5), so the album comes out at the same number and is
+            fully yours. Tracks with no Listening Score (barely played,
+            too new) get the album's. Aspects are left for you.            */
+const RF_AGREE_STEP = 0.5;
+
+function rfAgreeHTML(kind, key, ls) {
+  if (ls == null) return '';
+  const k = esc(JSON.stringify(key));
+  const lo = ratingClamp(ls - RF_AGREE_STEP), hi = ratingClamp(ls + RF_AGREE_STEP);
+  const n = kind === 'album' ? ratingAlbumTrackKeys(key).filter(tr => ratingSongScore(tr.key) == null).length : 0;
+  return `<div class="rf-agree" role="group" aria-label="${esc(t('rf_agree_q'))}">
+    <span class="rf-agree-q">${esc(t('rf_agree_q'))}</span>
+    <span class="rf-agree-btns">
+      ${lo < ls ? `<button type="button" class="rf-agree-b" onclick="rfAgree('${kind}', ${k}, ${lo})" title="${esc(t('rf_agree_lower'))}">− ${ratingFmt(lo)}</button>` : ''}
+      <button type="button" class="rf-agree-b is-main" onclick="rfAgree('${kind}', ${k}, ${ratingClamp(ls)})">✓ ${esc(t('rf_agree'))} ${ratingFmt(ls)}</button>
+      ${hi > ls ? `<button type="button" class="rf-agree-b" onclick="rfAgree('${kind}', ${k}, ${hi})" title="${esc(t('rf_agree_higher'))}">+ ${ratingFmt(hi)}</button>` : ''}
+    </span>
+    ${kind === 'album' && n ? `<span class="rf-agree-note">${esc(t(n === 1 ? 'rf_agree_album_one' : 'rf_agree_album', { n }))}</span>` : ''}
+  </div>`;
+}
+
+/* Gives the score. v is the album / song number the button showed; an
+   album passes the difference on to every track. Returns how many songs
+   got a score. */
+function rfAgreeWrite(kind, key, v) {
+  if (kind !== 'album') { rfSetSong(key, v); return 1; }
+  const view = typeof asAlbumView === 'function' ? asAlbumView(key) : null;
+  const base = view ? view.score : v;
+  const shift = Math.round((v - base) * 10) / 10;
+  const done = [];
+  rfBefore('album', key);
+  for (const tr of ratingAlbumTrackKeys(key)) {
+    if (ratingSongScore(tr.key) != null) continue;
+    const ls = typeof asSong === 'function' ? asSong(tr.key) : null;
+    const s = ratingClamp((ls ? ls.score : base) + shift);
+    rfBefore('song', tr.key);
+    const e = _ratingEnsureEntry('song', tr.key);
+    e.m = 'quick'; e.q = s; e.ts = Date.now();
+    done.push(tr.key);
+  }
+  ratingsPersist();
+  // History and today's count, per song and once for the album
+  for (const k of done) rfScored('song', k);
+  rfScored('album', key);
+  return done.length;
+}
+
+function rfAgree(kind, key, v) {
+  const n = rfAgreeWrite(kind, key, v);
+  if (typeof dcPlToast === 'function') dcPlToast(t(kind === 'album' ? 'rf_agree_done_album' : 'rf_agree_done', { score: ratingFmt(kind === 'album' ? ratingAlbumScore(key)?.score : ratingSongScore(key)), n }));
+  // Repaint the window it was tapped in, and the chart behind once it's uncovered
+  if (kind === 'album' && typeof renderAlbumRatingSection === 'function') renderAlbumRatingSection(key);
+  if (kind === 'song' && typeof renderSongRatingSection === 'function') renderSongRatingSection(key);
+  if (typeof _ratingsRefreshWhenUncovered === 'function') _ratingsRefreshWhenUncovered();
+}
+
+/* The Ratings page's "Agree with your listening" card: your most played
+   songs with no score of yours, one at a time. Skip moves on (this visit
+   only). Up to RF_AGREE_Q in the line, rebuilt with the page. */
+const RF_AGREE_Q = 40;
+let _rfAgreeQ = [], _rfAgreeAt = 0;
+const _rfAgreeSkip = new Set();
+// Plays per song, worked out once per library load
+let _rfSongPlays = null, _rfSongPlaysFor = null;
+function rfSongPlays() {
+  if (_rfSongPlaysFor !== allPlays || !_rfSongPlays || _rfSongPlays.n !== allPlays.length) {
+    const c = new Map();
+    for (const p of allPlays) { const k = songKey(p); c.set(k, (c.get(k) || 0) + 1); }
+    _rfSongPlays = { map: c, list: [...c.entries()].sort((a, b) => b[1] - a[1]), n: allPlays.length };
+    _rfSongPlaysFor = allPlays;
+  }
+  return _rfSongPlays;
+}
+function rfAgreeCardHTML() {
+  if (typeof asOn !== 'function' || !asOn() || !allPlays.length) return '';
+  _rfAgreeQ = [];
+  for (const [k, n] of rfSongPlays().list) {
+    if (ratingSongScore(k) != null || _rfAgreeSkip.has(k) || !asSong(k)) continue;
+    _rfAgreeQ.push({ k, n });
+    if (_rfAgreeQ.length >= RF_AGREE_Q) break;
+  }
+  _rfAgreeAt = 0;
+  if (!_rfAgreeQ.length) return '';
+  return `<div class="rf-card rf-agree-card" id="rfAgreeCard"></div>`;
+}
+function rfAgreeCardRender() {
+  const el = document.getElementById('rfAgreeCard');
+  if (!el) return;
+  while (_rfAgreeAt < _rfAgreeQ.length && ratingSongScore(_rfAgreeQ[_rfAgreeAt].k) != null) _rfAgreeAt++;
+  const x = _rfAgreeQ[_rfAgreeAt];
+  if (!x) { el.innerHTML = `<div class="rf-card-done">✓ ${esc(t('rf_agree_all_done'))}</div>`; return; }
+  const ls = asSong(x.k), nm = ratingSongNames(x.k), k = esc(JSON.stringify(x.k));
+  const lo = ratingClamp(ls.score - RF_AGREE_STEP), hi = ratingClamp(ls.score + RF_AGREE_STEP);
+  el.innerHTML = `<div class="rf-card-k">${_amIco('headphones')}<span>${esc(t('rf_agree_title'))}</span><span class="rf-card-n">${_rfAgreeAt + 1} / ${_rfAgreeQ.length}</span></div>
+    <div class="rf-agree-item">
+      <span class="am-art rf-agree-art" id="rfAgreeArt"><span class="thumb-initials">${esc(initials(nm.title))}</span></span>
+      <button type="button" class="rf-agree-txt" onclick="openSongModal(${k})"><b>${esc(nm.title)}</b><span>${esc(nm.artist)} · ${x.n.toLocaleString()} ${esc(tUnit('plays', x.n))}</span></button>
+      ${asChip({ score: ls.score, state: 'listening' })}
+    </div>
+    <div class="rf-agree-btns">
+      ${lo < ls.score ? `<button type="button" class="rf-agree-b" onclick="rfAgreeCardPick(${lo})">− ${ratingFmt(lo)}</button>` : ''}
+      <button type="button" class="rf-agree-b is-main" onclick="rfAgreeCardPick(${ratingClamp(ls.score)})">✓ ${esc(t('rf_agree'))} ${ratingFmt(ls.score)}</button>
+      ${hi > ls.score ? `<button type="button" class="rf-agree-b" onclick="rfAgreeCardPick(${hi})">+ ${ratingFmt(hi)}</button>` : ''}
+      <button type="button" class="rf-agree-b is-plain" onclick="rfAgreeCardSkip()">${esc(t('rf_skip'))}</button>
+    </div>`;
+  if (typeof loadImages === 'function') loadImages([{ imgId: 'rfAgreeArt', name: nm.title, title: nm.title, artist: nm.artist, album: '', prefKey: 'song:' + nm.artist.toLowerCase() + '|||' + nm.title.toLowerCase() }], 'song');
+}
+function rfAgreeCardPick(v) {
+  const x = _rfAgreeQ[_rfAgreeAt];
+  if (!x) return;
+  rfSetSong(x.k, v);
+  if (typeof dcPlToast === 'function') dcPlToast(t('rf_agree_done', { score: ratingFmt(v) }));
+  _rfAgreeAt++;
+  rfAgreeCardRender();
+}
+function rfAgreeCardSkip() {
+  const x = _rfAgreeQ[_rfAgreeAt];
+  if (x) _rfAgreeSkip.add(x.k);
+  _rfAgreeAt++;
+  rfAgreeCardRender();
+}
+window.rfAgree = rfAgree;
+window.rfAgreeCardPick = rfAgreeCardPick;
+window.rfAgreeCardSkip = rfAgreeCardSkip;

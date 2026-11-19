@@ -6870,6 +6870,18 @@ const TRANSLATIONS = {
     rf_line_emo: "Pick an emoji",
     rf_line_ph_song: "Your take in a line, e.g. \"The bridge ruined me.\"",
     rf_line_ph_album: "Your take in a line, e.g. \"No skips, all killer.\"",
+    // Step 3: agree with your listening
+    rf_agree_q: "Agree with your listening?",
+    rf_agree: "Agree",
+    rf_agree_lower: "A bit lower",
+    rf_agree_higher: "A bit higher",
+    rf_agree_album: "Gives each of its {{n}} unrated songs its own Listening Score, as your score",
+    rf_agree_album_one: "Gives its 1 unrated song its Listening Score, as your score",
+    rf_agree_done: "Saved as your score: {{score}}",
+    rf_agree_done_album: "Saved: {{n}} songs scored, album {{score}}",
+    rf_agree_title: "Agree with your listening",
+    rf_agree_all_done: "That's all your most played songs scored",
+    rf_skip: "Skip",
     // ── end rating fun ──
   },
 

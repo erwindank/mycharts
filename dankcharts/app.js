@@ -65974,6 +65974,7 @@ function renderSongRatingSection(key) {
           <button class="dc-btn dc-btn-main" onclick="openRatingModal('song', ${esc(JSON.stringify(key))})">${btnLabel}</button>
         </div>
       </div>
+      ${/* lower / agree / higher (ratefun.js) */ typeof rfAgreeHTML === 'function' ? rfAgreeHTML('song', key, ls.score) : ''}
       ${asWhyHTML(ls, 'song')}
     </div>${albumLink}`;
     return;
@@ -66128,6 +66129,7 @@ function renderAlbumRatingSection(albumKey) {
           <button class="dc-btn dc-btn-main" onclick="openRatingModal('album', ${esc(JSON.stringify(albumKey))})">${t('rtp_rate_album')}</button>
         </div>
       </div>
+      ${/* lower / agree / higher (ratefun.js) */ typeof rfAgreeHTML === 'function' ? rfAgreeHTML('album', albumKey, asView.score) : ''}
       ${/* the release breakdown only explains the number when the score came
            from it; a songs' average is explained by the track list below */
         asRel && asView.fromRel ? `<div class="rt-al-card">${asWhyHTML(asRel, 'album')}</div>` : ''}
@@ -69586,7 +69588,7 @@ function renderRatingsPage() {
     ? `<div class="rp-block"><div class="ao-head rk-head">${esc(t('rtg_unrated'))}</div>${_ratingsUnratedHTML()}</div>` : '';
 
   // .dp-body: the details window's styles for these parts apply here too
-  view.innerHTML = `${head}<div class="dp-body rp-page"><div class="ar rp" id="ratingsPageBody">${hero}${srcBar}${next}${empty}${highs}${vsHtml}${recsHtml}${duo}<div class="ar-body"></div></div></div>`;
+  view.innerHTML = `${head}<div class="dp-body rp-page"><div class="ar rp" id="ratingsPageBody">${hero}${srcBar}${next}${typeof rfAgreeCardHTML === 'function' ? rfAgreeCardHTML() : ''}${empty}${highs}${vsHtml}${recsHtml}${duo}<div class="ar-body"></div></div></div>`;
   if (vs) {
     const vsItems = [...vs.love, ...vs.play];
     const va = [], vso = [];
@@ -69613,6 +69615,8 @@ function renderRatingsPage() {
   if (recSong.length) loadImages(recSong, 'song');
   arRenderBody('p');
   _rpHiStart();
+  // Rating fun (ratefun.js): fill the cards it put on the page
+  if (typeof rfAgreeCardRender === 'function') rfAgreeCardRender();
 }
 
 /* The sliding highs and lows. Every RP_HI_EVERY ms each card with more than
