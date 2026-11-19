@@ -6294,6 +6294,7 @@ const TRANSLATIONS = {
     yt_np_stage_hint_touch: 'Tap the screen button again to go back',   // phone / touch wording (_ytDeviceKey)
     yt_np_full: 'Full screen',
     yt_np_full_leave: 'Leave full screen',
+    yt_np_turn_hint: 'Turn your phone sideways for the big view',
     yt_np_t_stage: 'Stage mode — big screen [G]',
     yt_np_t_back_small: 'Back to the small player [G]',
     yt_np_t_bar: 'Shrink to a bar [M]',

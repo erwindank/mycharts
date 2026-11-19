@@ -4,7 +4,7 @@ The Now Playing player (`#ytMiniPlayer`) works well upright on phones and as a
 card or Stage on big screens. Two things are missing: a good **sideways**
 layout, and a way to enjoy it **on a TV**.
 
-**Status: in progress** — step 1 done 2026-11-18. This round = steps 1–8
+**Status: in progress** — steps 1–2 done 2026-11-18. This round = steps 1–8
 and step 10. Step 9 (Play queue on YouTube) is saved for later.
 
 Decisions so far (2026-11-18):
@@ -53,7 +53,7 @@ Decisions so far (2026-11-18):
   right. Also fixed an old upright bug: in video mode an open section covered
   the video (the sheet measured the hidden cover).
 
-### Step 2. Full screen button
+### Step 2. Full screen button — DONE 2026-11-18
 - Button on the phone player and in Stage: Full screen (key **F**, name in
   the hover label like the other buttons).
 - Android Chrome: full screen + `screen.orientation.lock('landscape')`;
@@ -61,6 +61,11 @@ Decisions so far (2026-11-18):
 - iPhone (no full screen for pages): button hidden, a one-time hint
   "Turn your phone sideways for the big view".
 - Esc / back button leaves full screen cleanly.
+- Built as: the existing Stage full-screen button (#ytFullBtn) now also shows
+  on the phone player when the browser can go full screen (.ytp-can-full).
+  **No F key** — F is already Search. Shrinking to the bar or closing leaves
+  full screen first. Tip = #ytTurnHint, once per device (dc_player_turn_hint),
+  also marked done when the phone is turned. Check: C:/tmp/tv2.mjs.
 
 ## Part B — TV mode
 

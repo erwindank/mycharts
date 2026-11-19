@@ -38666,13 +38666,57 @@ function _ytToggleStage(force) {
   }
   _ytTipHide();
 }
+// Full screen (Stage, and the phone player — TV-PLAN.md step 2). On a phone
+// it also turns the screen sideways where the browser allows it (Android
+// Chrome); leaving full screen lets the phone turn freely again. iPhones can't
+// put a page in full screen, so there the button is hidden and a one-time tip
+// asks to turn the phone instead (_ytMaybeTurnHint).
+function _ytCanFullscreen() {
+  const p = document.getElementById('ytMiniPlayer');
+  return !!(document.fullscreenEnabled && p && p.requestFullscreen);
+}
 function _ytStageFullscreen() {
   const p = document.getElementById('ytMiniPlayer');
   if (!p) return;
   try {
-    if (document.fullscreenElement) document.exitFullscreen();
-    else if (p.requestFullscreen) p.requestFullscreen().catch(() => {});
+    if (document.fullscreenElement) { document.exitFullscreen().catch(() => {}); return; }
+    if (!p.requestFullscreen) return;
+    const phone = _ytIsPhone() && !_ytInStage();
+    p.requestFullscreen({ navigationUI: 'hide' }).then(() => {
+      if (phone && screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(() => {});
+    }).catch(() => {});
   } catch (e) {}
+}
+function _ytOnFullscreenChange() {
+  const p = document.getElementById('ytMiniPlayer');
+  const on = !!(p && document.fullscreenElement === p);
+  if (p) p.classList.toggle('ytp-is-full', on);
+  const b = document.getElementById('ytFullBtn');
+  if (b) b.title = t(document.fullscreenElement ? 'yt_np_full_leave' : 'yt_np_full');
+  // Back from full screen: the phone may turn freely again
+  if (!document.fullscreenElement) { try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (e) {} }
+}
+// Leave full screen first when the player shrinks to the bar or closes —
+// otherwise the bar would be stuck inside a full-screen card
+function _ytLeaveFullscreen() {
+  const p = document.getElementById('ytMiniPlayer');
+  try { if (p && document.fullscreenElement === p) document.exitFullscreen().catch(() => {}); } catch (e) {}
+}
+// One-time tip for phones held upright that can't go full screen (iPhone)
+function _ytMaybeTurnHint() {
+  const h = document.getElementById('ytTurnHint');
+  if (!h) return;
+  let seen = false;
+  try { seen = !!localStorage.getItem('dc_player_turn_hint'); } catch (e) { seen = true; }
+  const p = document.getElementById('ytMiniPlayer');
+  const open = p && p.style.display !== 'none' && !p.classList.contains('yt-mini-collapsed') && !_ytInStage();
+  const upright = _ytIsPhone() && !_ytIsSideways() && window.matchMedia('(hover: none)').matches;
+  h.style.display = (!seen && open && upright && !_ytCanFullscreen()) ? '' : 'none';
+}
+function _ytTurnHintDone() {
+  try { localStorage.setItem('dc_player_turn_hint', '1'); } catch (e) {}
+  const h = document.getElementById('ytTurnHint');
+  if (h) h.style.display = 'none';
 }
 function _ytInitStage() {
   // While on Stage the card must not be "kept on screen" by the drag code: that
@@ -38681,10 +38725,17 @@ function _ytInitStage() {
   if (typeof orig === 'function') window._ytClampToViewport = function () { if (_ytInStage()) return; return orig.apply(this, arguments); };
   const close = window.closeYtPlayer;
   if (typeof close === 'function') window.closeYtPlayer = function () { if (_ytTouring) _ytEndTour(); if (_ytInStage()) _ytToggleStage(false); return close.apply(this, arguments); };
-  document.addEventListener('fullscreenchange', () => {
-    const b = document.getElementById('ytFullBtn');
-    if (b) b.title = t(document.fullscreenElement ? 'yt_np_full_leave' : 'yt_np_full');
+  document.addEventListener('fullscreenchange', _ytOnFullscreenChange);
+  // The full-screen button also shows on the phone player when the browser can do it
+  const p = document.getElementById('ytMiniPlayer');
+  if (p) p.classList.toggle('ytp-can-full', _ytCanFullscreen());
+  ['_ytSetBar', 'closeYtPlayer'].forEach(fn => {
+    const orig = window[fn];
+    if (typeof orig !== 'function') return;
+    window[fn] = function (on) { if (fn === 'closeYtPlayer' || on) _ytLeaveFullscreen(); const r = orig.apply(this, arguments); _ytMaybeTurnHint(); return r; };
   });
+  const open = window.openYtPlayer;
+  if (typeof open === 'function') window.openYtPlayer = function () { const r = open.apply(this, arguments); _ytMaybeTurnHint(); return r; };
 }
 
 // ── Phone player (PLAYER-PLAN.md step 11) ───────────────────────────────
@@ -38754,7 +38805,7 @@ function _ytInitPhone() {
     const mq = window.matchMedia(_YT_SIDEWAYS_MQ);
     // Measured again once the cover / video has settled into its new size
     // (measuring straight away caught it mid-change and the sheet came out wrong)
-    const onTurn = () => { p.scrollTop = 0; setTimeout(() => { if (p.dataset.sheet === 'open') _ytSizeSheet(); }, 450); };
+    const onTurn = () => { p.scrollTop = 0; if (mq.matches && document.getElementById('ytTurnHint')?.style.display === '') _ytTurnHintDone(); setTimeout(() => { if (p.dataset.sheet === 'open') _ytSizeSheet(); }, 450); };
     if (mq.addEventListener) mq.addEventListener('change', onTurn); else if (mq.addListener) mq.addListener(onTurn);
   }
   // No "keep on screen" for the full-screen phone card (it would save a bogus spot)

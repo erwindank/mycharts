@@ -25166,6 +25166,19 @@ body.ytp-stage-open { overflow: hidden; }
   .ytp-sheet-grab { display: none; }
 }
 
+/* ── TV-PLAN.md step 2: full screen on the phone player + "turn your phone" tip ── */
+.ytp-turn-hint { display: flex; align-items: center; gap: 10px; margin: 6px 16px 0; padding: 6px 6px 6px 12px; border-radius: var(--r-md); background: color-mix(in srgb, var(--accent) 12%, var(--bg3)); border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border)); font-size: var(--fs-xs); color: var(--text2); flex-shrink: 0; }
+.ytp-turn-hint > .yt-icon { width: 20px; height: 20px; flex-shrink: 0; color: var(--accent); }
+.ytp-turn-hint > span { flex: 1; line-height: 1.35; }
+.ytp-turn-hint .yt-hdr-btn { width: 32px !important; height: 32px !important; font-size: 18px; }
+.yt-mini-player.yt-mini-collapsed .ytp-turn-hint, .yt-mini-player.ytp-stage .ytp-turn-hint { display: none !important; }
+@media (max-width: 760px), (orientation: landscape) and (max-height: 500px) and (hover: none) {
+  /* The button only shows where the browser can really go full screen */
+  .yt-mini-player.ytp-can-full:not(.ytp-stage) #ytFullBtn { display: inline-flex; align-items: center; justify-content: center; margin-left: auto; }
+  .yt-mini-player.ytp-can-full:not(.ytp-stage) #ytFullBtn + .yt-header-actions { margin-left: 0; }
+  .yt-mini-player.ytp-is-full:not(.ytp-stage) #ytFullBtn { color: var(--accent); }
+}
+
 /* ── Step 12: tour + first-visit hint ── */
 .yt-mini-player .ytp-foot .ytp-help-btn { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border); font: 700 var(--fs-sm) var(--font-sans); color: var(--text2); }
 .yt-mini-player .ytp-foot .ytp-help-btn:hover { border-color: var(--border2); color: var(--text); }
