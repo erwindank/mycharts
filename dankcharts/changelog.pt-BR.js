@@ -13,6 +13,30 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Fix several plays at once":
+    ["Corrija vários plays de uma vez",
+     "Marque linhas em Dados brutos (Shift+clique marca um trecho) e toque em Editar juntos para mudar o artista, a música ou o álbum de todos de uma vez. Um campo vazio mantém o valor de cada um, e você também pode salvar como regra de autocorreção."],
+  "Export your plays as a CSV file":
+    ["Exporte seus plays como CSV",
+     "Dados brutos tem um botão Exportar CSV que baixa os plays que você está vendo, com seus filtros e sua ordem."],
+  "Find duplicate plays":
+    ["Encontre plays duplicados",
+     "Uma chave de Possíveis duplicados em Dados brutos mostra a mesma música registrada duas vezes em 30 segundos, quase sempre uma falha do scrobble."],
+  "A summary of what you searched for":
+    ["Um resumo do que você buscou",
+     "Quando você filtra Dados brutos, um pequeno painel mostra quando esses plays foram ouvidos pela primeira e última vez, o dia com mais, e quantos dias, músicas e artistas eles cobrem."],
+  "Pick dates from a calendar":
+    ["Escolha datas num calendário",
+     "O campo de data em Dados brutos agora é um seletor com opções rápidas como Ontem ou Mês passado, e datas De / Até."],
+  "Covers and clickable names in Raw Data":
+    ["Capas e nomes clicáveis em Dados brutos",
+     "Cada play mostra a capa da música, e os nomes da música, do artista e do álbum abrem suas páginas."],
+  "Plays grouped by day":
+    ["Plays agrupados por dia",
+     "Dados brutos agora mostra um título para cada dia com quantos plays ele teve, e uma linha fina marca as pausas mais longas entre sessões."],
+  "The ~ mark stays next to the row number":
+    ["A marca ~ fica ao lado do número da linha",
+     "Em Dados brutos, a marca de um play autocorrigido não cai mais para uma segunda linha."],
   "Your critic card":
     ["Seu cartão de crítico",
      "Uma nova imagem na página de avaliações mostra o seu gosto: sua média e que tipo de crítico você é, um medidor de rigoroso a generoso, seu nível, seus três melhores álbuns e sua opinião mais polêmica, a nota mais longe da sua escuta."],
@@ -4841,6 +4865,15 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 /* Highlight cards (DC_CL_HIGHLIGHTS in changelog.js), keyed by id. */
 window.DC_CL_HIGHLIGHTS_I18N = window.DC_CL_HIGHLIGHTS_I18N || {};
 window.DC_CL_HIGHLIGHTS_I18N["pt-BR"] = {
+  "raw-data-2026": {
+    title: "Dados brutos ficou melhor",
+    intro: "Sua lista de plays está mais fácil de ler e de arrumar.",
+    points: [
+      "Plays agrupados por dia, com capas e nomes clicáveis.",
+      "Escolha datas num calendário e encontre duplicados.",
+      "Corrija vários plays de uma vez ou exporte como CSV.",
+    ],
+  },
   "rating-fun": {
     title: "Avaliar ficou mais divertido",
     intro: "Jeitos mais rápidos de avaliar sua música e motivos para voltar amanhã.",

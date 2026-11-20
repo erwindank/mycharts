@@ -13,6 +13,30 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Fix several plays at once":
+    ["Corrige varias reproducciones a la vez",
+     "Marca filas en Base de datos (Mayús+clic marca un tramo) y pulsa Editar juntas para cambiar el artista, la canción o el álbum de todas de una vez. Una casilla vacía mantiene el valor de cada una, y también puedes guardarlo como regla de autocorrección."],
+  "Export your plays as a CSV file":
+    ["Exporta tus reproducciones como CSV",
+     "Base de datos tiene un botón Exportar CSV que descarga las reproducciones que estás viendo, con tus filtros y tu orden."],
+  "Find duplicate plays":
+    ["Encuentra reproducciones duplicadas",
+     "Un interruptor de Posibles duplicados en Base de datos muestra la misma canción registrada dos veces en 30 segundos, casi siempre un fallo del scrobble."],
+  "A summary of what you searched for":
+    ["Un resumen de lo que buscaste",
+     "Cuando filtras Base de datos, un pequeño panel muestra cuándo se escucharon esas reproducciones por primera y última vez, el día con más, y cuántos días, canciones y artistas abarcan."],
+  "Pick dates from a calendar":
+    ["Elige fechas en un calendario",
+     "La casilla de fecha en Base de datos ahora es un selector con opciones rápidas como Ayer o Mes pasado, y fechas Desde / Hasta."],
+  "Covers and clickable names in Raw Data":
+    ["Portadas y nombres con enlace en Base de datos",
+     "Cada reproducción muestra la portada de su canción, y los nombres de la canción, el artista y el álbum abren sus páginas."],
+  "Plays grouped by day":
+    ["Reproducciones agrupadas por día",
+     "Base de datos ahora muestra un título para cada día con cuántas reproducciones tuvo, y una línea fina marca las pausas más largas entre sesiones."],
+  "The ~ mark stays next to the row number":
+    ["La marca ~ se queda junto al número de fila",
+     "En Base de datos, la marca de una reproducción autocorregida ya no baja a una segunda línea."],
   "Your critic card":
     ["Tu tarjeta de crítico",
      "Una nueva imagen en la página de valoraciones muestra tu gusto: tu media y qué tipo de crítico eres, un medidor de duro a generoso, tu nivel, tus tres mejores álbumes y tu opinión más polémica, la nota más lejos de tu escucha."],
@@ -4845,6 +4869,15 @@ window.DC_CHANGELOG_I18N['es'] = {
 /* Highlight cards (DC_CL_HIGHLIGHTS in changelog.js), keyed by id. */
 window.DC_CL_HIGHLIGHTS_I18N = window.DC_CL_HIGHLIGHTS_I18N || {};
 window.DC_CL_HIGHLIGHTS_I18N["es"] = {
+  "raw-data-2026": {
+    title: "Base de datos, mejorada",
+    intro: "Tu lista de reproducciones es más fácil de leer y de ordenar.",
+    points: [
+      "Reproducciones agrupadas por día, con portadas y nombres con enlace.",
+      "Elige fechas en un calendario y encuentra duplicados.",
+      "Corrige varias reproducciones a la vez o expórtalas como CSV.",
+    ],
+  },
   "rating-fun": {
     title: "Puntuar ahora es más divertido",
     intro: "Formas más rápidas de puntuar tu música y motivos para volver mañana.",

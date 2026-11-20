@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 511;
+const DC_CL_I18N_V = 512;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -98,6 +98,16 @@ const DC_CL_AREAS = {
    by id, as { title, intro, points }. A missing one shows in English.
    ------------------------------------------------------------------------- */
 const DC_CL_HIGHLIGHTS = [
+  { id: "raw-data-2026", d: "2026-11-20", a: "rawdata", img: "whatsnew/raw-data.webp", go: "rawdata",
+    title: "Raw Data got an upgrade",
+    intro: "Your play list is easier to read and easier to tidy up.",
+    points: [
+      "Plays grouped by day, with covers and clickable names.",
+      "Pick dates from a calendar, and find duplicate plays.",
+      "Fix several plays at once, or export them as a CSV file.",
+    ],
+    also: ["Fix several plays at once", "Export your plays as a CSV file", "Find duplicate plays", "A summary of what you searched for", "Pick dates from a calendar", "Covers and clickable names in Raw Data", "Plays grouped by day", "The ~ mark stays next to the row number"],
+  },
   { id: "rating-fun", d: "2026-11-19", a: "ratings", img: "whatsnew/rating-fun.webp", go: "ratings",
     title: "Rating is more fun now",
     intro: "Quicker ways to score your music, and reasons to come back tomorrow.",
@@ -459,6 +469,30 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-20', t: 'feature', a: 'rawdata',
+    title: "Fix several plays at once",
+    detail: "Tick rows in Raw Data (Shift+click ticks a run) and press Edit together to change the artist, song or album of all of them in one go. A box left empty keeps each play's own value, and you can save it as an auto-correct rule too." },
+  { d: '2026-11-20', t: 'feature', a: 'rawdata',
+    title: "Export your plays as a CSV file",
+    detail: "Raw Data has an Export CSV button that downloads the plays you are looking at, with your filters and sort." },
+  { d: '2026-11-20', t: 'feature', a: 'rawdata',
+    title: "Find duplicate plays",
+    detail: "A Possible duplicates switch in Raw Data lists the same song logged twice within 30 seconds, which is usually a scrobbling glitch." },
+  { d: '2026-11-20', t: 'feature', a: 'rawdata',
+    title: "A summary of what you searched for",
+    detail: "When you filter Raw Data, a small panel shows when those plays were first and last played, the busiest day, and how many days, songs and artists they cover." },
+  { d: '2026-11-20', t: 'feature', a: 'rawdata',
+    title: "Pick dates from a calendar",
+    detail: "The date box in Raw Data is now a date picker with quick choices like Yesterday or Last month, and From / To dates." },
+  { d: '2026-11-20', t: 'feature', a: 'rawdata',
+    title: "Covers and clickable names in Raw Data",
+    detail: "Each play shows its song's cover, and the song, artist and album names open their pages." },
+  { d: '2026-11-20', t: 'design', a: 'rawdata',
+    title: "Plays grouped by day",
+    detail: "Raw Data now shows a heading for each day with how many plays it had, and a thin line marks the longer breaks between listening sessions." },
+  { d: '2026-11-20', t: 'fix', a: 'rawdata',
+    title: "The ~ mark stays next to the row number",
+    detail: "In Raw Data, the mark for an auto-corrected play no longer drops onto a second line." },
   { d: '2026-11-19', t: 'feature', a: 'ratings',
     title: "Your critic card",
     detail: "A new picture on the Ratings page shows your taste: your average and what kind of critic that makes you, a harsh to generous meter, your level, your top three albums and your hottest take, the score furthest from your listening." },
