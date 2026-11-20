@@ -3238,6 +3238,23 @@ const TRANSLATIONS = {
     raw_export_tip: 'Download the listed plays as a CSV file',
     raw_export_done: '✓ {{n}} plays saved as a CSV file',
     raw_export_done_one: '✓ 1 play saved as a CSV file',
+    // Select rows and fix them together (2026-11-20)
+    raw_sel_page: 'Select the plays on this page',
+    raw_sel_one: 'Select {{song}}',
+    raw_sel_region: 'Selected plays',
+    raw_sel_count: '{{n}} selected',
+    raw_sel_count_one: '1 selected',
+    raw_sel_edit: 'Edit together',
+    raw_sel_all: 'Select all {{n}} listed',
+    raw_sel_clear: 'Clear selection',
+    raw_bulk_title: 'Fix {{n}} plays',
+    raw_bulk_title_one: 'Fix 1 play',
+    raw_bulk_sub: "Change a box to fix every ticked play. A box left empty keeps each play's own value.",
+    raw_bulk_mixed: 'Mixed, leave empty to keep',
+    raw_bulk_mixed_short: 'mixed',
+    raw_bulk_keep_note: 'Without a Google Sheet, these fixes last until the page reloads. Turn on "Fix it automatically next time" to keep them.',
+    raw_bulk_done: '✓ Fixed {{n}} plays',
+    raw_bulk_done_one: '✓ Fixed 1 play',
 
     // Graphs
     gran_label: 'Granularity',

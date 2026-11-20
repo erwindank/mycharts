@@ -16143,8 +16143,9 @@ function renderRawPage() {
     out.push(rawPlayRowHTML(p, start + i, byDate, alt, editLabel));
     alt = !alt;
   });
-  document.getElementById('rawBody').innerHTML = out.join('') || `<tr><td colspan="6" class="raw-empty">${t('raw_no_match')}</td></tr>`;
+  document.getElementById('rawBody').innerHTML = out.join('') || `<tr><td colspan="7" class="raw-empty">${t('raw_no_match')}</td></tr>`;
   rawLoadCovers(start, slice);
+  rawSelRender();
 
   // Pagination
   document.getElementById('rawPagerTop').innerHTML = rawPagerHTML(totalPages, true);
@@ -16208,7 +16209,7 @@ function rawDayLabel(p, ds) {
 function rawDayRowHTML(p, ds) {
   const n = rawDayCounts.get(ds) || 0;
   const today = ds === localDateStr(tzNow());
-  return `<tr class="raw-day${today ? ' is-today' : ''}"><td colspan="6"><span class="raw-day-name">${esc(rawDayLabel(p, ds))}</span>` +
+  return `<tr class="raw-day${today ? ' is-today' : ''}"><td colspan="7"><span class="raw-day-name">${esc(rawDayLabel(p, ds))}</span>` +
     `<span class="raw-day-count">${esc(t(n === 1 ? 'raw_day_plays_one' : 'raw_day_plays', { n: n.toLocaleString() }))}</span></td></tr>`;
 }
 
@@ -16217,7 +16218,7 @@ function rawGapRowHTML(ms) {
   const mins = Math.round(ms / 60000);
   const h = Math.floor(mins / 60), m = mins % 60;
   const len = h ? (m ? t('raw_gap_hm', { h, m }) : t('raw_gap_h', { h })) : t('raw_gap_m', { m });
-  return `<tr class="raw-gap" aria-hidden="true"><td colspan="6"><span>${esc(t('raw_gap', { len }))}</span></td></tr>`;
+  return `<tr class="raw-gap" aria-hidden="true"><td colspan="7"><span>${esc(t('raw_gap', { len }))}</span></td></tr>`;
 }
 
 // Time only ("09:39") under a day heading
@@ -16283,7 +16284,10 @@ function rawPlayRowHTML(p, idx, timeOnly, alt, editLabel) {
   }
   if (alt) cls.push('raw-alt');
   if (p._corrected) cls.push('raw-corrected');
+  const sel = _rawSel.has(p);
+  if (sel) cls.push('is-selected');
   return `<tr class="${cls.join(' ')}">
+    <td class="raw-sel-cell"><input type="checkbox" class="raw-sel" data-i="${idx}"${sel ? ' checked' : ''} aria-label="${esc(t('raw_sel_one', { song: p.title }))}"></td>
     <td class="raw-num">${n.toLocaleString()}${correctedBadge}</td>
     <td class="raw-date"${timeOnly ? ` title="${esc(rawFmtDate(p.date))}"` : ''}>${timeOnly ? rawFmtTime(p.date) : rawFmtDate(p.date)}</td>
     <td class="raw-title"><span class="raw-song"><span class="raw-cover" id="rawimg-${idx}" aria-hidden="true"><div class="thumb-initials">${esc(initials(p.title || ''))}</div></span><button type="button" class="raw-link" data-open="song" data-i="${idx}">${esc(p.title)}</button></span></td>
@@ -16316,6 +16320,207 @@ document.getElementById('rawClearBtn').addEventListener('click', () => {
 
 document.getElementById('rawFilterCorrected').addEventListener('change', applyRawFilters);
 document.getElementById('rawFilterDupes').addEventListener('change', applyRawFilters);
+
+// ── Select rows, fix them together ─────────────────────────────
+// Ticked plays are kept as the play objects themselves, so a selection
+// survives paging, sorting and new searches. Shift+click ticks a run.
+const _rawSel = new Set();
+let _rawSelLast = -1;   // the last row ticked by hand (its rawFiltered index)
+
+// The bar, the page's tick-all box and each row's highlight
+function rawSelRender() {
+  // plays an edit or reload took away can't stay ticked
+  if (_rawSel.size) {
+    const live = new Set(allPlays);
+    for (const p of _rawSel) if (!live.has(p)) _rawSel.delete(p);
+  }
+  const n = _rawSel.size;
+  const bar = document.getElementById('rawSelBar');
+  bar.hidden = !n;
+  document.getElementById('rawSelCount').textContent = t(n === 1 ? 'raw_sel_count_one' : 'raw_sel_count', { n: n.toLocaleString() });
+  const listed = rawFiltered.length;
+  const allListed = listed > 0 && rawFiltered.every(p => _rawSel.has(p));
+  const allBtn = document.getElementById('rawSelAll');
+  allBtn.textContent = t('raw_sel_all', { n: listed.toLocaleString() });
+  allBtn.hidden = allListed || listed < 2;
+  // the header box: ticked when every play on this page is, half when some are
+  const boxes = [...document.querySelectorAll('#rawBody .raw-sel')];
+  const on = boxes.filter(b => b.checked).length;
+  const head = document.getElementById('rawSelPage');
+  head.checked = boxes.length > 0 && on === boxes.length;
+  head.indeterminate = on > 0 && on < boxes.length;
+}
+
+function rawSelToggle(idx, checked, range) {
+  const from = range && _rawSelLast >= 0 ? Math.min(_rawSelLast, idx) : idx;
+  const to = range && _rawSelLast >= 0 ? Math.max(_rawSelLast, idx) : idx;
+  for (let i = from; i <= to; i++) {
+    const p = rawFiltered[i];
+    if (!p) continue;
+    if (checked) _rawSel.add(p); else _rawSel.delete(p);
+  }
+  _rawSelLast = idx;
+  // update the rows on screen without redrawing the page (keeps focus)
+  document.querySelectorAll('#rawBody .raw-sel').forEach(b => {
+    const p = rawFiltered[+b.dataset.i];
+    b.checked = _rawSel.has(p);
+    b.closest('tr').classList.toggle('is-selected', b.checked);
+  });
+  rawSelRender();
+}
+
+// click, not change: the shift key is only known on the click
+document.getElementById('rawBody').addEventListener('click', e => {
+  const box = e.target.closest('.raw-sel');
+  if (box) rawSelToggle(+box.dataset.i, box.checked, e.shiftKey);
+});
+document.getElementById('rawSelPage').addEventListener('click', e => {
+  const on = e.target.checked;
+  document.querySelectorAll('#rawBody .raw-sel').forEach(b => {
+    const p = rawFiltered[+b.dataset.i];
+    if (on) _rawSel.add(p); else _rawSel.delete(p);
+  });
+  rawSelToggle(-1, on, false);
+});
+document.getElementById('rawSelAll').addEventListener('click', () => {
+  rawFiltered.forEach(p => _rawSel.add(p));
+  rawSelToggle(-1, true, false);
+});
+document.getElementById('rawSelClear').addEventListener('click', () => {
+  _rawSel.clear();
+  rawSelToggle(-1, false, false);
+});
+document.getElementById('rawSelEdit').addEventListener('click', rawBulkOpen);
+
+// The ticked plays in table order, and what they share (null = they differ)
+let _rawBulkPlays = [];
+let _rawBulkShared = {};
+function rawBulkOpen() {
+  _rawBulkPlays = allPlays.filter(p => _rawSel.has(p));
+  if (!_rawBulkPlays.length) return;
+  _populateEditSuggestions();
+  const same = f => _rawBulkPlays.every(p => f(p) === f(_rawBulkPlays[0])) ? f(_rawBulkPlays[0]) : null;
+  const alb = p => { const a = rawAlbumOf(p); return a === '—' ? '' : a; };
+  _rawBulkShared = { artist: same(p => p.artist), title: same(p => p.title), album: same(alb) };
+  const fill = (id, v) => {
+    const el = document.getElementById(id);
+    el.value = v == null ? '' : v;
+    el.placeholder = v == null ? t('raw_bulk_mixed') : '';
+  };
+  fill('rawBulkArtist', _rawBulkShared.artist);
+  fill('rawBulkTitle2', _rawBulkShared.title);
+  fill('rawBulkAlbum', _rawBulkShared.album);
+  const n = _rawBulkPlays.length;
+  document.getElementById('rawBulkTitle').textContent = t(n === 1 ? 'raw_bulk_title_one' : 'raw_bulk_title', { n: n.toLocaleString() });
+  document.getElementById('rawBulkRule').checked = false;
+  // Google Sheet chip only when the sheet can be written; else the note
+  const hasSheet = !!(getSheetWriteUrl() && getDataSource() === 'sheets');
+  document.getElementById('rawBulkDest').hidden = !hasSheet;
+  document.getElementById('rawBulkSheet').checked = hasSheet;
+  document.getElementById('rawBulkNote').hidden = hasSheet;
+  rawBulkRefresh();
+  document.getElementById('rawBulkModal').classList.add('open');
+  setTimeout(() => document.getElementById('rawBulkArtist').focus(), 50);
+}
+
+function rawBulkClose() {
+  document.getElementById('rawBulkModal').classList.remove('open');
+  _rawBulkPlays = [];
+}
+
+// What each box will do: a value = set it on every ticked play; empty where
+// the plays differ = keep each one's own. Empty where they all agree means
+// "no album" for the album, and is not allowed for artist or song.
+function _rawBulkFields() {
+  const v = id => document.getElementById(id).value.trim();
+  const out = {};
+  const a = v('rawBulkArtist'), s = v('rawBulkTitle2'), al = v('rawBulkAlbum');
+  if (a && a !== _rawBulkShared.artist) out.artist = a;
+  if (s && s !== _rawBulkShared.title) out.title = s;
+  if (al !== (_rawBulkShared.album == null ? '' : _rawBulkShared.album) && !(al === '' && _rawBulkShared.album == null)) out.album = al;
+  return out;
+}
+
+function rawBulkRefresh() {
+  const f = _rawBulkFields();
+  const changed = Object.keys(f);
+  const box = document.getElementById('rawBulkDiff');
+  box.classList.toggle('has-changes', changed.length > 0);
+  if (!changed.length) {
+    box.innerHTML = `<div class="ed-diff-empty">${esc(t('ed_no_changes'))}</div>`;
+  } else {
+    const arrow = '<svg class="ed-diff-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+    const label = { artist: t('ed_label_artist'), title: t('ed_label_song'), album: t('modal_label_album') };
+    const from = k => _rawBulkShared[k] == null ? `<em>${esc(t('raw_bulk_mixed_short'))}</em>` : (_rawBulkShared[k] ? esc(_rawBulkShared[k]) : `<em>${esc(t('ed_empty'))}</em>`);
+    box.innerHTML = `<div class="ed-diff-head">${esc(changed.length === 1 ? t('ed_changes_one') : t('ed_changes', { n: changed.length }))}</div>` +
+      changed.map(k => `<div class="ed-diff-row"><span class="ed-diff-what">${esc(label[k])}</span>` +
+        `<span class="ed-diff-old">${from(k)}</span>${arrow}<span class="ed-diff-new">${f[k] ? esc(f[k]) : `<em>${esc(t('ed_empty'))}</em>`}</span></div>`).join('');
+  }
+  const n = _rawBulkPlays.length;
+  document.getElementById('rawBulkSave').disabled = !changed.length;
+  document.getElementById('rawBulkSaveText').textContent = t(n === 1 ? 'ed_save' : 'ed_save_n', { n: n.toLocaleString() });
+}
+['rawBulkArtist', 'rawBulkTitle2', 'rawBulkAlbum'].forEach(id =>
+  document.getElementById(id).addEventListener('input', rawBulkRefresh));
+document.getElementById('rawBulkModal').addEventListener('keydown', e => { if (e.key === 'Escape') rawBulkClose(); });
+
+// Save: every ticked play on this device; to the Sheet (one background trip
+// for the lot, through the save line) when ticked; and, if asked, one
+// auto-correct rule per distinct song that changed.
+async function rawBulkSave() {
+  const f = _rawBulkFields();
+  if (!Object.keys(f).length || !_rawBulkPlays.length) return;
+  const plays = _rawBulkPlays;
+  const toSheet = !document.getElementById('rawBulkDest').hidden && document.getElementById('rawBulkSheet').checked;
+  const saveRule = document.getElementById('rawBulkRule').checked;
+  // each play's new values
+  const plan = plays.map(p => {
+    const oldAlbum = rawAlbumOf(p);
+    const nf = {
+      artist: f.artist != null ? f.artist : p.artist,
+      title:  f.title  != null ? f.title  : p.title,
+      album:  f.album  != null ? f.album  : (oldAlbum === '—' ? '' : oldAlbum),
+    };
+    return { p, oldAlbum, nf, newAlbum: nf.album || '—' };
+  }).filter(x => x.nf.artist !== x.p.artist || x.nf.title !== x.p.title || x.newAlbum !== x.oldAlbum);
+  if (!plan.length) { rawBulkClose(); return; }
+
+  if (saveRule) {
+    const seen = new Set();
+    for (const x of plan) {
+      const k = [x.p.artist, x.p.title, x.oldAlbum].join('|||');
+      if (seen.has(k)) continue;
+      seen.add(k);
+      const { choice, idsToRemove } = await checkSimilarRules(x.p.artist, x.p.title, x.oldAlbum, x.nf.artist, x.nf.title, x.newAlbum);
+      if (choice === 'cancel') return;
+      if ((choice === 'override' || choice === 'run') && idsToRemove.length) overrideSimilarRules(idsToRemove);
+      // the rules copy goes to the sheet through the save line (below)
+      saveAutocorrectRule(x.p.artist, x.p.title, x.oldAlbum, x.nf.artist, x.nf.title, x.newAlbum, { skipSheetSync: toSheet });
+    }
+  }
+
+  for (const x of plan) {
+    const { p, nf, newAlbum } = x;
+    if (toSheet) {
+      // plain row fixes (no time change) — the save line sends them as one trip
+      const undo = _makePlaysUndo([p], nf, newAlbum);
+      const ts = Math.floor(p.date.getTime() / 1000);
+      _enqueueSheetJob({
+        kind: 'row', undo, label: `${nf.artist} — ${nf.title}`, timeChanged: false,
+        payload: { originalTimestamp: ts, rowNumber: p._sheetRow, artist: nf.artist, track: nf.title, album: nf.album, timestamp: ts },
+      });
+    }
+    p.title   = nf.title;
+    p.artist  = nf.artist;
+    p.artists = splitArtists(nf.artist);
+    p.album   = newAlbum;
+  }
+  if (saveRule && toSheet) _enqueueSheetJob({ kind: 'rules' });
+  _rawSel.clear();
+  rawBulkClose();
+  _afterPlaysEdited();
+  if (!toSheet) setSyncStatus(t(plan.length === 1 ? 'raw_bulk_done_one' : 'raw_bulk_done', { n: plan.length.toLocaleString() }), 'ok', { toast: true });
+}
 
 // ── Export ─────────────────────────────────────────────────────
 // The listed plays, in the order on screen, in the same columns an upload

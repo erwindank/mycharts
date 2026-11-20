@@ -52879,3 +52879,77 @@ body.rf-stage-on { overflow: hidden; }
 .rf-rep-line { margin: var(--sp-3) 0 0; font-size: var(--fs-sm); color: var(--text2); }
 .rf-rep-line .rf-line { display: inline-flex; margin: 0; }
 .rf-rep-foot { display: flex; gap: var(--sp-4); flex-wrap: wrap; justify-content: center; margin-top: var(--sp-4); font-size: var(--fs-sm); color: var(--text2); }
+
+/* ─── Raw Data: tick rows, fix them together (2026-11-20) ─── */
+.raw-table .raw-sel-cell {
+  width: 2rem;
+  padding: 0.15rem 0.2rem 0.15rem 0.5rem !important;
+  text-align: center;
+}
+
+.raw-sel {
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  vertical-align: middle;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+#rawBody tr.is-selected > td {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+/* The bar floats at the bottom of the screen while rows are ticked
+   (above the phone's bottom bar) */
+.raw-sel-bar {
+  position: sticky;
+  bottom: var(--sp-3);
+  z-index: 3;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  width: fit-content;
+  max-width: 100%;
+  margin: var(--sp-3) auto 0;
+  padding: var(--sp-2) var(--sp-3);
+  background: var(--surface);
+  border: 1px solid color-mix(in srgb, var(--accent) 50%, var(--border2));
+  border-radius: 999px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  font-family: var(--font-sans);
+}
+
+.raw-sel-bar[hidden] {
+  display: none;
+}
+
+.raw-sel-count {
+  padding: 0 var(--sp-2);
+  color: var(--text);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.raw-bulk-note {
+  margin: 0;
+}
+
+@media (max-width: 640px) {
+  .raw-sel-bar {
+    position: fixed;
+    left: 8px;
+    right: 8px;
+    bottom: calc(var(--bottomnav-h) + 8px + env(safe-area-inset-bottom, 0px));
+    width: auto;
+    margin: 0;
+    border-radius: var(--r-md, 12px);
+  }
+
+  .raw-table .raw-sel-cell {
+    padding-left: 0.3rem !important;
+  }
+}
