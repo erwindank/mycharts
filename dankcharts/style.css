@@ -16500,6 +16500,81 @@
       color: var(--raw-muted);
     }
 
+    /* The page's own table stripes by class, not nth-child: the day
+       headings and break lines sit between the plays and would throw the
+       count off. Stripes restart under each heading. */
+    #rawBody tr > td {
+      background: none;
+    }
+
+    #rawBody tr.raw-alt > td {
+      background: color-mix(in srgb, var(--text) 4%, transparent);
+    }
+
+    #rawBody tr.raw-play:hover > td {
+      background: var(--hover);
+    }
+
+    /* Day heading ("Today · 14 plays"): sorted by date, the plays are grouped
+       by day and the date cell keeps just the time */
+    #rawBody tr.raw-day > td {
+      height: auto;
+      padding: var(--sp-4) 0.7rem var(--sp-1);
+      font-family: var(--font-sans);
+      border-bottom: 1px solid var(--border2);
+    }
+
+    #rawBody tr.raw-day:first-child > td {
+      padding-top: var(--sp-2);
+    }
+
+    .raw-day-name {
+      color: var(--text);
+      font-size: var(--fs-sm);
+      font-weight: 600;
+    }
+
+    .raw-day.is-today .raw-day-name {
+      color: var(--accent2);
+    }
+
+    .raw-day-count {
+      margin-left: var(--sp-2);
+      color: var(--raw-muted);
+      font-size: var(--fs-xs);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .raw-day-count::before {
+      content: '·';
+      margin-right: var(--sp-2);
+    }
+
+    /* A long pause between two plays of the same day: a quiet dashed line
+       with the length of the break in its middle */
+    #rawBody tr.raw-gap > td {
+      height: auto;
+      padding: 0.15rem 0.7rem;
+      text-align: center;
+    }
+
+    .raw-gap span {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-2);
+      color: var(--raw-muted);
+      font-family: var(--font-sans);
+      font-size: 0.7rem;
+      letter-spacing: 0.02em;
+    }
+
+    .raw-gap span::before,
+    .raw-gap span::after {
+      content: '';
+      flex: 1;
+      border-top: 1px dashed color-mix(in srgb, var(--text) 16%, transparent);
+    }
+
     /* Corrected plays: a thin accent edge on the first cell (a shadow, so the
        cell keeps its width) and the ~ after the number. */
     .raw-table tr.raw-corrected .raw-num {

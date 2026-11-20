@@ -16052,7 +16052,7 @@ function rawFmtDate(d) {
   return `${td.getDate()} ${monthName} ${td.getFullYear()} ${hours}:${mins}`;
 }
 
-function applyRawFilters() {
+function applyRawFilters({ keepPage = false } = {}) {
   const fSong = document.getElementById('rawFilterSong').value.trim().toLowerCase();
   const fArtist = document.getElementById('rawFilterArtist').value.trim().toLowerCase();
   const fAlbum = document.getElementById('rawFilterAlbum').value.trim().toLowerCase();
@@ -16078,9 +16078,18 @@ function applyRawFilters() {
     return va < vb ? -rawSortDir : va > vb ? rawSortDir : 0;
   });
 
-  rawPage = 0;
+  // Plays per day among the listed ones, for the day headings
+  rawDayCounts = new Map();
+  for (const p of rawFiltered) {
+    const ds = dayStrOf(p);
+    rawDayCounts.set(ds, (rawDayCounts.get(ds) || 0) + 1);
+  }
+
+  // A redraw after an edit (renderAll) keeps the page; a new search starts over
+  if (!keepPage) rawPage = 0;
   renderRawPage();
 }
+let rawDayCounts = new Map();
 
 function renderRawPage() {
   const total = rawFiltered.length;
@@ -16099,28 +16108,30 @@ function renderRawPage() {
   // Clear only while there is something to clear
   document.getElementById('rawClearBtn').style.display = hasFilter ? '' : 'none';
 
-  // Rows
+  // Rows. Sorted by date, the plays are grouped under a heading per day
+  // ("Today · 14 plays") and the date cell keeps just the time; a long
+  // pause between two plays of the same day shows as a thin break line.
   const editLabel = esc(t('raw_edit_play'));
-  document.getElementById('rawBody').innerHTML = slice.map((p, i) => {
-    const n = start + i + 1;
-    let correctedBadge = '';
-    if (p._corrected) {
-      const orig = p._orig;
-      const parts = [];
-      if (orig.artist !== p.artist) parts.push(`${t('raw_artist_label')}: ${orig.artist}`);
-      if (orig.title  !== p.title)  parts.push(`${t('raw_song_label')}: ${orig.title}`);
-      if (orig.album  !== p.album)  parts.push(`${t('raw_album_label')}: ${orig.album}`);
-      correctedBadge = `<span class="raw-corrected-badge" title="${esc(t('raw_corrected_from') + '\n' + parts.join('\n'))}">~</span>`;
+  const byDate = rawSortCol === 'date';
+  const out = [];
+  let prev = start > 0 ? rawFiltered[start - 1] : null;
+  let alt = false;   // zebra stripes restart under each day heading
+  slice.forEach((p, i) => {
+    if (byDate) {
+      const ds = dayStrOf(p);
+      if (i === 0 || dayStrOf(prev) !== ds) {
+        out.push(rawDayRowHTML(p, ds));
+        alt = false;
+      } else {
+        const gap = Math.abs(prev.date - p.date);
+        if (gap >= RAW_SESSION_GAP) { out.push(rawGapRowHTML(gap)); alt = false; }
+      }
     }
-    return `<tr${p._corrected ? ' class="raw-corrected"' : ''}>
-      <td class="raw-num">${n.toLocaleString()}${correctedBadge}</td>
-      <td class="raw-date">${rawFmtDate(p.date)}</td>
-      <td class="raw-title">${esc(p.title)}</td>
-      <td>${esc(p.artist)}</td>
-      <td class="raw-album">${esc(p.album)}</td>
-      <td class="raw-edit-cell"><button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon raw-edit-btn" title="${editLabel}" aria-label="${editLabel}" onclick="openEditScrobbleModal(${start + i})">${RAW_EDIT_ICO}</button></td>
-    </tr>`;
-  }).join('') || `<tr><td colspan="6" class="raw-empty">${t('raw_no_match')}</td></tr>`;
+    prev = p;
+    out.push(rawPlayRowHTML(p, start + i, byDate, alt, editLabel));
+    alt = !alt;
+  });
+  document.getElementById('rawBody').innerHTML = out.join('') || `<tr><td colspan="6" class="raw-empty">${t('raw_no_match')}</td></tr>`;
 
   // Pagination
   document.getElementById('rawPagerTop').innerHTML = rawPagerHTML(totalPages, true);
@@ -16135,6 +16146,65 @@ function renderRawPage() {
     if (col === rawSortCol) arrow.textContent = rawSortDir === -1 ? '↓' : '↑';
     else arrow.textContent = '↕';
   });
+}
+
+// A pause this long between two plays starts a new listening session
+const RAW_SESSION_GAP = 30 * 60 * 1000;
+
+// "Today", "Yesterday", else the weekday and date in the page's language
+function rawDayLabel(p, ds) {
+  const today = localDateStr(tzNow());
+  const y = tzNow(); y.setDate(y.getDate() - 1);
+  if (ds === today) return t('raw_today');
+  if (ds === localDateStr(y)) return t('raw_yesterday');
+  return tzDate(p.date).toLocaleDateString(_lsLocale(), { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+// The day heading: its name, and how many of the listed plays fall on it
+function rawDayRowHTML(p, ds) {
+  const n = rawDayCounts.get(ds) || 0;
+  const today = ds === localDateStr(tzNow());
+  return `<tr class="raw-day${today ? ' is-today' : ''}"><td colspan="6"><span class="raw-day-name">${esc(rawDayLabel(p, ds))}</span>` +
+    `<span class="raw-day-count">${esc(t(n === 1 ? 'raw_day_plays_one' : 'raw_day_plays', { n: n.toLocaleString() }))}</span></td></tr>`;
+}
+
+// "1 h 12 min break" between two sessions of the same day
+function rawGapRowHTML(ms) {
+  const mins = Math.round(ms / 60000);
+  const h = Math.floor(mins / 60), m = mins % 60;
+  const len = h ? (m ? t('raw_gap_hm', { h, m }) : t('raw_gap_h', { h })) : t('raw_gap_m', { m });
+  return `<tr class="raw-gap" aria-hidden="true"><td colspan="6"><span>${esc(t('raw_gap', { len }))}</span></td></tr>`;
+}
+
+// Time only ("09:39") under a day heading
+function rawFmtTime(d) {
+  const td = tzDate(d);
+  return String(td.getHours()).padStart(2, '0') + ':' + String(td.getMinutes()).padStart(2, '0');
+}
+
+// One play's row; idx is its place in rawFiltered
+function rawPlayRowHTML(p, idx, timeOnly, alt, editLabel) {
+  const n = idx + 1;
+  let correctedBadge = '';
+  if (p._corrected) {
+    const orig = p._orig;
+    const parts = [];
+    if (orig.artist !== p.artist) parts.push(`${t('raw_artist_label')}: ${orig.artist}`);
+    if (orig.title  !== p.title)  parts.push(`${t('raw_song_label')}: ${orig.title}`);
+    if (orig.album  !== p.album)  parts.push(`${t('raw_album_label')}: ${orig.album}`);
+    correctedBadge = `<span class="raw-corrected-badge" title="${esc(t('raw_corrected_from') + '\n' + parts.join('\n'))}">~</span>`;
+  }
+  const cls = ['raw-play'];
+  if (alt) cls.push('raw-alt');
+  if (p._corrected) cls.push('raw-corrected');
+  return `<tr class="${cls.join(' ')}">
+    <td class="raw-num">${n.toLocaleString()}${correctedBadge}</td>
+    <td class="raw-date"${timeOnly ? ` title="${esc(rawFmtDate(p.date))}"` : ''}>${timeOnly ? rawFmtTime(p.date) : rawFmtDate(p.date)}</td>
+    <td class="raw-title">${esc(p.title)}</td>
+    <td>${esc(p.artist)}</td>
+    <td class="raw-album">${esc(p.album)}</td>
+    <td class="raw-edit-cell"><button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon raw-edit-btn" title="${editLabel}" aria-label="${editLabel}" onclick="openEditScrobbleModal(${idx})">${RAW_EDIT_ICO}</button></td>
+  </tr>`;
 }
 
 // Filter inputs — debounced
@@ -17808,7 +17878,7 @@ function _colwDragStart(e, type, set, th) {
 _colwDesktop.addEventListener('change', () => ['songs', 'artists', 'albums'].forEach(_colwApply));
 
 function renderAll() {
-  if (currentPeriod === 'rawdata') { applyRawFilters(); return; }
+  if (currentPeriod === 'rawdata') { applyRawFilters({ keepPage: true }); return; }
   // Wake the backend early — user is browsing and may want to play a track soon
   _ytPrewarmBackend();
   clearImageObservers();

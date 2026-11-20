@@ -3199,6 +3199,15 @@ const TRANSLATIONS = {
     raw_pages_aria: 'Pages',
     raw_item_search: 'Search title, artist, album…',
     raw_item_none: 'No plays found.',
+    // Day headings and listening breaks (2026-11-20)
+    raw_today: 'Today',
+    raw_yesterday: 'Yesterday',
+    raw_day_plays: '{{n}} plays',
+    raw_day_plays_one: '1 play',
+    raw_gap: '{{len}} break',
+    raw_gap_m: '{{m}} min',
+    raw_gap_h: '{{h}} h',
+    raw_gap_hm: '{{h}} h {{m}} min',
 
     // Graphs
     gran_label: 'Granularity',
