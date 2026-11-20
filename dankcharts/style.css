@@ -16515,6 +16515,51 @@
       background: var(--hover);
     }
 
+    /* Song cell: a small cover, then the name. Song, artist and album names
+       are buttons that open their windows; they look like plain text until
+       hovered. */
+    .raw-song {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-2);
+      min-width: 0;
+    }
+
+    .raw-cover {
+      flex: none;
+      width: 28px;
+      height: 28px;
+    }
+
+    .raw-cover .thumb,
+    .raw-cover .thumb-initials {
+      width: 28px;
+      height: 28px;
+      border-radius: 5px;
+      font-size: 0.6rem;
+    }
+
+    .raw-link {
+      all: unset;
+      cursor: pointer;
+      color: inherit;
+      font: inherit;
+      border-radius: 3px;
+      text-decoration: underline transparent;
+      text-underline-offset: 3px;
+      transition: color var(--t-fast) var(--ease), text-decoration-color var(--t-fast) var(--ease);
+    }
+
+    .raw-link:hover {
+      color: var(--accent2);
+      text-decoration-color: currentColor;
+    }
+
+    .raw-link:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+    }
+
     /* Day heading ("Today · 14 plays"): sorted by date, the plays are grouped
        by day and the date cell keeps just the time */
     #rawBody tr.raw-day > td {

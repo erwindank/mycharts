@@ -16132,6 +16132,7 @@ function renderRawPage() {
     alt = !alt;
   });
   document.getElementById('rawBody').innerHTML = out.join('') || `<tr><td colspan="6" class="raw-empty">${t('raw_no_match')}</td></tr>`;
+  rawLoadCovers(start, slice);
 
   // Pagination
   document.getElementById('rawPagerTop').innerHTML = rawPagerHTML(totalPages, true);
@@ -16182,6 +16183,44 @@ function rawFmtTime(d) {
   return String(td.getHours()).padStart(2, '0') + ':' + String(td.getMinutes()).padStart(2, '0');
 }
 
+// Each artist of a play as its own link, keeping the separators as they are
+// written ("John Summit, LAVINIA, REBRN" → three links). If a name can't be
+// found in the text, the whole credit opens the first artist.
+function rawArtistLinksHTML(p) {
+  const link = (name, text) => `<button type="button" class="raw-link" data-open="artist" data-artist="${esc(name)}">${esc(text)}</button>`;
+  const names = (p.artists && p.artists.length) ? p.artists : [p.artist];
+  if (names.length < 2) return link(names[0] || p.artist, p.artist);
+  let rest = p.artist, html = '';
+  for (const name of names) {
+    const at = rest.indexOf(name);
+    if (at < 0) return link(names[0], p.artist);
+    html += esc(rest.slice(0, at)) + link(name, name);
+    rest = rest.slice(at + name.length);
+  }
+  return html + esc(rest);
+}
+
+// Song, artist and album names open their windows, as everywhere else
+document.getElementById('rawBody').addEventListener('click', e => {
+  const a = e.target.closest('.raw-link');
+  if (!a) return;
+  const p = a.dataset.i != null ? rawFiltered[+a.dataset.i] : null;
+  if (a.dataset.open === 'artist') openArtistModal(a.dataset.artist);
+  else if (a.dataset.open === 'song' && p) openSongModal(songKey(p));
+  else if (a.dataset.open === 'album' && p) openAlbumModal(albumKeyOf(p));
+});
+
+// Small covers for the rows on show, loaded as they scroll into view. Each
+// page retires the last page's watcher instead of stacking a new one.
+let _rawImgObs = null;
+function rawLoadCovers(start, slice) {
+  if (_rawImgObs) _rawImgObs.disconnect();
+  _rawImgObs = loadImages(slice.map((p, i) => ({
+    imgId: 'rawimg-' + (start + i), name: p.title, title: p.title, artist: p.artist, album: p.album,
+    prefKey: 'song:' + p.artist.toLowerCase() + '|||' + p.title.toLowerCase(),
+  })), 'song');
+}
+
 // One play's row; idx is its place in rawFiltered
 function rawPlayRowHTML(p, idx, timeOnly, alt, editLabel) {
   const n = idx + 1;
@@ -16200,9 +16239,9 @@ function rawPlayRowHTML(p, idx, timeOnly, alt, editLabel) {
   return `<tr class="${cls.join(' ')}">
     <td class="raw-num">${n.toLocaleString()}${correctedBadge}</td>
     <td class="raw-date"${timeOnly ? ` title="${esc(rawFmtDate(p.date))}"` : ''}>${timeOnly ? rawFmtTime(p.date) : rawFmtDate(p.date)}</td>
-    <td class="raw-title">${esc(p.title)}</td>
-    <td>${esc(p.artist)}</td>
-    <td class="raw-album">${esc(p.album)}</td>
+    <td class="raw-title"><span class="raw-song"><span class="raw-cover" id="rawimg-${idx}" aria-hidden="true"><div class="thumb-initials">${esc(initials(p.title || ''))}</div></span><button type="button" class="raw-link" data-open="song" data-i="${idx}">${esc(p.title)}</button></span></td>
+    <td class="raw-artist">${rawArtistLinksHTML(p)}</td>
+    <td class="raw-album">${p.album && p.album !== '—' ? `<button type="button" class="raw-link" data-open="album" data-i="${idx}">${esc(p.album)}</button>` : esc(p.album)}</td>
     <td class="raw-edit-cell"><button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon raw-edit-btn" title="${editLabel}" aria-label="${editLabel}" onclick="openEditScrobbleModal(${idx})">${RAW_EDIT_ICO}</button></td>
   </tr>`;
 }
