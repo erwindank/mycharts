@@ -16057,6 +16057,7 @@ function applyRawFilters({ keepPage = false } = {}) {
   const fArtist = document.getElementById('rawFilterArtist').value.trim().toLowerCase();
   const fAlbum = document.getElementById('rawFilterAlbum').value.trim().toLowerCase();
   const fCorrected = document.getElementById('rawFilterCorrected').checked;
+  const dupes = rawDupesOn() ? rawDupeSet() : null;
 
   rawFiltered = allPlays.filter(p => {
     if (fSong && !p.title.toLowerCase().includes(fSong)) return false;
@@ -16069,6 +16070,7 @@ function applyRawFilters({ keepPage = false } = {}) {
       if (rawDateTo && ds > rawDateTo) return false;
     }
     if (fCorrected && !p._corrected) return false;
+    if (dupes && !dupes.has(p)) return false;
     return true;
   });
 
@@ -16107,7 +16109,8 @@ function renderRawPage() {
   // Summary
   const hasFilter = RAW_TEXT_FILTERS.some(id => document.getElementById(id).value.trim())
     || !!(rawDateFrom || rawDateTo)
-    || document.getElementById('rawFilterCorrected').checked;
+    || document.getElementById('rawFilterCorrected').checked
+    || rawDupesOn();
   const totalAll = allPlays.length;
   document.getElementById('rawSummary').innerHTML = hasFilter
     ? t('raw_showing', { n: `<strong>${total.toLocaleString()}</strong>`, total: totalAll.toLocaleString() })
@@ -16273,6 +16276,10 @@ function rawPlayRowHTML(p, idx, timeOnly, alt, editLabel) {
     correctedBadge = `<span class="raw-corrected-badge" title="${esc(t('raw_corrected_from') + '\n' + parts.join('\n'))}">~</span>`;
   }
   const cls = ['raw-play'];
+  if (rawDupesOn()) {
+    cls.push('raw-dupe');
+    correctedBadge += `<span class="raw-dupe-badge" title="${esc(t('raw_dupes_tip'))}">2×</span>`;
+  }
   if (alt) cls.push('raw-alt');
   if (p._corrected) cls.push('raw-corrected');
   return `<tr class="${cls.join(' ')}">
@@ -16302,10 +16309,34 @@ document.getElementById('rawClearBtn').addEventListener('click', () => {
   rawDateFrom = rawDateTo = '';
   rawDateRender();
   document.getElementById('rawFilterCorrected').checked = false;
+  document.getElementById('rawFilterDupes').checked = false;
   applyRawFilters();
 });
 
 document.getElementById('rawFilterCorrected').addEventListener('change', applyRawFilters);
+document.getElementById('rawFilterDupes').addEventListener('change', applyRawFilters);
+
+// ── Possible duplicates ────────────────────────────────────────
+// The same song (title + artist, any case) logged twice within 30 seconds:
+// nobody plays a song twice that fast, so it is a scrobbling glitch. Both
+// plays of a pair are listed, so either can be fixed or kept.
+const RAW_DUPE_WINDOW = 30 * 1000;
+function rawDupesOn() { return document.getElementById('rawFilterDupes').checked; }
+let _rawDupeCache = null;   // { epoch, n, set }
+function rawDupeSet() {
+  if (_rawDupeCache && _rawDupeCache.epoch === _stampEpoch && _rawDupeCache.n === allPlays.length) return _rawDupeCache.set;
+  const set = new Set();
+  const byTime = allPlays.slice().sort((a, b) => a.date - b.date);
+  const lastOf = new Map();   // song → its latest play so far
+  for (const p of byTime) {
+    const k = p.title.toLowerCase() + ' ' + p.artist.toLowerCase();
+    const q = lastOf.get(k);
+    if (q && p.date - q.date <= RAW_DUPE_WINDOW) { set.add(p); set.add(q); }
+    lastOf.set(k, p);
+  }
+  _rawDupeCache = { epoch: _stampEpoch, n: allPlays.length, set };
+  return set;
+}
 
 // The narrowest phones leave ~120px per search box, too little for "Buscar
 // canciones…" or "Date, e.g. Mar 2024", so there the boxes use the short

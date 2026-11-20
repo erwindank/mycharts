@@ -3230,6 +3230,9 @@ const TRANSLATIONS = {
     raw_ins_days: 'Days',
     raw_ins_songs: 'Songs',
     raw_ins_artists: 'Artists',
+    // Possible duplicates (2026-11-20)
+    raw_dupes_only: 'Possible duplicates',
+    raw_dupes_tip: 'The same song logged twice within 30 seconds, usually a scrobbling glitch',
 
     // Graphs
     gran_label: 'Granularity',
