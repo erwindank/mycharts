@@ -3233,6 +3233,11 @@ const TRANSLATIONS = {
     // Possible duplicates (2026-11-20)
     raw_dupes_only: 'Possible duplicates',
     raw_dupes_tip: 'The same song logged twice within 30 seconds, usually a scrobbling glitch',
+    // Export (2026-11-20)
+    raw_export: 'Export CSV',
+    raw_export_tip: 'Download the listed plays as a CSV file',
+    raw_export_done: '✓ {{n}} plays saved as a CSV file',
+    raw_export_done_one: '✓ 1 play saved as a CSV file',
 
     // Graphs
     gran_label: 'Granularity',

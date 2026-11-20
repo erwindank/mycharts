@@ -16118,6 +16118,7 @@ function renderRawPage() {
   // Clear only while there is something to clear
   document.getElementById('rawClearBtn').style.display = hasFilter ? '' : 'none';
   rawDateRender();   // its words follow the language
+  document.getElementById('rawExportBtn').disabled = !total;
 
   // Rows. Sorted by date, the plays are grouped under a heading per day
   // ("Today · 14 plays") and the date cell keeps just the time; a long
@@ -16316,6 +16317,30 @@ document.getElementById('rawClearBtn').addEventListener('click', () => {
 document.getElementById('rawFilterCorrected').addEventListener('change', applyRawFilters);
 document.getElementById('rawFilterDupes').addEventListener('change', applyRawFilters);
 
+// ── Export ─────────────────────────────────────────────────────
+// The listed plays, in the order on screen, in the same columns an upload
+// takes (Song Title, Artist, Album, Date and Time), so the file can be
+// opened in a spreadsheet or uploaded again. A BOM keeps Excel on UTF-8.
+function rawExportCsv() {
+  if (!rawFiltered.length) return;
+  const pad = n => String(n).padStart(2, '0');
+  const cell = v => /[",\r\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
+  const when = d => { const x = tzDate(d); return `${x.getFullYear()}-${pad(x.getMonth() + 1)}-${pad(x.getDate())} ${pad(x.getHours())}:${pad(x.getMinutes())}:${pad(x.getSeconds())}`; };
+  const rows = ['Song Title,Artist,Album,Date and Time'];
+  for (const p of rawFiltered) rows.push([cell(p.title), cell(p.artist), cell(p.album === '—' ? '' : p.album), when(p.date)].join(','));
+  const blob = new Blob(['﻿' + rows.join('\r\n')], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `dankcharts-plays-${localDateStr(tzNow())}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  if (typeof setSyncStatus === 'function') setSyncStatus(t(rawFiltered.length === 1 ? 'raw_export_done_one' : 'raw_export_done', { n: rawFiltered.length.toLocaleString() }), 'ok', { toast: true });
+}
+document.getElementById('rawExportBtn').addEventListener('click', rawExportCsv);
+
 // ── Possible duplicates ────────────────────────────────────────
 // The same song (title + artist, any case) logged twice within 30 seconds:
 // nobody plays a song twice that fast, so it is a scrobbling glitch. Both
@@ -16329,7 +16354,7 @@ function rawDupeSet() {
   const byTime = allPlays.slice().sort((a, b) => a.date - b.date);
   const lastOf = new Map();   // song → its latest play so far
   for (const p of byTime) {
-    const k = p.title.toLowerCase() + ' ' + p.artist.toLowerCase();
+    const k = p.title.toLowerCase() + '|||' + p.artist.toLowerCase();
     const q = lastOf.get(k);
     if (q && p.date - q.date <= RAW_DUPE_WINDOW) { set.add(p); set.add(q); }
     lastOf.set(k, p);
