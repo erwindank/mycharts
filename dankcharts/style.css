@@ -16485,6 +16485,12 @@
       white-space: nowrap;
     }
 
+    /* The number and its corrected "~" stay on one line (row 15 used to put
+       the ~ under the number once the count reached two digits) */
+    .raw-table .raw-num {
+      white-space: nowrap;
+    }
+
     .raw-table .raw-title {
       color: var(--text);
       font-weight: 500;
