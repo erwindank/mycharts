@@ -16373,6 +16373,53 @@
       color: var(--text3);
     }
 
+    /* Results line: small label-over-value stats for the filtered plays */
+    .raw-insights {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--sp-2) var(--sp-5, 1.5rem);
+      margin: var(--sp-1) 0 var(--sp-2);
+      padding: var(--sp-2) var(--sp-3);
+      border: 1px solid var(--border2);
+      border-radius: var(--r-sm);
+      background: color-mix(in srgb, var(--accent) 5%, transparent);
+      font-family: var(--font-sans);
+    }
+
+    .raw-insights[hidden] {
+      display: none;
+    }
+
+    .raw-ins {
+      display: flex;
+      flex-direction: column;
+      gap: 0.1rem;
+      min-width: 0;
+    }
+
+    .raw-ins-label {
+      color: var(--text3);
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .raw-ins-value {
+      color: var(--text);
+      font-size: var(--fs-sm);
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .raw-ins-value em {
+      font-style: normal;
+      font-weight: 400;
+      color: var(--text3);
+      font-size: var(--fs-xs);
+      margin-left: 0.3rem;
+    }
+
     /* Dates: the fourth box is a button that opens a small range pop-up */
     .raw-date-pick {
       position: relative;

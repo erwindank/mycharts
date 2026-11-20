@@ -16089,6 +16089,8 @@ function applyRawFilters({ keepPage = false } = {}) {
     rawDayCounts.set(ds, (rawDayCounts.get(ds) || 0) + 1);
   }
 
+  rawInsightsRender();
+
   // A redraw after an edit (renderAll) keeps the page; a new search starts over
   if (!keepPage) rawPage = 0;
   renderRawPage();
@@ -16153,6 +16155,37 @@ function renderRawPage() {
     if (col === rawSortCol) arrow.textContent = rawSortDir === -1 ? '↓' : '↑';
     else arrow.textContent = '↕';
   });
+}
+
+// The results line: what the filtered plays add up to. Shown only while
+// something is filtered (the whole library has its own pages for that).
+function rawInsightsRender() {
+  const box = document.getElementById('rawInsights');
+  const filtered = RAW_TEXT_FILTERS.some(id => document.getElementById(id).value.trim())
+    || rawDateFrom || rawDateTo || document.getElementById('rawFilterCorrected').checked
+    || (typeof rawDupesOn !== 'undefined' && rawDupesOn());
+  if (!filtered || !rawFiltered.length) { box.hidden = true; box.innerHTML = ''; return; }
+  let first = rawFiltered[0], last = rawFiltered[0];
+  const songs = new Set(), artists = new Set();
+  for (const p of rawFiltered) {
+    if (p.date < first.date) first = p;
+    if (p.date > last.date) last = p;
+    songs.add(songKey(p));
+    for (const a of (p.artists && p.artists.length ? p.artists : [p.artist])) artists.add(a);
+  }
+  let busy = null, busyN = 0;
+  for (const [ds, n] of rawDayCounts) if (n > busyN || (n === busyN && ds > busy)) { busy = ds; busyN = n; }
+  const item = (label, value) => `<span class="raw-ins"><span class="raw-ins-label">${esc(label)}</span><span class="raw-ins-value">${value}</span></span>`;
+  const parts = [
+    item(t('raw_ins_first'), esc(rawFmtDate(first.date))),
+    item(t('raw_ins_last'), esc(rawFmtDate(last.date))),
+  ];
+  if (rawDayCounts.size > 1) parts.push(item(t('raw_ins_busiest'), esc(rawDayShort(busy)) + ` <em>${esc(t(busyN === 1 ? 'raw_day_plays_one' : 'raw_day_plays', { n: busyN.toLocaleString() }))}</em>`));
+  parts.push(item(t('raw_ins_days'), rawDayCounts.size.toLocaleString()));
+  parts.push(item(t('raw_ins_songs'), songs.size.toLocaleString()));
+  parts.push(item(t('raw_ins_artists'), artists.size.toLocaleString()));
+  box.innerHTML = parts.join('');
+  box.hidden = false;
 }
 
 // A pause this long between two plays starts a new listening session
@@ -16309,10 +16342,11 @@ function rawDatePresets() {
   ];
 }
 
-// "3 Mar 2024" in the page's language
+// "3 Mar 2024", in the same style as the table's dates (rawFmtDate)
 function rawDayShort(ds) {
   const [y, m, d] = ds.split('-').map(Number);
-  return new Date(y, m - 1, d).toLocaleDateString(_lsLocale(), { day: 'numeric', month: 'short', year: 'numeric' });
+  const monthKey = ['month_jan', 'month_feb', 'month_mar', 'month_apr', 'month_may_short', 'month_jun', 'month_jul', 'month_aug', 'month_sep', 'month_oct', 'month_nov', 'month_dec'][m - 1];
+  return `${d} ${t(monthKey)} ${y}`;
 }
 
 // The button's words, the fields and the quick picks, from the range

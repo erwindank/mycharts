@@ -3223,6 +3223,13 @@ const TRANSLATIONS = {
     raw_date_last_month: 'Last month',
     raw_date_this_year: 'This year',
     raw_date_last_year: 'Last year',
+    // Results line (2026-11-20)
+    raw_ins_first: 'First played',
+    raw_ins_last: 'Last played',
+    raw_ins_busiest: 'Busiest day',
+    raw_ins_days: 'Days',
+    raw_ins_songs: 'Songs',
+    raw_ins_artists: 'Artists',
 
     // Graphs
     gran_label: 'Granularity',
