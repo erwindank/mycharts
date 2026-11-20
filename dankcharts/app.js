@@ -16056,14 +16056,18 @@ function applyRawFilters({ keepPage = false } = {}) {
   const fSong = document.getElementById('rawFilterSong').value.trim().toLowerCase();
   const fArtist = document.getElementById('rawFilterArtist').value.trim().toLowerCase();
   const fAlbum = document.getElementById('rawFilterAlbum').value.trim().toLowerCase();
-  const fDate = document.getElementById('rawFilterDate').value.trim().toLowerCase();
   const fCorrected = document.getElementById('rawFilterCorrected').checked;
 
   rawFiltered = allPlays.filter(p => {
     if (fSong && !p.title.toLowerCase().includes(fSong)) return false;
     if (fArtist && !p.artist.toLowerCase().includes(fArtist)) return false;
     if (fAlbum && !p.album.toLowerCase().includes(fAlbum)) return false;
-    if (fDate && !rawFmtDate(p.date).toLowerCase().includes(fDate)) return false;
+    // day strings (YYYY-MM-DD) compare in date order
+    if (rawDateFrom || rawDateTo) {
+      const ds = dayStrOf(p);
+      if (rawDateFrom && ds < rawDateFrom) return false;
+      if (rawDateTo && ds > rawDateTo) return false;
+    }
     if (fCorrected && !p._corrected) return false;
     return true;
   });
@@ -16099,7 +16103,8 @@ function renderRawPage() {
   const slice = rawFiltered.slice(start, start + rawPageSize);
 
   // Summary
-  const hasFilter = ['rawFilterSong', 'rawFilterArtist', 'rawFilterAlbum', 'rawFilterDate'].some(id => document.getElementById(id).value.trim())
+  const hasFilter = RAW_TEXT_FILTERS.some(id => document.getElementById(id).value.trim())
+    || !!(rawDateFrom || rawDateTo)
     || document.getElementById('rawFilterCorrected').checked;
   const totalAll = allPlays.length;
   document.getElementById('rawSummary').innerHTML = hasFilter
@@ -16107,6 +16112,7 @@ function renderRawPage() {
     : t(totalAll === 1 ? 'raw_total_one' : 'raw_total', { n: `<strong>${totalAll.toLocaleString()}</strong>` });
   // Clear only while there is something to clear
   document.getElementById('rawClearBtn').style.display = hasFilter ? '' : 'none';
+  rawDateRender();   // its words follow the language
 
   // Rows. Sorted by date, the plays are grouped under a heading per day
   // ("Today · 14 plays") and the date cell keeps just the time; a long
@@ -16248,7 +16254,8 @@ function rawPlayRowHTML(p, idx, timeOnly, alt, editLabel) {
 
 // Filter inputs — debounced
 let rawDebounce = null;
-['rawFilterSong', 'rawFilterArtist', 'rawFilterAlbum', 'rawFilterDate'].forEach(id => {
+const RAW_TEXT_FILTERS = ['rawFilterSong', 'rawFilterArtist', 'rawFilterAlbum'];
+RAW_TEXT_FILTERS.forEach(id => {
   document.getElementById(id).addEventListener('input', () => {
     clearTimeout(rawDebounce);
     rawDebounce = setTimeout(applyRawFilters, 200);
@@ -16256,9 +16263,11 @@ let rawDebounce = null;
 });
 
 document.getElementById('rawClearBtn').addEventListener('click', () => {
-  ['rawFilterSong', 'rawFilterArtist', 'rawFilterAlbum', 'rawFilterDate'].forEach(id => {
+  RAW_TEXT_FILTERS.forEach(id => {
     document.getElementById(id).value = '';
   });
+  rawDateFrom = rawDateTo = '';
+  rawDateRender();
   document.getElementById('rawFilterCorrected').checked = false;
   applyRawFilters();
 });
@@ -16270,7 +16279,7 @@ document.getElementById('rawFilterCorrected').addEventListener('change', applyRa
 // hints. Switching the key also keeps it right on a language change.
 const RAW_NARROW = window.matchMedia('(max-width: 360px)');
 function rawSetSearchHints() {
-  document.querySelectorAll('.raw-search input').forEach(input => {
+  document.querySelectorAll('.raw-search > input').forEach(input => {
     const key = input.dataset.i18nPlaceholder.replace(/_short$/, '') + (RAW_NARROW.matches ? '_short' : '');
     input.dataset.i18nPlaceholder = key;
     input.placeholder = t(key);
@@ -16278,6 +16287,91 @@ function rawSetSearchHints() {
 }
 rawSetSearchHints();
 RAW_NARROW.addEventListener('change', rawSetSearchHints);
+
+// ── Dates: a from → to range ──────────────────────────────────
+// Both ends are day strings (YYYY-MM-DD, in the chosen time zone), '' = open.
+let rawDateFrom = '', rawDateTo = '';
+
+// The quick picks, each a [from, to] worked out from today
+function rawDatePresets() {
+  const now = tzNow();
+  const d = (y, m, day) => localDateStr(new Date(y, m, day));
+  const y = now.getFullYear(), m = now.getMonth(), day = now.getDate();
+  return [
+    ['today',      d(y, m, day),     d(y, m, day)],
+    ['yesterday',  d(y, m, day - 1), d(y, m, day - 1)],
+    ['last7',      d(y, m, day - 6), d(y, m, day)],
+    ['last30',     d(y, m, day - 29), d(y, m, day)],
+    ['this_month', d(y, m, 1),       d(y, m + 1, 0)],
+    ['last_month', d(y, m - 1, 1),   d(y, m, 0)],
+    ['this_year',  d(y, 0, 1),       d(y, 11, 31)],
+    ['last_year',  d(y - 1, 0, 1),   d(y - 1, 11, 31)],
+  ];
+}
+
+// "3 Mar 2024" in the page's language
+function rawDayShort(ds) {
+  const [y, m, d] = ds.split('-').map(Number);
+  return new Date(y, m - 1, d).toLocaleDateString(_lsLocale(), { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+// The button's words, the fields and the quick picks, from the range
+function rawDateRender() {
+  const btn = document.getElementById('rawDateBtn');
+  const preset = rawDatePresets().find(([, f, to]) => f === rawDateFrom && to === rawDateTo);
+  let label = t('raw_date_any');
+  if (preset) label = t('raw_date_' + preset[0]);
+  else if (rawDateFrom && rawDateTo) label = rawDateFrom === rawDateTo ? rawDayShort(rawDateFrom) : rawDayShort(rawDateFrom) + ' – ' + rawDayShort(rawDateTo);
+  else if (rawDateFrom) label = t('raw_date_since', { d: rawDayShort(rawDateFrom) });
+  else if (rawDateTo) label = t('raw_date_until', { d: rawDayShort(rawDateTo) });
+  document.getElementById('rawDateBtnText').textContent = label;
+  btn.classList.toggle('is-set', !!(rawDateFrom || rawDateTo));
+  document.getElementById('rawDateFrom').value = rawDateFrom;
+  document.getElementById('rawDateTo').value = rawDateTo;
+  // the fields can't go past each other, or before the first play / after today
+  const first = allPlays.length && window.firstScrobbleDate ? localDateStr(tzDate(window.firstScrobbleDate)) : '';
+  const today = localDateStr(tzNow());
+  document.getElementById('rawDateFrom').min = first;
+  document.getElementById('rawDateFrom').max = rawDateTo || today;
+  document.getElementById('rawDateTo').min = rawDateFrom || first;
+  document.getElementById('rawDateTo').max = today;
+  document.getElementById('rawDateQuick').innerHTML = rawDatePresets().map(([id, f, to]) =>
+    `<button type="button" class="raw-date-chip" data-from="${f}" data-to="${to}" aria-pressed="${f === rawDateFrom && to === rawDateTo}">${esc(t('raw_date_' + id))}</button>`).join('');
+}
+
+function rawDateSet(from, to) {
+  // a range typed backwards is turned round
+  if (from && to && from > to) [from, to] = [to, from];
+  rawDateFrom = from || '';
+  rawDateTo = to || '';
+  rawDateRender();
+  applyRawFilters();
+}
+
+function rawDateOpen(open) {
+  const pop = document.getElementById('rawDatePop');
+  pop.hidden = !open;
+  document.getElementById('rawDateBtn').setAttribute('aria-expanded', String(open));
+  if (open) { rawDateRender(); pop.querySelector('.raw-date-chip[aria-pressed="true"], .raw-date-chip')?.focus(); }
+}
+
+document.getElementById('rawDateBtn').addEventListener('click', () => rawDateOpen(document.getElementById('rawDatePop').hidden));
+document.getElementById('rawDateQuick').addEventListener('click', e => {
+  const chip = e.target.closest('.raw-date-chip');
+  if (chip) rawDateSet(chip.dataset.from, chip.dataset.to);
+});
+['rawDateFrom', 'rawDateTo'].forEach(id => document.getElementById(id).addEventListener('change', () =>
+  rawDateSet(document.getElementById('rawDateFrom').value, document.getElementById('rawDateTo').value)));
+document.getElementById('rawDateClear').addEventListener('click', () => { rawDateSet('', ''); rawDateOpen(false); });
+document.getElementById('rawDateDone').addEventListener('click', () => { rawDateOpen(false); document.getElementById('rawDateBtn').focus(); });
+// A click elsewhere or Escape closes it
+document.addEventListener('pointerdown', e => {
+  if (!document.getElementById('rawDatePop').hidden && !e.target.closest('.raw-date-pick')) rawDateOpen(false);
+});
+document.getElementById('rawDatePop').addEventListener('keydown', e => {
+  if (e.key === 'Escape') { e.stopPropagation(); rawDateOpen(false); document.getElementById('rawDateBtn').focus(); }
+});
+rawDateRender();
 
 // The sticky header row sits just under the sticky search bar, whose height
 // changes as it wraps and with the language.

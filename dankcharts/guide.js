@@ -269,7 +269,7 @@
     'np.tour':       { lesson: 'player', fn: '_ytStartTour' },
     'np.tv':         { lesson: 'player', fn: '_ytToggleTv', test: () => typeof _ytInTv === 'function' && _ytInTv() },
     // Raw Data (app.js; the table's clicks are handled by one listener)
-    'rd.filter':     { lesson: 'rawdata', input: '#rawFilterSong, #rawFilterArtist, #rawFilterAlbum, #rawFilterDate' },
+    'rd.filter':     { lesson: 'rawdata', input: '#rawFilterSong, #rawFilterArtist, #rawFilterAlbum, #rawDateFrom, #rawDateTo' },
     'rd.page':       { lesson: 'rawdata', click: '#rawDataView [data-raw-page]', input: '#rawDataView .raw-page-input' },
     'rd.size':       { lesson: 'rawdata', click: '#rawDataView .raw-pager-size button' },
     'rd.sort':       { lesson: 'rawdata', click: '#rawDataView .raw-th' },

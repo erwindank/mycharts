@@ -16373,6 +16373,147 @@
       color: var(--text3);
     }
 
+    /* Dates: the fourth box is a button that opens a small range pop-up */
+    .raw-date-pick {
+      position: relative;
+      min-width: 0;
+    }
+
+    .raw-date-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      width: 100%;
+      height: 100%;
+      min-height: 2.1rem;
+      background: var(--bg2);
+      border: 1px solid var(--border2);
+      color: var(--text3);
+      font-family: var(--font-sans);
+      font-size: var(--fs-sm);
+      padding: 0.4rem 0.6rem;
+      border-radius: var(--r-sm);
+      cursor: pointer;
+      text-align: left;
+      transition: border-color var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+    }
+
+    .raw-date-btn span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .raw-date-btn svg {
+      flex: none;
+      width: 15px;
+      height: 15px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.6;
+      stroke-linecap: round;
+    }
+
+    .raw-date-btn:hover,
+    .raw-date-btn[aria-expanded="true"] {
+      border-color: var(--accent);
+    }
+
+    .raw-date-btn.is-set {
+      color: var(--text);
+      border-color: color-mix(in srgb, var(--accent) 60%, var(--border2));
+    }
+
+    .raw-date-btn.is-set svg {
+      color: var(--accent2);
+    }
+
+    .raw-date-btn:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+    }
+
+    .raw-date-pop {
+      position: absolute;
+      top: calc(100% + 6px);
+      right: 0;
+      z-index: 5;
+      width: min(320px, calc(100vw - 32px));
+      padding: var(--sp-3);
+      background: var(--surface);
+      border: 1px solid var(--border2);
+      border-radius: var(--r-md, 10px);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+      display: flex;
+      flex-direction: column;
+      gap: var(--sp-3);
+    }
+
+    .raw-date-pop[hidden] {
+      display: none;
+    }
+
+    .raw-date-quick {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+    }
+
+    .raw-date-chip {
+      padding: 0.3rem 0.6rem;
+      border-radius: 999px;
+      border: 1px solid var(--border2);
+      background: transparent;
+      color: var(--text2);
+      font-family: var(--font-sans);
+      font-size: var(--fs-xs);
+      cursor: pointer;
+    }
+
+    .raw-date-chip:hover {
+      color: var(--text);
+      border-color: var(--accent);
+    }
+
+    .raw-date-chip[aria-pressed="true"] {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--on-accent);
+    }
+
+    .raw-date-chip:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+    }
+
+    .raw-date-fields {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--sp-2);
+    }
+
+    .raw-date-fields label {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      min-width: 0;
+      font-family: var(--font-sans);
+      font-size: var(--fs-xs);
+      color: var(--text3);
+    }
+
+    .raw-date-fields input {
+      width: 100%;
+      min-width: 0;
+      color-scheme: dark light;
+    }
+
+    .raw-date-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: var(--sp-2);
+    }
+
     /* Sticky (step 2): the search bar stays under the top bar from 601px up
        (like Stats' bar; on a phone it is too tall to keep on screen), and
        the header row stays under the bar. app.js keeps --raw-filters-h at

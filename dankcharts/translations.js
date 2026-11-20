@@ -3208,6 +3208,21 @@ const TRANSLATIONS = {
     raw_gap_m: '{{m}} min',
     raw_gap_h: '{{h}} h',
     raw_gap_hm: '{{h}} h {{m}} min',
+    // Date range picker (2026-11-20)
+    raw_date_any: 'Any date',
+    raw_date_from: 'From',
+    raw_date_to: 'To',
+    raw_date_done: 'Done',
+    raw_date_since: 'Since {{d}}',
+    raw_date_until: 'Until {{d}}',
+    raw_date_today: 'Today',
+    raw_date_yesterday: 'Yesterday',
+    raw_date_last7: 'Last 7 days',
+    raw_date_last30: 'Last 30 days',
+    raw_date_this_month: 'This month',
+    raw_date_last_month: 'Last month',
+    raw_date_this_year: 'This year',
+    raw_date_last_year: 'Last year',
 
     // Graphs
     gran_label: 'Granularity',
