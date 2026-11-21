@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 512;
+const DC_CL_I18N_V = 513;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -98,6 +98,15 @@ const DC_CL_AREAS = {
    by id, as { title, intro, points }. A missing one shows in English.
    ------------------------------------------------------------------------- */
 const DC_CL_HIGHLIGHTS = [
+  { id: "song-chart", d: "2026-11-21", a: "charts", img: "whatsnew/song-chart.webp", go: "week", then: [["dcSongChartOpenTop", null]],
+    title: "Every artist and album has its own chart",
+    intro: "See how an artist's songs, or an album's tracks, rank against each other over time.",
+    points: [
+      "Day, week, month or year, as a running total or just that period.",
+      "Skip quiet periods, jump to a date, or press Play and watch the ranks move.",
+      "Number ones, a Rank race, Compare, and a picture or playlist to share.",
+    ],
+    also: ["Song Chart in the artist and album windows"] },
   { id: "raw-data-2026", d: "2026-11-20", a: "rawdata", img: "whatsnew/raw-data.webp", go: "rawdata",
     title: "Raw Data got an upgrade",
     intro: "Your play list is easier to read and easier to tidy up.",
@@ -469,6 +478,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-21', t: 'feature', a: 'charts',
+    title: "Song Chart in the artist and album windows",
+    detail: "A new Song Chart tab ranks an artist's songs (or an album's tracks) against each other, day by day, week by week, month by month or year by year. Standing keeps every song on and ranks it by its plays so far; That week shows only what you played then. Empty periods are skipped with a note, and you can play through time, compare two periods, follow a song in the Rank race, see every #1 hand-off, and save the list as a picture or a playlist." },
   { d: '2026-11-20', t: 'feature', a: 'rawdata',
     title: "Fix several plays at once",
     detail: "Tick rows in Raw Data (Shift+click ticks a run) and press Edit together to change the artist, song or album of all of them in one go. A box left empty keeps each play's own value, and you can save it as an auto-correct rule too." },

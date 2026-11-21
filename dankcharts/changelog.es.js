@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Song Chart in the artist and album windows":
+    ["Ranking de canciones en las ventanas de artista y álbum",
+     "Una nueva pestaña, Ranking de canciones, ordena las canciones de un artista (o las de un álbum) entre sí, día a día, semana a semana, mes a mes o año a año. Acumulado mantiene todas las canciones y las ordena por sus reproducciones hasta ese momento; Esa semana muestra solo lo que escuchaste entonces. Los periodos vacíos se saltan con un aviso, y puedes reproducir el tiempo, comparar dos periodos, seguir una canción en la Carrera de puestos, ver cada cambio de #1 y guardar la lista como imagen o playlist."],
   "Fix several plays at once":
     ["Corrige varias reproducciones a la vez",
      "Marca filas en Base de datos (Mayús+clic marca un tramo) y pulsa Editar juntas para cambiar el artista, la canción o el álbum de todas de una vez. Una casilla vacía mantiene el valor de cada una, y también puedes guardarlo como regla de autocorrección."],
@@ -4869,6 +4872,15 @@ window.DC_CHANGELOG_I18N['es'] = {
 /* Highlight cards (DC_CL_HIGHLIGHTS in changelog.js), keyed by id. */
 window.DC_CL_HIGHLIGHTS_I18N = window.DC_CL_HIGHLIGHTS_I18N || {};
 window.DC_CL_HIGHLIGHTS_I18N["es"] = {
+  "song-chart": {
+    title: "Cada artista y álbum tiene su propio ranking",
+    intro: "Mira cómo compiten entre sí las canciones de un artista, o las de un álbum, con el tiempo.",
+    points: [
+      "Día, semana, mes o año, acumulado o solo ese periodo.",
+      "Salta los periodos sin escuchas, ve a una fecha o pulsa Reproducir y mira cómo se mueven los puestos.",
+      "Números uno, Carrera de puestos, Comparar y una imagen o playlist para compartir.",
+    ],
+  },
   "raw-data-2026": {
     title: "Base de datos, mejorada",
     intro: "Tu lista de reproducciones es más fácil de leer y de ordenar.",

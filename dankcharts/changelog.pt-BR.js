@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Song Chart in the artist and album windows":
+    ["Ranking de músicas nas janelas de artista e álbum",
+     "Uma nova aba, Ranking de músicas, ordena as músicas de um artista (ou as faixas de um álbum) entre si, dia a dia, semana a semana, mês a mês ou ano a ano. Acumulado mantém todas as músicas e as ordena pelas reproduções até ali; Naquela semana mostra só o que você ouviu então. Períodos vazios são pulados com um aviso, e você pode passar o tempo tocando, comparar dois períodos, seguir uma música na Corrida de posições, ver cada troca de #1 e salvar a lista como imagem ou playlist."],
   "Fix several plays at once":
     ["Corrija vários plays de uma vez",
      "Marque linhas em Dados brutos (Shift+clique marca um trecho) e toque em Editar juntos para mudar o artista, a música ou o álbum de todos de uma vez. Um campo vazio mantém o valor de cada um, e você também pode salvar como regra de autocorreção."],
@@ -4865,6 +4868,15 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 /* Highlight cards (DC_CL_HIGHLIGHTS in changelog.js), keyed by id. */
 window.DC_CL_HIGHLIGHTS_I18N = window.DC_CL_HIGHLIGHTS_I18N || {};
 window.DC_CL_HIGHLIGHTS_I18N["pt-BR"] = {
+  "song-chart": {
+    title: "Cada artista e álbum tem seu próprio ranking",
+    intro: "Veja como as músicas de um artista, ou as faixas de um álbum, disputam entre si ao longo do tempo.",
+    points: [
+      "Dia, semana, mês ou ano, acumulado ou só aquele período.",
+      "Pule os períodos parados, vá a uma data ou aperte Tocar e veja as posições mudarem.",
+      "Números um, Corrida de posições, Comparar e uma imagem ou playlist para compartilhar.",
+    ],
+  },
   "raw-data-2026": {
     title: "Dados brutos ficou melhor",
     intro: "Sua lista de plays está mais fácil de ler e de arrumar.",
