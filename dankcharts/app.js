@@ -29237,6 +29237,8 @@ function weekOffset(weekDate) {
 // Navigate to a specific weekly chart and close the modal
 function goToWeek(offset) {
   document.getElementById('artistModal').classList.remove('open');
+  // Only the artist window's "weeks at #1" rows use this: land on the artists chart
+  _pickChartFor('artists');
   document.querySelectorAll('.period-nav button').forEach(b => b.classList.toggle('active', b.dataset.period === 'week'));
   savedOffsets[currentPeriod] = currentOffset;
   currentPeriod = 'week';
@@ -29250,6 +29252,7 @@ function goToWeek(offset) {
   document.getElementById('albumsSection').style.display = '';
   document.getElementById('rawDataView').style.display = 'none';
   renderAll();
+  _scrollToPickedChart('artists');
 }
 
 function longestConsecutiveDays(daySet) {
@@ -29284,14 +29287,58 @@ function maxConsecutivePlaysWeekAlbum(albumCrKey, weekKey) {
   return max;
 }
 
-function goToPeriodFromArtistModal(period, periodKey) {
+// `chart`: which chart to land on (see goToPeriodFromAlbumModal below);
+// the artist's own #1 rows default to the artists chart
+function goToPeriodFromArtistModal(period, periodKey, chart) {
   document.getElementById('artistModal').classList.remove('open');
-  navigateToRecPeriod(period, periodKey);
+  _goToPeriodChart(period, periodKey, chart || 'artists');
 }
 
-function goToPeriodFromAlbumModal(period, periodKey) {
+/* `chart` (2026-11-20): which chart the row came from — 'songs', 'artists',
+   or one of the albums-section charts 'album' / 'single' / 'ep'. Before, a
+   single's "weeks at #1" row opened the right week but left the page on
+   whichever of Songs / Artists / Albums was last on screen (often Songs),
+   with whatever albums chip was last picked — so you landed on the wrong
+   chart. Now the matching chart (and chip, while that type has its own
+   chart) is picked first, then the page scrolls down to it. */
+function goToPeriodFromAlbumModal(period, periodKey, chart) {
   document.getElementById('albumModal').classList.remove('open');
+  _goToPeriodChart(period, periodKey, chart);
+}
+
+/* Picks the chart, opens the period, then scrolls to the chart.
+   Shared by the song, artist and album windows' "open that chart" rows. */
+function _goToPeriodChart(period, periodKey, chart) {
+  _pickChartFor(chart);
   navigateToRecPeriod(period, periodKey);
+  _scrollToPickedChart(chart);
+}
+
+// Switches Songs / Artists / Albums (and the albums chip) before the render,
+// so the chart is drawn while on screen
+function _pickChartFor(chart) {
+  if (!chart) return;
+  if (chart === 'songs' || chart === 'artists') { setChartTypeView(chart); return; }
+  setChartTypeView('albums');
+  // Silent: the render that follows (navigateToRecPeriod / goToWeek) repaints
+  if (separatedTypes().includes(chart)) setAlbumsChartFilter(chart, true);
+  else if (chart === 'album' && separatedTypes().length && albumsChartFilter !== 'all') setAlbumsChartFilter('album', true);
+  syncAlbumsFilterBar();
+}
+
+// After the render: bring that chart's table into view (dcScrollTo also
+// opens a collapsed section)
+function _scrollToPickedChart(chart) {
+  if (!chart) return;
+  const id = chart === 'songs' || chart === 'artists' ? chart + 'Section' : 'albumsSection';
+  const el = document.getElementById(id);
+  // The sticky date bar would cover the chart's title: stop just below it
+  // (#stickyNavBar is the sticky wrapper around the date bar)
+  const nav = document.getElementById('stickyNavBar');
+  if (el && nav && getComputedStyle(nav).position === 'sticky') {
+    el.style.scrollMarginTop = ((parseFloat(getComputedStyle(nav).top) || 0) + nav.offsetHeight + 12) + 'px';
+  }
+  requestAnimationFrame(() => dcScrollTo(id));
 }
 
 function longestConsecutiveMonths(monthSet) {
@@ -30034,7 +30081,7 @@ function amRenderList() {
   box.innerHTML = shown.map((r, i) => {
     const meta = ch === 'all'
       ? chip('calendar', `${esc(t('am_th_first'))} <b>${fmt(new Date(r.first))}</b>`) + chip('clock', `${esc(t('am_th_last'))} <b>${fmt(new Date(r.last))}</b>`)
-      : `<button type="button" class="am-m am-m-link" onclick="goToPeriodFromArtistModal('${r.best.period}','${esc(r.best.key)}')" title="${esc(t('am_open_chart'))}">${_amIco('trophy')}${esc(t(bestKey))} <b>${esc(r.best.label)}</b>${_amIco('next')}</button>` +
+      : `<button type="button" class="am-m am-m-link" onclick="goToPeriodFromArtistModal('${r.best.period}','${esc(r.best.key)}','${{ songs: 'songs', albums: 'album', singles: 'single', eps: 'ep' }[ty] || ''}')" title="${esc(t('am_open_chart'))}">${_amIco('trophy')}${esc(t(bestKey))} <b>${esc(r.best.label)}</b>${_amIco('next')}</button>` +
         chip('bars', `<b>${r.spells}</b> ${esc(tUnit(unitKey, r.spells))}`, t('am_on_chart')) +
         chip('headphones', `<b>${r.bestPlays}</b> ${esc(tUnit('plays', r.bestPlays))}`, t('am_best_plays_tip')) +
         (r.days ? chip('calendar', `<b>${r.days}</b>d`, t('am_th_days')) : '') +
@@ -32174,7 +32221,7 @@ function openAlbumModal(albumKey) {
   const badges = [];
   const runs = { day: albumCrD, week: albumCrW, month: albumCrM, year: albumCrY };
   const entryRow = per => e => ({ name: crPeriodTitle(per, e.periodKey), sub: '#' + e.rank, plays: e.plays, date: '',
-    open: `goToPeriodFromAlbumModal('${per}','${esc(e.periodKey)}')` });
+    open: `goToPeriodFromAlbumModal('${per}','${esc(e.periodKey)}','${bucket}')` });
   const trackRow = (s, plays, date) => ({ name: s.title, sub: s.artist !== artistName ? s.artist : '', plays, date: date || '',
     open: `openSongModal(${esc(JSON.stringify(songKey(s)))})` });
   for (const per of ['week', 'month', 'year', 'day']) {
@@ -32411,9 +32458,10 @@ if (songsBodyEl) {
   }, false);
 }
 
+// Song window rows are song chart entries: land on the songs chart
 function goToPeriodFromSongModal(period, periodKey) {
   songModal.classList.remove('open');
-  navigateToRecPeriod(period, periodKey);
+  _goToPeriodChart(period, periodKey, 'songs');
 }
 
 let _currentSongKey = null;
