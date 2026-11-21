@@ -47731,6 +47731,11 @@ body:not(:is([data-view="day"], [data-view="week"], [data-view="month"], [data-v
 .rec1-wrap > .rec-run-seg { order: 3; margin: 0; }
 .rec1-wrap .rec-per-panel { order: 10; flex: 0 0 100%; min-width: 0; margin-top: var(--sp-3, 0.75rem); }
 .rec1-wrap .rec-empty { order: 10; flex: 0 0 100%; }
+/* A section that sits straight in a type panel rather than in a chart panel
+   (Debuts → Singles' "Released as a single first") has no order of its own,
+   so it would default to 0 and jump above the pills. Send it after the
+   period panels instead. */
+.rec1-wrap .rec-ent-panel > .rec-section { order: 11; flex: 0 0 100%; min-width: 0; margin-top: var(--sp-5, 1.5rem); }
 
 /* The record's own title only shows while searching, where several of them
    are on screen at once and need telling apart. */
