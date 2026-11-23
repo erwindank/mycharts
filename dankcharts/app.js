@@ -22355,6 +22355,12 @@ function buildCumulativeMapsForPeriod(endDate) {
   const albums = {};
   const artists = {};   // every credited artist, as the Artists chart counts them
   const songAlbumCounts = {}; // songKey → { albumKey → count }
+  /* A certification is a running total, so while singles count toward their
+     album on the charts, the album's badge counts every play of its single —
+     early ones too (full), the same figure the album page, the All-Time chart
+     and Records certify on. Was the album's own plays only, so a period chart
+     showed a lower plaque than everywhere else. */
+  const roll = rollupAffectsCharts();
   for (const p of allPlays) {
     if (p.date > endDate) continue;
     const sk = songKey(p);
@@ -22362,6 +22368,8 @@ function buildCumulativeMapsForPeriod(endDate) {
     for (const a of p.artists) artists[a] = (artists[a] || 0) + 1;
     const ak = albumKeyOf(p);
     albums[ak] = (albums[ak] || 0) + 1;
+    const par = roll ? rollupParentOf(p, true) : null;
+    if (par && par !== ak) albums[par] = (albums[par] || 0) + 1;
     if (!songAlbumCounts[sk]) songAlbumCounts[sk] = {};
     songAlbumCounts[sk][ak] = (songAlbumCounts[sk][ak] || 0) + 1;
   }
@@ -34812,6 +34820,20 @@ function buildCertTimeline() {
     if (tier) it.events.push({ tier, mult, n, date: p.date });
   };
 
+  // Album plaque for one release key, its ladder worked out on its first play.
+  const touchAlbum = function (ak, title, artist, p) {
+    if (!albumItems[ak]) {
+      const kind = certKindFor(title, artist);
+      touch(albumItems, ak, p, 'album', CERT[kind] || CERT.album, { title, artist, album: '', rtype: certReleaseLabelType(title, artist), _cfg: CERT[kind] || CERT.album });
+    } else touch(albumItems, ak, p, 'album', albumItems[ak]._cfg, null);
+  };
+  /* While singles count toward their album on the charts, the album certifies
+     on the merged figure here too — every play of the single, early ones
+     included (full) — the same as Records (computeRecords) and the album page.
+     Was the album's own plays only, so the wall, "Certified this period" and
+     the notification came late or never for an album with a big lead single. */
+  const roll = rollupAffectsCharts();
+
   for (let i = allPlays.length - 1; i >= 0; i--) {
     const p = allPlays[i];
     touch(songItems, songKey(p), p, 'song', CERT.song, {
@@ -34826,10 +34848,13 @@ function buildCertTimeline() {
          thresholds, the same as Records (was always the album ladder here, so
          a single's notification and shelf plaque came late or never).
          Worked out once per release, on its first play. */
-      if (!albumItems[ak]) {
-        const kind = certKindFor(p.album, aa);
-        touch(albumItems, ak, p, 'album', CERT[kind] || CERT.album, { title: p.album, artist: aa, album: '', rtype: certReleaseLabelType(p.album, aa), _cfg: CERT[kind] || CERT.album });
-      } else touch(albumItems, ak, p, 'album', albumItems[ak]._cfg, null);
+      touchAlbum(ak, p.album, aa, p);
+      // The same play also counts toward the album its single rolled up into
+      const par = roll ? rollupParentOf(p, true) : null;
+      if (par && par !== ak) {
+        const pi = par.lastIndexOf('|||');
+        touchAlbum(par, par.slice(0, pi), par.slice(pi + 3), p);
+      }
     }
   }
 
