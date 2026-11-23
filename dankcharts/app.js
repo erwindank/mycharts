@@ -31303,6 +31303,7 @@ function openArtistModal(artistName) {
      title lookup for song rows (songAlbumKey). */
   const albumCounts = {};
   const albumByName = {};
+  const _amRoll = rollupAffectsModal();   // same switch as the album page
   for (const p of artistPlays) {
     if (!p.album || p.album === '—') continue;
     const k = albumKeyOf(p);
@@ -31319,6 +31320,23 @@ function openArtistModal(artistName) {
     else albumCounts[k].firstPlayed = p.date;
     albumCounts[k].count++;
     albumCounts[k].tracks.add(p.title);
+    /* While singles count toward their album, the album's row here (and its
+       plaque, the favourite album and the album certification count) uses the
+       same figure as the album page: every play of its single, early ones too.
+       The single keeps its own row and its own count. */
+    const par = _amRoll ? rollupParentOf(p, true) : null;
+    if (par && par !== k) {
+      if (!albumCounts[par]) {
+        const pi = par.lastIndexOf('|||');
+        const pAlbum = par.slice(0, pi), pCredit = par.slice(pi + 3);
+        albumCounts[par] = { key: par, album: pAlbum, primaryArtist: pCredit, count: 0, tracks: new Set(), firstPlayed: p.date, lastPlayed: p.date,
+          own: isAlbumOwner(pAlbum, pCredit, artistName), owners: albumOwnersOf(pAlbum, pCredit) };
+        if (!albumByName[pAlbum]) albumByName[pAlbum] = albumCounts[par];
+      }
+      else albumCounts[par].firstPlayed = p.date;
+      albumCounts[par].count++;
+      albumCounts[par].tracks.add(p.title);
+    }
   }
   /* Albums vs Appears on (2026-11-09). Everything album-shaped below — the
      album count, favourite album, album chart counts and best peaks, album
