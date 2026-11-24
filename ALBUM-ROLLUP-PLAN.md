@@ -116,35 +116,40 @@ it gets checked.
 - **Check:** album window total, All-Time chart and Records certifications all
   show the same number.
 
-### 5. Deluxe editions join the main album
-*On / Off*
+### 5. Deluxe becomes a release type
+*Mark: Deluxe (next to album / single / EP / live / soundtrack) · Setting:
+With albums / Apart / Left out — like singles and EPs*
 
-- **Different from 1–4.** A deluxe sits on the same Albums chart as the main
-  album, so "also counts" would show the album twice. Instead the deluxe's
-  plays are **filed under the main album's name** while the library loads —
-  the same trick already used for "Lover" the single vs "Lover" the album.
-  Every screen then sees one album, no double rows.
-- **Which album is "main":** the app already recognises deluxe titles
-  ("Deluxe", "Expanded", "Anniversary Edition", "Platinum Edition"…, not
-  "Taylor's Version"). The main album is the same artist's album with the
-  title minus that part. If there is no such album, nothing happens.
-- **Your data is untouched:** the sheet, Last.fm and Raw Data still show the
-  real deluxe name; editing a play edits the real name.
-- **Risk:** a ratings, release-date or award pick saved on the deluxe album
-  would be "hidden" while merged. **Guard:** when merging, the main album shows
-  the deluxe's rating if it has none of its own; past award winners are
-  untouched (they are saved by name).
-- **Check:** the deluxe disappears from charts, Records and the cert wall; the
-  main album's total = both added; Raw Data still shows "(Deluxe)".
+- **Decided (user, 2026-11-23):** replaces the earlier "merge the deluxe into
+  the main album by name" idea. Nothing is renamed as a whole, so the deluxe
+  keeps its own page, rating, cover, date and awards (no hidden data).
+- **Which album is "main":** the same artist's album whose title is the deluxe
+  title minus the deluxe part ("Bright (Deluxe)" → "Bright"); the app already
+  recognises deluxe titles (_isDeluxeAlbum: "Deluxe", "Expanded",
+  "Anniversary Edition"…, not "Taylor's Version"). Auto-detect may suggest the
+  mark; the user can always set or clear it by hand. No main album played →
+  the deluxe just stays its own release.
+- **Apart:** deluxes get their own small chart (like Singles). **Left out:**
+  no chart. **With albums:** stays on the Albums chart (today).
+- **Check:** marking and clearing a deluxe; Apart / Left out move it off the
+  Albums chart; its page still shows its rating and awards.
 
-### 6. What joins from a deluxe
-*The whole deluxe / Only the songs both versions share*
+### 6. What a deluxe counts
+*All its songs / Only its new songs*
 
-- **How:** with "only shared songs", plays of bonus songs keep the deluxe name
-  and the deluxe keeps a chart row with just those plays.
-- **Risk:** that deluxe row will be small and rarely certify — expected, but
-  worth a line in the switch's description.
-- **Check:** bonus song plays stay on the deluxe row; shared song plays move.
+- **All its songs:** every deluxe play stays on the deluxe. Songs that are
+  also on the main album count for the album too (the same "also counts" as
+  singles, per song — bonus songs never do). Like singles, at "Charts too"
+  this needs Deluxe set Apart or Left out, else it acts as Album page only.
+- **Only its new songs** (how the user streams): plays of songs that are also
+  on the main album **move** to the main album and stop counting for the
+  deluxe. The deluxe keeps only its bonus songs — own row, plaque, page.
+  Nothing is double, so it works even with Deluxe set With albums.
+  Built with the same per-song move the "Lover" single/album split already
+  uses (_rsApply); never written back to the sheet, Last.fm or Raw Data.
+- **Check:** a deluxe with 2 shared + 1 bonus song — "All": deluxe = all
+  three, album gains the two shared; "Only new": deluxe = bonus only, album =
+  its own + the shared deluxe plays, no song counted twice anywhere.
 
 ### 7. Greatest hits and compilations get single plays
 *On / Off (suggested default: off)*
@@ -178,12 +183,13 @@ under it about what it will do, so the user decides if that works for them.
 Shown only for the choices that trigger it; the in-site warning window
 (never browser confirm()) when turning on the ones that rewrite history.
 
-- **Deluxe join (5):** "Past charts change: where the deluxe charted on its
-  own, that week now shows the main album with both counts. #1s, weeks on
-  chart and certification dates can move. Ratings, dates, covers or awards
-  saved on the deluxe are hidden while this is on and come back when off."
-- **Deluxe "only shared songs" (6):** "The deluxe keeps a small row with only
-  its bonus songs; it will rarely chart or certify."
+- **Deluxe "All its songs" at Charts too while Deluxe is With albums (6):**
+  "Deluxes are on the Albums chart, so this works like Album page only — set
+  Deluxe Apart or Leave out for the charts to count them."
+- **Deluxe "Only its new songs" (6):** "The deluxe will be small: it only
+  counts its new songs, so it will rarely chart or certify. Past weeks where
+  you played the shared songs from the deluxe will show them on the main
+  album instead."
 - **EPs / singles at "Charts too" while set With albums (1):** "EPs are on the
   Albums chart, so this works like Album page only — set EPs Apart or Leave
   out for the charts to count them." (same note for singles)
@@ -224,7 +230,7 @@ Shown only for the choices that trigger it; the in-site warning window
 5. Switch 1 (EPs).
 6. Switch 4 (plays before release).
 7. Switch 8 (certifications setting).
-8. Switches 5 and 6 (deluxe editions).
+8. Deluxe release type (5) and what a deluxe counts (6).
 9. No-burst notifications, album window "where these plays come from" line,
    translations (ES / PT), What's New card, changelog.
 
