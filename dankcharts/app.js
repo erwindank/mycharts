@@ -2165,6 +2165,20 @@ function rollupBelongsTo(p, albumKey) {
   return rollupParentOf(p, true) === albumKey;
 }
 
+/* A stand-in for a single's play, filed under the album it rolls up into:
+   the album name and key are the album's, everything else (date, song,
+   artist, stamps) is read through from the real play. For counting code that
+   keeps "one play for its names" — an album first reached through its single
+   would otherwise be named after the single. Never stored or written back. */
+function rolledPlayAs(p, albumKey) {
+  const i = albumKey.lastIndexOf('|||');
+  const r = Object.create(p);
+  r.album = albumKey.slice(0, i);
+  r._ak = albumKey;
+  r._aa = albumKey.slice(i + 3);
+  return r;
+}
+
 // The singles counted toward one album, for the line the album page shows.
 function rollupSourcesFor(albumKey) {
   const out = [];
@@ -10116,6 +10130,14 @@ function buildRecords() {
     const elapsed = date - first;
     return { date: date, elapsed: elapsed, days: Math.round(elapsed / 86400000) };
   };
+  // One play toward one album's milestone ladder (its own, or the album a
+  // single rolls up into)
+  const albumMilestone = function (ak, p) {
+    if (!albumFirst[ak]) albumFirst[ak] = p.date;
+    const an = albumCP[ak] = (albumCP[ak] || 0) + 1;
+    if (!albumMS[ak]) albumMS[ak] = {};
+    if (MILESTONE_SET.has(an)) albumMS[ak][an] = msAt(p.date, albumFirst[ak]);
+  };
   for (const p of chron) {
     for (const a of p.artists) {
       if (!artistFirst[a]) artistFirst[a] = p.date;
@@ -10133,10 +10155,12 @@ function buildRecords() {
     // guard the raw discovery counts above use.
     if (p.album && p.album !== '—') {
       const ak = albumKeyOf(p);
-      if (!albumFirst[ak]) albumFirst[ak] = p.date;
-      const an = albumCP[ak] = (albumCP[ak] || 0) + 1;
-      if (!albumMS[ak]) albumMS[ak] = {};
-      if (MILESTONE_SET.has(an)) albumMS[ak][an] = msAt(p.date, albumFirst[ak]);
+      albumMilestone(ak, p);
+      /* While singles count toward their album on the charts, the album's
+         play milestones count them too — a running total, so the single's
+         early plays as well, the same figure the album certifies on. */
+      const par = _recRoll ? rollupParentOf(p, true) : null;
+      if (par && par !== ak) albumMilestone(par, p);
     }
   }
 
@@ -18754,11 +18778,16 @@ function renderAll() {
     // Album of the moment: most-played album in the last 21 days ending at period end
     const albumotmStart = new Date(end.getTime() - 21 * 24 * 60 * 60 * 1000);
     const albumCounts21 = {};
+    // Counted the way the albums chart counts: while singles count toward
+    // their album, from the album's release on (a period, not a running total)
+    const _aotmRoll = rollupAffectsCharts();
     for (const p of allPlays) {
       const d = tzDateOf(p);
       if (d >= albumotmStart && d <= end && p.album && p.album !== '—') {
         const ak = albumKeyOf(p);
         albumCounts21[ak] = (albumCounts21[ak] || 0) + 1;
+        const par = _aotmRoll ? rollupParentOf(p) : null;
+        if (par && par !== ak) albumCounts21[par] = (albumCounts21[par] || 0) + 1;
       }
     }
     let albumotmKey = null, albumotmCount = 0;
@@ -29926,7 +29955,8 @@ function _amRow(kind, x, rank, extra, ctx) {
     plays: x.count,
     // a single or EP is certified on its own ladder (the mark, not the Apart
     // switch decides that — see certKindFor), albums on the album one
-    cert: certBadge(x.count, isSong ? 'song' : certKindFor(x.album, art)),
+    // an album row's plaque uses certCount (openArtistModal) when it has one
+    cert: certBadge(isSong ? x.count : (x.certCount ?? x.count), isSong ? 'song' : certKindFor(x.album, art)),
     first: x.firstPlayed, last: x.lastPlayed,
     openKey: isSong ? songKey(x) : x.album + '|||' + art,
     // the album a song row's second line names, so it can open it too
@@ -31312,13 +31342,14 @@ function openArtistModal(artistName) {
     // can look it up in peaks.albumPeakMap, which is always keyed by primary artist.
     if (!albumCounts[k]) {
       const credit = albumArtist(p);
-      albumCounts[k] = { key: k, album: p.album, primaryArtist: credit, count: 0, tracks: new Set(), firstPlayed: p.date, lastPlayed: p.date,
+      albumCounts[k] = { key: k, album: p.album, primaryArtist: credit, count: 0, ownCount: 0, tracks: new Set(), firstPlayed: p.date, lastPlayed: p.date,
         // Owned (their album, or a joint album they co-own) or only a guest on it
         own: isAlbumOwner(p.album, credit, artistName), owners: albumOwnersOf(p.album, credit) };
       if (!albumByName[p.album]) albumByName[p.album] = albumCounts[k];
     }
     else albumCounts[k].firstPlayed = p.date;
     albumCounts[k].count++;
+    albumCounts[k].ownCount++;
     albumCounts[k].tracks.add(p.title);
     /* While singles count toward their album, the album's row here (and its
        plaque, the favourite album and the album certification count) uses the
@@ -31329,7 +31360,7 @@ function openArtistModal(artistName) {
       if (!albumCounts[par]) {
         const pi = par.lastIndexOf('|||');
         const pAlbum = par.slice(0, pi), pCredit = par.slice(pi + 3);
-        albumCounts[par] = { key: par, album: pAlbum, primaryArtist: pCredit, count: 0, tracks: new Set(), firstPlayed: p.date, lastPlayed: p.date,
+        albumCounts[par] = { key: par, album: pAlbum, primaryArtist: pCredit, count: 0, ownCount: 0, tracks: new Set(), firstPlayed: p.date, lastPlayed: p.date,
           own: isAlbumOwner(pAlbum, pCredit, artistName), owners: albumOwnersOf(pAlbum, pCredit) };
         if (!albumByName[pAlbum]) albumByName[pAlbum] = albumCounts[par];
       }
@@ -31344,6 +31375,11 @@ function openArtistModal(artistName) {
      artist OWNS. Albums they only guest on go to the Music tab's Appears on
      list and nowhere else. Their songs on those albums still count in full:
      the songs above are built from every play. */
+  /* The figure each album certifies on — the same rule as the album window:
+     the merged total at "Charts too", the album's own plays otherwise (at
+     "Album page only" the row still shows the merged total). */
+  const _amCertRoll = rollupAffectsCharts();
+  for (const a of Object.values(albumCounts)) a.certCount = _amCertRoll ? a.count : a.ownCount;
   const everyAlbumSorted = Object.values(albumCounts).sort((a, b) => b.count - a.count);
   const allAlbumsSorted = everyAlbumSorted.filter(a => a.own);
   const guestAlbumsSorted = everyAlbumSorted.filter(a => !a.own);
@@ -31388,8 +31424,8 @@ function openArtistModal(artistName) {
      the mark, not the Apart switch: the ladder applies either way. */
   const certAlbums = allAlbumsSorted.filter(a =>
     !isCompilationAlbum(a.album) && certKindFor(a.album, a.primaryArtist || artistName) === 'album');
-  const goldAlbums = certAlbums.filter(a => a.count >= CERT.album.gold).length;
-  const platAlbums = certAlbums.filter(a => a.count >= CERT.album.plat).length;
+  const goldAlbums = certAlbums.filter(a => a.certCount >= CERT.album.gold).length;
+  const platAlbums = certAlbums.filter(a => a.certCount >= CERT.album.plat).length;
 
   // All-time / per-period chart peaks
   const artistPeak = peaks.artistPeakMap[artistName];
@@ -31698,14 +31734,16 @@ function openArtistModal(artistName) {
      plays is not counted among records that needed twice that. Compilations
      stay out (their certification belongs to the record, not each singer). */
   const certBadges = (pool, cfg, unitKey, toRow) => {
-    const maxMult = pool.reduce((m, x) => Math.max(m, Math.floor(x.count / cfg.diamond)), 0);
+    // an album certifies on certCount (see albumCounts above), a song on its plays
+    const cn = x => x.certCount ?? x.count;
+    const maxMult = pool.reduce((m, x) => Math.max(m, Math.floor(cn(x) / cfg.diamond)), 0);
     for (let mult = maxMult; mult >= 1; mult--) {
-      const items = pool.filter(x => Math.floor(x.count / cfg.diamond) === mult);
+      const items = pool.filter(x => Math.floor(cn(x) / cfg.diamond) === mult);
       if (items.length) badges.push({ tone: 'diamond', group: 'cert', tag: tDiamondLabel(mult), value: items.length, label: tUnit(unitKey, items.length), sub: atLeast(mult * cfg.diamond), rows: items.map(toRow) });
     }
-    const plat = pool.filter(x => x.count >= cfg.plat && x.count < cfg.diamond);
+    const plat = pool.filter(x => cn(x) >= cfg.plat && cn(x) < cfg.diamond);
     if (plat.length) badges.push({ tone: 'plat', group: 'cert', tag: t('cert_plat'), value: plat.length, label: tUnit(unitKey, plat.length), sub: atLeast(cfg.plat), rows: plat.map(toRow) });
-    const gold = pool.filter(x => x.count >= cfg.gold && x.count < cfg.plat);
+    const gold = pool.filter(x => cn(x) >= cfg.gold && cn(x) < cfg.plat);
     if (gold.length) badges.push({ tone: 'gold', group: 'cert', tag: t('cert_gold'), value: gold.length, label: tUnit(unitKey, gold.length), sub: atLeast(cfg.gold), rows: gold.map(toRow) });
   };
   certBadges(allSongsSorted, CERT.song, 'songs', s => songRow(s, s.count, firstPlay(s)));
@@ -31882,6 +31920,12 @@ function openAlbumModal(albumKey) {
   const totalPlays = albumPlays.length;
   // The singles folded in, for the line under the title that says so.
   const rolledSingles = rollupAffectsModal() ? rollupSourcesFor(albumKey) : [];
+  /* The figure the album certifies on. At "Charts too" that is the merged
+     total, the same as Records and the wall. At "Album page only" the page
+     still shows the single's plays, but the plaque counts the album's own
+     plays — before, it counted the single too and so disagreed with Records. */
+  const certPlays = rollupAffectsCharts() ? totalPlays
+    : (rolledSingles.length ? albumPlays.filter(p => albumKeyOf(p) === albumKey).length : totalPlays);
   const ek = encodeURIComponent(albumKey);
 
   // Tracks — allPlays sorted newest→oldest, so first = lastPlayed, last = firstPlayed
@@ -31941,7 +31985,7 @@ function openAlbumModal(albumKey) {
   // Avg plays per track + next cert milestone (on the album's own ladder)
   const avgPlaysPerTrack = allTracksSorted.length ? Math.round(totalPlays / allTracksSorted.length) : 0;
   const _mCfg = certCfgFor(albumName, artistName);
-  const nextCert = _crNextCert(totalPlays, _mCfg);
+  const nextCert = _crNextCert(certPlays, _mCfg);
 
   // ── HEADER ────────────────────────────────────────────────────────────────
   document.getElementById('albumModalName').textContent = albumName;
@@ -32151,7 +32195,7 @@ function openAlbumModal(albumKey) {
 
   // ── OVERVIEW: headline card ───────────────────────────────────
   const rankTone = _rkTone(allTimeAlbumRank);
-  const cert = certBadge(totalPlays, certKindFor(albumName, artistName));
+  const cert = certBadge(certPlays, certKindFor(albumName, artistName));
   const rankLbl = bucket !== 'album' ? 'al_rank_' + bucket
     : relType === 'single' || relType === 'ep' ? 'al_rank_on_albums' : 'modal_most_heard_album';
   const oneSong = nTracks === 1;
@@ -32221,7 +32265,7 @@ function openAlbumModal(albumKey) {
         <div class="ao-trio-cell ao-tone-albums"><span class="ao-trio-val">${calendarDays ? (totalPlays / calendarDays).toFixed(1) : '0'}</span><span class="ao-trio-lbl">${noBr(t('sm_avg_per_day'))}</span></div>`
           : `<div class="ao-trio-cell ao-tone-songs"><span class="ao-trio-val ao-count">${nTracks.toLocaleString()}</span><span class="ao-trio-lbl">${noBr(t('modal_tracks'))}</span></div>
         <div class="ao-trio-cell ao-tone-albums"><span class="ao-trio-val ao-count">${avgPlaysPerTrack.toLocaleString()}</span><span class="ao-trio-lbl">${noBr(t('modal_avg_plays_per_track'))}</span></div>`}
-        <div class="ao-trio-cell ao-tone-avg"><span class="ao-trio-val ao-count">${(nextCert.at - totalPlays).toLocaleString()}</span><span class="ao-trio-lbl">${esc(t('modal_plays_to_cert', { cert: nextCert.label }))}</span></div>
+        <div class="ao-trio-cell ao-tone-avg"><span class="ao-trio-val ao-count">${(nextCert.at - certPlays).toLocaleString()}</span><span class="ao-trio-lbl">${esc(t('modal_plays_to_cert', { cert: nextCert.label }))}</span></div>
       </div>
     </div>
     ${favs ? `<div class="ao-favs${favs.split('class="ao-fav"').length === 2 ? ' is-one' : ''}">${favs}</div>` : ''}
@@ -32279,8 +32323,8 @@ function openAlbumModal(albumKey) {
     return null;
   };
   const atLeast = n => `${n.toLocaleString()}+ ${tUnit('plays', n)}`;
-  const albTier = tierOf(totalPlays, _mCfg);
-  if (albTier) badges.push({ tone: albTier.tone, group: 'cert', tag: albTier.tag, value: totalPlays, label: tUnit('plays', totalPlays), sub: atLeast(albTier.at), rows: [] });
+  const albTier = tierOf(certPlays, _mCfg);
+  if (albTier) badges.push({ tone: albTier.tone, group: 'cert', tag: albTier.tag, value: certPlays, label: tUnit('plays', certPlays), sub: atLeast(albTier.at), rows: [] });
   const trackTiers = {};
   for (const s of allTracksSorted) {
     const tr = tierOf(s.count, CERT.song);
@@ -32375,11 +32419,13 @@ function openAlbumModal(albumKey) {
   const certTitleEl = document.getElementById('albumModalCertTitle') || { style: {} };
   const certPlaquesEl = document.getElementById('albumModalCertPlaques');
   const plaqueItems = [];
-  if (totalPlays >= CERT.album.gold) {
-    const mult = totalPlays >= CERT.album.diamond ? Math.floor(totalPlays / CERT.album.diamond) : 0;
-    const tier = mult > 0 ? 'diamond' : totalPlays >= CERT.album.plat ? 'plat' : 'gold';
+  // On the release's own ladder (single / EP / album), the same as the badge
+  // above and Records — this used the album ladder even for a single or EP.
+  if (certPlays >= _mCfg.gold) {
+    const mult = certPlays >= _mCfg.diamond ? Math.floor(certPlays / _mCfg.diamond) : 0;
+    const tier = mult > 0 ? 'diamond' : certPlays >= _mCfg.plat ? 'plat' : 'gold';
     const { icon: dIcon, label: dLabel } = mult > 0 ? diamondMultiLabel(mult) : { icon: tier === 'plat' ? '💿' : '📀', label: tTierLabel(tier) };
-    plaqueItems.push({ icon: dIcon, label: dLabel, tier, mult, plays: mult > 0 ? mult * CERT.album.diamond : (tier === 'plat' ? CERT.album.plat : CERT.album.gold), type: 'Album' });
+    plaqueItems.push({ icon: dIcon, label: dLabel, tier, mult, plays: mult > 0 ? mult * _mCfg.diamond : (tier === 'plat' ? _mCfg.plat : _mCfg.gold), type: 'Album' });
   }
   for (const s of allTracksSorted) {
     if (s.count >= CERT.song.gold) {
@@ -50512,6 +50558,26 @@ function _pk(p)  { return _pa(p).toLowerCase(); }
 function _ak(p) { return `${(p.album||'').toLowerCase()}|||${_pk(p)}`; }
 function _rk(p) { return _pk(p); }
 
+/* Album categories count an album the way the albums chart does: while singles
+   count toward their album (Settings → Releases, "Charts too"), a single's play
+   is also a play of the album it rolls up into — from the album's release on,
+   like a period chart, since an awards year is a period. Returned as stand-in
+   plays that carry the album's name and key (everything else — date, song,
+   artist — comes from the real play), so every counting branch can take them
+   unchanged. Only albums proper receive them (a single or EP set Apart is not
+   an album here). Empty when the switch is off. */
+function _awardsRolledPlays(plays) {
+  if (!rollupAffectsCharts()) return [];
+  const out = [];
+  for (const p of plays) {
+    if (!p.album || p.album === '—') continue;
+    const par = rollupParentOf(p);
+    if (!par || par === albumKeyOf(p) || !isAlbumProperKey(par)) continue;
+    out.push(rolledPlayAs(p, par));
+  }
+  return out;
+}
+
 function _awardsCountMaps(plays) {
   const songs = {}, albums = {}, artists = {};
   for (const p of plays) {
@@ -51638,7 +51704,9 @@ async function _awardsGetCandidates(catDef, eligStart, eligEnd, log) {
      ask for their type on purpose, so they keep everything. Only the window's
      plays are narrowed — every branch below counts nominees from inWin. */
   const _albProper = catDef.type === 'album' && !String(catDef.filter).startsWith('rt:');
-  const inWin = allPlays.filter(p => p.date >= start && p.date <= end && (!_albProper || isAlbumProperPlay(p)));
+  let inWin = allPlays.filter(p => p.date >= start && p.date <= end && (!_albProper || isAlbumProperPlay(p)));
+  // + the window's single plays that count toward an album (see _awardsRolledPlays)
+  if (_albProper) inWin = inWin.concat(_awardsRolledPlays(allPlays.filter(p => p.date >= start && p.date <= end)));
   if (!inWin.length) return [];
   const { songs, albums, artists } = _awardsCountMaps(inWin);
   const f = catDef.filter;
@@ -54377,7 +54445,12 @@ function _awardsPickerBuildIndex() {
   const map   = {};
   const stats = _awardsPickerHasStats();
   let total = 0;
-  for (const p of allPlays) {
+  // Album lists also take the single plays that count toward an album, the
+  // same as the nominees (_awardsGetCandidates) — so the two agree
+  const src = (_awardsPickerCatType === 'album' && !String(_awardsPickerCatFilter || '').startsWith('rt:'))
+    ? allPlays.concat(_awardsRolledPlays(allPlays.filter(p => p.date >= start && p.date <= end)))
+    : allPlays;
+  for (const p of src) {
     if (p.date < start || p.date > end) continue;
     let k;
     if (_awardsPickerCatType === 'song') {

@@ -120,6 +120,7 @@ function _sxTally(fromTs, toTs, trend) {
   const bArtists = trend ? Array.from({ length: nB }, () => new Set()) : null;
   const bAlbums = trend ? Array.from({ length: nB }, () => new Set()) : null;
   const dayKey = _sxDayKeyer();
+  const roll = rollupAffectsCharts();   // singles count toward their album
   for (const p of allPlays) {
     const d = tzDateOf(p), ts = d.getTime();
     if (ts < fromTs || ts > toTs) continue;
@@ -137,6 +138,14 @@ function _sxTally(fromTs, toTs, trend) {
       if (isAlbumProperKey(ak)) {
         const ao = albumPlays.get(ak);
         if (ao) ao.n++; else albumPlays.set(ak, { n: 1, p });
+      }
+      /* While singles count toward their album on the charts, the top albums
+         count them too — from the album's release on, like a period chart.
+         The single still counts as its own release in the tile above. */
+      const par = roll ? rollupParentOf(p) : null;
+      if (par && par !== ak && isAlbumProperKey(par)) {
+        const ao = albumPlays.get(par);
+        if (ao) ao.n++; else albumPlays.set(par, { n: 1, p: rolledPlayAs(p, par) });
       }
     }
     const dk = dayKey(d);
