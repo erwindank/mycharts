@@ -271,7 +271,8 @@ album's release; enough plays to cross gold/platinum on lowered thresholds.
 - [ ] Spotlight cards (album of the moment), stats tiles banner
 - [ ] Daily tab, Replay (chart replay credits), All-Time insights
 - [ ] Compare tab
-- [ ] ⚠ Chart race video (buildRaceFrames — own count)
+- [ ] Chart race video (follows the shared step since 2026-11-23, running
+      total like All-Time; new switches must reach it too)
 - [ ] Library search results, Raw Data (must keep the real names)
 
 ### Awards
@@ -283,9 +284,9 @@ album's release; enough plays to cross gold/platinum on lowered thresholds.
 - [ ] Share images: chart cards, chart-run cards, filmstrip, mosaic, stats
       share, cert plaque share
 - [ ] Printable chart PDF
-- [ ] ⚠ Dank 100 (dank100.js tallies albums by their own name — decide whether
-      the shared chart should follow the user's switch; probably NOT, so every
-      user is counted the same way)
+- [ ] Dank 100 — **stays as it is (user, 2026-11-23):** the shared chart counts
+      albums by their own plays and ignores every switch, so every user is
+      counted the same way. Check only that it is unchanged.
 - [ ] Board posts that embed a chart
 
 ### Playlists, ratings, genres

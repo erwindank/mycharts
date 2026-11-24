@@ -33605,6 +33605,19 @@ function buildRaceFrames() {
   // Which Compare pick each racer is (imgKey -> artist name / song key /
   // album key), for the chip colours and the starting line-up
   const pickOf = {};
+  // One play toward one album's bar (p may be a single's play filed under its
+  // album, see rolledPlayAs)
+  const _raceRoll = raceType === 'albums' && rollupAffectsCharts();
+  const raceAlbumPlay = p => {
+    if (only && !only.has(albumKeyOf(p))) return;
+    // Unless picked by hand, Apart / left-out singles and EPs don't race as albums
+    if (!only && !isAlbumProperPlay(p)) return;
+    const mainArtist = (p.artists && p.artists[0]) || p.artist;
+    const imgKey = `${mainArtist}||${p.album}`;
+    totals[imgKey] = (totals[imgKey] || 0) + 1;
+    if (!metaMap[imgKey]) metaMap[imgKey] = { type: 'albums', name: p.album, artist: mainArtist, display: p.album, sub: mainArtist };
+    pickOf[imgKey] = albumKeyOf(p);
+  };
 
   for (const key of sortedKeys) {
     for (const p of (periodPlays[key] || [])) {
@@ -33623,14 +33636,12 @@ function buildRaceFrames() {
         if (!metaMap[imgKey]) metaMap[imgKey] = { type: 'songs', name: p.title, artist: mainArtist, display: p.title, sub: mainArtist };
         pickOf[imgKey] = songKey(p);
       } else { // albums
-        if (only && !only.has(albumKeyOf(p))) continue;
-        // Unless picked by hand, Apart / left-out singles and EPs don't race as albums
-        if (!only && !isAlbumProperPlay(p)) continue;
-        const mainArtist = (p.artists && p.artists[0]) || p.artist;
-        const imgKey = `${mainArtist}||${p.album}`;
-        totals[imgKey] = (totals[imgKey] || 0) + 1;
-        if (!metaMap[imgKey]) metaMap[imgKey] = { type: 'albums', name: p.album, artist: mainArtist, display: p.album, sub: mainArtist };
-        pickOf[imgKey] = albumKeyOf(p);
+        raceAlbumPlay(p);
+        /* While singles count toward their album on the charts, the album
+           races on the same figure: the race is a running total, like the
+           All-Time chart, so every play of the single counts (full). */
+        const par = (_raceRoll && p.album && p.album !== '—') ? rollupParentOf(p, true) : null;
+        if (par && par !== albumKeyOf(p)) raceAlbumPlay(rolledPlayAs(p, par));
       }
     }
     const ranked = Object.entries(totals).sort((a, b) => b[1] - a[1]);
