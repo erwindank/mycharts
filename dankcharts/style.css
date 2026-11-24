@@ -41530,6 +41530,11 @@ body.green-light :is(.sv--bronze, .modal-cb-detail-peak--bronze) {
        verdict. Same language as every chip on the site, written large:
        your scores SOLID, Listening Scores DASHED / STRIPED. */
     #ratingsView .rp-hero--duel { display: block; --rt-c: var(--accent); }
+    /* The artist window's Rating tab has the same split (2026-11-24),
+       a size smaller to fit the window */
+    #modalArtistRating .rp-hero--duel { display: block; --rt-c: var(--accent); }
+    #modalArtistRating .rp-side { gap: var(--sp-3); padding: var(--sp-3); }
+    #modalArtistRating .rp-side .ar-verdict { font-size: 1.5rem; }
     .rp-duel { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: stretch; gap: var(--sp-3); }
     .rp-side {
       display: flex; align-items: center; gap: var(--sp-4); min-width: 0;

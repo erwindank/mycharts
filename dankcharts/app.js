@@ -66875,8 +66875,10 @@ function renderSongRatingSection(key) {
           <span class="rt-albumlink-lead">${t('rtp_full_album')}</span>
           <span class="rt-albumlink-name">${esc(aName)}</span>
         </span>
-        ${(() => { const av = typeof asAlbumView === 'function' && asOn() ? asAlbumView(bestKey) : null;
-          return av ? asChip(av) : ar ? ratingChip(ar.score) : `<span class="rt-albumlink-unrated">${t('rtp_not_rated')}</span>`; })()}
+        ${/* your own album score when there is one (never blended with
+             Listening Scores, 2026-11-24); the Listening Score only when
+             you have scored nothing on it */ (() => { const av = !ar && typeof asAlbumView === 'function' && asOn() ? asAlbumView(bestKey) : null;
+          return ar ? ratingChip(ar.score) : av ? asChip(av) : `<span class="rt-albumlink-unrated">${t('rtp_not_rated')}</span>`; })()}
         <span class="rt-albumlink-arrow">→</span>
       </button>`;
     }
@@ -66972,13 +66974,13 @@ function _renderAlbumRatingMini(albumKey) {
     </div>`;
     return;
   }
-  // Part yours (Listening Scores): lead with the combined score
-  const mv = typeof asAlbumView === 'function' && asOn() ? asAlbumView(albumKey) : null;
-  const mix = mv && mv.state === 'mixed' ? mv : null;
-  const band = ratingBand(mix ? mix.score : res.score);
+  // Your own score only (2026-11-24): a part-yours album no longer leads
+  // with a blend of your track scores and Listening Scores — the Rating tab
+  // shows the Listening Score beside it instead
+  const band = ratingBand(res.score);
   const num = (v, label, cls) => `<span class="ao-rate-num"><b class="${cls || ''}">${v}</b>${esc(label)}</span>`;
   el.innerHTML = `<div class="ao-rate" role="button" tabindex="0" ${go}>
-    ${ratingRing(mix ? mix.score : res.score, { size: 72, ls: mix ? 'mixed' : '' })}
+    ${ratingRing(res.score, { size: 72 })}
     <div class="ao-rate-txt">
       <div class="ao-rate-verdict ${band.cls}">${esc(band.label)}</div>
       <div class="ao-rate-nums">
@@ -67157,10 +67159,13 @@ function renderAlbumRatingSection(albumKey) {
   // the Edit / Picture cards, the stat tiles, and each part in its own card
   // with a small uppercase heading. rt-al-* classes are album-only; the song
   // window still uses .rt-block.
-  // Part yours (Listening Scores on, some tracks unrated): the hero shows the
-  // combined score, the same number as the album's chips everywhere else
-  const mixView = asView && asView.state === 'mixed' ? asView : null;
-  const heroScore = mixView ? mixView.score : res.score;
+  // Part yours (Listening Scores on, some tracks unrated): the hero shows
+  // YOUR score only (2026-11-24, was a blend of your track scores and
+  // Listening Scores). The Listening Score for the album — worked out as if
+  // you had rated nothing, like the Ratings page's "Listening" side — sits
+  // apart on its own line under it.
+  const heroScore = res.score;
+  const lsAlbum = asView && typeof asAlbumLs === 'function' ? asAlbumLs(albumKey) : null;
   const bnd = ratingBand(heroScore);
   const card = (title, body, extra = '') => `<div class="rt-al-card${extra}"><div class="rt-al-card-h"><span class="ao-kicker">${esc(title)}</span></div>${body}</div>`;
   // Standouts, redone 2026-11-12 (the pill row looked messy and cut long
@@ -67179,12 +67184,12 @@ function renderAlbumRatingSection(albumKey) {
   const skHTML = ins && ins.skips.length ? stCol('⏭️', t('rtp_skips'), t('rt_al_sk_hint'), ins.skips) : '';
   el.innerHTML = `<div class="ar rt-al">
     <div class="ar-hero ${bnd.cls}">
-      ${ratingRing(heroScore, { size: 120, ls: mixView ? 'mixed' : '' })}
+      ${ratingRing(heroScore, { size: 120 })}
       <div class="ar-hero-txt">
-        <span class="ao-kicker">${esc(mixView ? t('as_mixed') : t('ar_kicker'))}</span>
+        <span class="ao-kicker">${esc(t('ar_kicker'))}</span>
         <div class="ar-verdict">${esc(bnd.label)}</div>
-        ${mixView ? '' : `<div class="rt-formula rt-al-formula">${_ratingFormulaHTML(res)}</div>`}
-        ${mixView ? `<div class="as-said as-said--mix">${esc(t('as_mixed_line', { n: mixView.yourTracks, of: mixView.yourTracks + mixView.lsTracks }))} ${ratingChip(res.score)}</div>`
+        <div class="rt-formula rt-al-formula">${_ratingFormulaHTML(res)}</div>
+        ${lsAlbum != null ? `<div class="as-said">${esc(t('as_said'))} ${asChip({ score: lsAlbum, state: 'listening' })}</div>`
           : asRel ? `<div class="as-said">${esc(t('as_said'))} ${asChip({ score: asRel.score, state: 'listening' })}</div>` : ''}
         <div class="ar-meters"><div class="ar-meter">
           <div class="ar-meter-top"><span>${esc(t('rt_al_tracks_rated'))}</span><b>${res.ratedTracks}<span> / ${res.totalTracks}</span></b></div>
@@ -69056,19 +69061,29 @@ function renderArtistRatingSection(artistName) {
   const el = document.getElementById('modalArtistRating');
   if (!el || !artistName) return;
   _ratingArtistOpen = artistName;
-  const sum = ratingArtistSummary(artistName);
-  // The Overview tab shows a short version of this
-  _renderArtistRatingMini(sum);
+  /* Whose scores (2026-11-24, like the Ratings page): with Listening Scores
+     on, your own scores and the automatic ones stay apart — "Your scores" vs
+     "Listening Scores" side by side and a Yours · Listening · Both switch —
+     instead of one verdict averaged from both. It was the old
+     ratingArtistSummary, which blends them whenever "Count Listening Scores"
+     is on. Same choice as the page (dc_rp_src); opens on yours, and on
+     theirs when you have scored nothing by this artist yet. */
+  const lsOn = typeof asOn === 'function' && asOn();
+  let mode = lsOn ? _rpSrcGet() : 'yours';
+  let sum = ratingLibrarySummary(mode, artistName);
+  if (lsOn && mode === 'yours' && !sum.albums.length && !sum.singles.length && !sum.songs.length
+      && (sum.split.albums.ls || sum.split.singles.ls || sum.split.songs.ls)) { mode = 'ls'; sum = ratingLibrarySummary('ls', artistName); }
+  // The Overview tab shows a short version of this — always your own scores
+  _renderArtistRatingMini({
+    albumAvg: sum.duel.you.album ? sum.duel.you.album.avg : null,
+    songAvg: sum.duel.you.song ? sum.duel.you.song.avg : null,
+    ratedAlbums: sum.split.albums.you, ratedSongs: sum.split.songs.you,
+    totalAlbums: sum.totalAlbums, totalSongs: sum.totalSongs
+  });
 
-  // Albums with no score yet, most played first
-  const { albumKeys } = _ratingArtistKeys(artistName);
-  const plays = {};
-  for (const p of allPlays) {
-    if (!p.artists.includes(artistName) || !p.album || p.album === '—') continue;
-    const k = albumKeyOf(p);
-    if (albumKeys.has(k)) plays[k] = (plays[k] || 0) + 1;
-  }
-  const todo = [...albumKeys].filter(k => !ratingAlbumScore(k)).sort((a, b) => (plays[b] || 0) - (plays[a] || 0));
+  // Albums with no score of yours yet, most played first
+  const plays = sum.albumPlays;
+  const todo = Object.keys(plays).filter(k => !ratingAlbumScore(k)).sort((a, b) => (plays[b] || 0) - (plays[a] || 0));
 
   const prev = _arS.a;
   const keep = prev && prev.artist === artistName ? prev : null;
@@ -69083,35 +69098,37 @@ function renderArtistRatingSection(artistName) {
   const ic = _amIco;
   const headline = sum.albumAvg ?? sum.songAvg;
   const band = ratingArtistBand(headline);
-  const meter =(n, of, label) => `<div class="ar-meter">
-      <div class="ar-meter-top"><span>${esc(label)}</span><b>${n.toLocaleString()}<span> / ${of.toLocaleString()}</span></b></div>
-      <div class="ar-meter-track"><span style="width:${(of ? n / of * 100 : 0).toFixed(1)}%"></span></div>
-    </div>`;
   const key = k => esc(JSON.stringify(k));
   const onKey = `onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}"`;
 
-  const hero = `<div class="ar-hero ${band ? band.cls : 'rt--none'}">
+  // Listening Scores off: one verdict, all yours. On: the two side by side.
+  const meters = _rpMetersHTML(sum);
+  const hero = lsOn ? _rpDuelHeroHTML(sum, mode, 'arSetSrc', meters, 96) : `<div class="ar-hero ${band ? band.cls : 'rt--none'}">
     ${ratingRing(headline, { size: 120 })}
     <div class="ar-hero-txt">
       <span class="ao-kicker">${esc(t('ar_kicker'))}</span>
       <div class="ar-verdict">${esc(band ? band.label : t('ao_no_ratings'))}</div>
       <div class="ar-hero-sub">${esc(headline == null ? t('ar_none_sub')
         : sum.albumAvg != null ? t('ar_avg_albums', { n: sum.ratedAlbums }) : t('ar_avg_songs', { n: sum.ratedSongs }))}</div>
-      <div class="ar-meters">${meter(sum.ratedAlbums, sum.totalAlbums, t('rtg_albums_rated'))}${
-        sum.totalSingles ? meter(sum.ratedSingles, sum.totalSingles, t('ar_singles_rated')) : ''}${meter(sum.ratedSongs, sum.totalSongs, t('rtg_songs_rated'))}</div>
+      ${meters}
     </div>
   </div>`;
+  // The switch: whose scores the cards and lists below hold
+  const srcBar = lsOn ? _rpSrcBarHTML(sum, mode, 'arSetSrc') : '';
 
   // Share picture: its own card under the score box (was a small "Share
   // scores" button inside it, which people missed and didn't read as
   // "compare the albums"). The three bars on the left are only a drawing of
   // the ranked picture, not real scores.
-  const nRated = (sum.ratedAlbums || 0) + (sum.ratedSingles || 0);
+  // The picture holds your own scores only, so these count yours whatever
+  // the switch says.
+  const ownAlb = sum.split.albums.you, ownSgl = sum.split.singles.you;
+  const nRated = ownAlb + ownSgl;
   // The picture is about the albums (singles & EPs only behind a switch in
   // the picture maker), so the line counts albums; singles only when no
   // album is rated yet. Separate words for 1 so it reads "1 rated album".
-  const shareN = sum.ratedAlbums || sum.ratedSingles || 0;
-  const shareSubKey = 'ra_share_sub_' + (sum.ratedAlbums ? 'albums' : 'singles') + (shareN === 1 ? '_one' : '');
+  const shareN = ownAlb || ownSgl || 0;
+  const shareSubKey = 'ra_share_sub_' + (ownAlb ? 'albums' : 'singles') + (shareN === 1 ? '_one' : '');
   const share = nRated ? `<div class="ar-next ar-share-card" role="button" tabindex="0" onclick="raOpenCard(${key(artistName)})" ${onKey}>
       <span class="ar-share-pic" aria-hidden="true"><i style="width:92%"></i><i style="width:74%"></i><i style="width:55%"></i></span>
       <span class="ar-next-txt">
@@ -69134,7 +69151,7 @@ function renderArtistRatingSection(artistName) {
       </span>
       <span class="ar-next-cta">${ic('star')}<span>${esc(t('rtp_rate_arrow'))}</span></span>
     </div>`
-    : (albumKeys.size ? `<div class="ar-done">${ic('crown')}<span>${esc(t('ar_all_done'))}</span></div>` : '');
+    : (Object.keys(plays).length ? `<div class="ar-done">${ic('crown')}<span>${esc(t('ar_all_done'))}</span></div>` : '');
 
   // Highest / lowest rated album and song
   const hi = [];
@@ -69142,22 +69159,24 @@ function renderArtistRatingSection(artistName) {
   // Albums only; singles / EPs stand in only when no album is rated
   const rel = sum.albums.length ? sum.albums : sum.singles;
   const relLbl = sum.albums.length ? ['ar_best_album', 'ar_low_album'] : ['ar_best_single', 'ar_low_single'];
-  if (rel[0]) hi.push({ lbl: t(relLbl[0]), name: rel[0].name, score: rel[0].score, kind: 'album', k: rel[0].key, up: true });
-  if (lastOf(rel)) hi.push({ lbl: t(relLbl[1]), name: lastOf(rel).name, score: lastOf(rel).score, kind: 'album', k: lastOf(rel).key });
-  if (sum.songs[0]) hi.push({ lbl: t('ar_best_song'), name: sum.songs[0].title, score: sum.songs[0].score, kind: 'song', k: sum.songs[0].key, up: true });
-  if (lastOf(sum.songs)) hi.push({ lbl: t('ar_low_song'), name: lastOf(sum.songs).title, score: lastOf(sum.songs).score, kind: 'song', k: lastOf(sum.songs).key });
+  if (rel[0]) hi.push({ lbl: t(relLbl[0]), name: rel[0].name, score: rel[0].score, src: rel[0].src, kind: 'album', k: rel[0].key, up: true });
+  if (lastOf(rel)) hi.push({ lbl: t(relLbl[1]), name: lastOf(rel).name, score: lastOf(rel).score, src: lastOf(rel).src, kind: 'album', k: lastOf(rel).key });
+  if (sum.songs[0]) hi.push({ lbl: t('ar_best_song'), name: sum.songs[0].title, score: sum.songs[0].score, src: sum.songs[0].src, kind: 'song', k: sum.songs[0].key, up: true });
+  if (lastOf(sum.songs)) hi.push({ lbl: t('ar_low_song'), name: lastOf(sum.songs).title, score: lastOf(sum.songs).score, src: lastOf(sum.songs).src, kind: 'song', k: lastOf(sum.songs).key });
   const highs = hi.length ? `<div class="ar-highs">${hi.map(h => {
     const b = ratingBand(h.score);
-    return `<button type="button" class="ar-hi ${b.cls}" onclick="openRatingModal('${h.kind}', ${key(h.k)})">
+    // Who gave the score (Listening / Both), as on the Ratings page
+    const who = lsOn ? `<span class="rp-who rp-who--${h.src}">${ic(h.src === 'ls' ? 'headphones' : 'star')}${esc(t(h.src === 'ls' ? 'rp_who_ls' : h.src === 'mix' ? 'as_mixed' : 'rp_who_you'))}</span>` : '';
+    return `<button type="button" class="ar-hi ${b.cls}${lsOn && h.src === 'ls' ? ' rp-hi--ls' : ''}" onclick="openRatingModal('${h.kind}', ${key(h.k)})">
       <span class="ar-hi-lbl">${ic(h.up ? 'trend' : 'bars')}${esc(h.lbl)}</span>
       <span class="ar-hi-score">${ratingFmt(h.score)}</span>
       <span class="ar-hi-name">${esc(h.name)}</span>
-      <span class="ar-hi-band">${esc(b.label)}</span>
+      ${who || `<span class="ar-hi-band">${esc(b.label)}</span>`}
     </button>`;
   }).join('')}</div>` : '';
 
   // Discography progress / plaque (ratefun.js) under the score box
-  el.innerHTML = `<div class="ar">${hero}${typeof rfDiscoArtistHTML === 'function' ? rfDiscoArtistHTML(artistName) : ''}${share}${next}${highs}<div class="ar-body"></div></div>`;
+  el.innerHTML = `<div class="ar">${hero}${srcBar}${typeof rfDiscoArtistHTML === 'function' ? rfDiscoArtistHTML(artistName) : ''}${share}${next}${highs}<div class="ar-body"></div></div>`;
   if (typeof rfDiscoArtistFill === 'function') rfDiscoArtistFill(artistName);
   if (nk) {
     const [an, aa] = nk.split('|||');
@@ -70273,6 +70292,82 @@ function rpSetSrc(s) {
   // a verdict picked in the spread may not exist in the other list
   if (_arS.p) { _arS.p.band = null; _arS.p.all = false; }
   renderRatingsPage();
+}
+/* The artist window's Rating tab uses the same choice (2026-11-24), so the
+   page and the window always show the same kind of score. */
+function arSetSrc(s) {
+  if (!RP_SRCS.includes(s)) return;
+  _rpSrc = s;
+  try { localStorage.setItem('dc_rp_src', s); } catch (e) { /* not remembered, still switched */ }
+  if (_arS.a) { _arS.a.band = null; _arS.a.all = false; }
+  if (_ratingArtistOpen) renderArtistRatingSection(_ratingArtistOpen);
+  // the page underneath follows on its next paint
+  if (_arS.p) { _arS.p.band = null; _arS.p.all = false; }
+  if (document.getElementById('ratingsPageBody')) renderRatingsPage();
+}
+
+/* Shared by the Ratings page and the artist Rating tab (2026-11-24, was
+   inside renderRatingsPage). sum = ratingLibrarySummary(...); setFn = the
+   handler name the switch buttons call ('rpSetSrc' / 'arSetSrc'). */
+
+// "Albums rated / Singles & EPs rated / Songs rated". With Listening Scores
+// on, each bar is split: solid = what you scored, striped = what only has a
+// Listening Score, empty = nothing yet; the number is always yours.
+function _rpMetersHTML(sum) {
+  const pct = (n, of) => (of ? Math.max(n ? 1.5 : 0, n / of * 100) : 0).toFixed(1);
+  const meter = (n, of, label, sp) => sp && sum.lsOn ? `<div class="ar-meter rp-meter">
+      <div class="ar-meter-top"><span>${esc(label)}</span><b>${sp.you.toLocaleString()}<span> / ${of.toLocaleString()}</span></b></div>
+      <div class="ar-meter-track rp-meter-track"><span class="rp-m-you" style="width:${pct(sp.you, of)}%"></span><span class="rp-m-ls" style="width:${pct(sp.ls, of)}%"></span></div>
+      <div class="rp-meter-key"><span class="rp-k-you">${esc(t('rp_m_you', { n: sp.you.toLocaleString() }))}</span><span class="rp-k-ls">${esc(t('rp_m_ls', { n: sp.ls.toLocaleString() }))}</span></div>
+    </div>` : `<div class="ar-meter">
+      <div class="ar-meter-top"><span>${esc(label)}</span><b>${n.toLocaleString()}<span> / ${of.toLocaleString()}</span></b></div>
+      <div class="ar-meter-track"><span style="width:${pct(n, of)}%"></span></div>
+    </div>`;
+  return `<div class="ar-meters">${meter(sum.ratedAlbums, sum.totalAlbums, t('rtg_albums_rated'), sum.split.albums)}${
+    sum.totalSingles ? meter(sum.ratedSingles, sum.totalSingles, t('ar_singles_rated'), sum.split.singles) : ''}${meter(sum.ratedSongs, sum.totalSongs, t('rtg_songs_rated'), sum.split.songs)}</div>`;
+}
+
+/* You vs. Listening (2026-11-19): your own average and the Listening
+   Score average side by side, each with its own verdict, never blended.
+   Albums when you have scored any, else songs; both sides use the same
+   kind so the two numbers compare. Each side is also the switch to its
+   list. Your side is the solid ring, theirs the dashed one, the same
+   language every chip on the site uses. tail = what goes under (meters…). */
+function _rpDuelHeroHTML(sum, mode, setFn, tail, ring = 112) {
+  const ic = _amIco;
+  const D = sum.duel;
+  const dk = D.you.album || (!D.you.song && D.ls.album) ? 'album' : 'song';
+  const side = who => {
+    const d = D[who][dk];
+    const b = d ? ratingBand(d.avg) : null;
+    const on = mode === 'both' || mode === (who === 'you' ? 'yours' : 'ls');
+    return `<button type="button" class="rp-side rp-side--${who} ${b ? b.cls : 'rt--none'}${on ? ' is-on' : ''}" aria-pressed="${on}" onclick="${setFn}('${who === 'you' ? 'yours' : 'ls'}')">
+      ${ratingRing(d ? d.avg : null, { size: ring, ls: who === 'ls' ? 'listening' : undefined })}
+      <span class="rp-side-txt">
+        <span class="ao-kicker">${ic(who === 'you' ? 'star' : 'headphones')}${esc(t(who === 'you' ? 'rp_duel_you' : 'rp_duel_ls'))}</span>
+        <span class="ar-verdict">${esc(b ? b.label : t(who === 'you' ? 'rp_duel_none_you' : 'rp_duel_none_ls'))}</span>
+        <span class="ar-hero-sub">${esc(d ? t('rp_duel_sub_' + who + '_' + dk, { n: d.n.toLocaleString() }) : who === 'you' ? t('rp_none_sub') : t('as_song_sub'))}</span>
+      </span>
+    </button>`;
+  };
+  return `<div class="ar-hero rp-hero rp-hero--duel">
+    <div class="rp-duel">${side('you')}<span class="rp-duel-vs" aria-hidden="true">vs</span>${side('ls')}</div>
+    <p class="rp-legend"><span class="rp-legend-i"><span class="rt-chip rt--great">7.4</span>${esc(t('rp_legend_you'))}</span><span class="rp-legend-i"><span class="rt-chip rt--great rt-chip--ls">7.4</span>${esc(t('rp_legend_ls'))}</span></p>
+    ${tail || ''}
+  </div>`;
+}
+
+// The Yours · Listening · Both switch, with how many scores each holds
+function _rpSrcBarHTML(sum, mode, setFn) {
+  const ic = _amIco;
+  const srcN = m => m === 'yours' ? sum.split.albums.you + sum.split.singles.you + sum.split.songs.you
+    : m === 'ls' ? sum.split.albums.ls + sum.split.singles.ls + sum.split.songs.ls
+    : sum.allRel.length + sum.allSongs.length;
+  return `<div class="rp-src" role="group" aria-label="${esc(t('rp_src_label'))}">
+      <span class="rp-src-l">${esc(t('rp_src_label'))}</span>
+      ${[['yours', 'star'], ['ls', 'headphones'], ['both', 'eye']].map(([m, icon]) => `<button type="button" class="rp-src-btn rp-src-btn--${m}${m === mode ? ' is-on' : ''}" aria-pressed="${m === mode}" onclick="${setFn}('${m}')">
+        ${ic(icon)}<span>${esc(t('rp_src_' + m))}</span><span class="rp-src-n">${srcN(m).toLocaleString()}</span></button>`).join('')}
+    </div>`;
 }
 
 /* You vs. your listening (2026-11-19). Everything you scored also has a
