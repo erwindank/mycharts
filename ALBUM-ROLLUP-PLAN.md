@@ -171,6 +171,33 @@ it gets checked.
 
 ---
 
+## Warnings on the switches (user, 2026-11-23)
+
+Instead of the app deciding for everyone, each switch shows a plain warning
+under it about what it will do, so the user decides if that works for them.
+Shown only for the choices that trigger it; the in-site warning window
+(never browser confirm()) when turning on the ones that rewrite history.
+
+- **Deluxe join (5):** "Past charts change: where the deluxe charted on its
+  own, that week now shows the main album with both counts. #1s, weeks on
+  chart and certification dates can move. Ratings, dates, covers or awards
+  saved on the deluxe are hidden while this is on and come back when off."
+- **Deluxe "only shared songs" (6):** "The deluxe keeps a small row with only
+  its bonus songs; it will rarely chart or certify."
+- **EPs / singles at "Charts too" while set With albums (1):** "EPs are on the
+  Albums chart, so this works like Album page only — set EPs Apart or Leave
+  out for the charts to count them." (same note for singles)
+- **Each song its own album (2) / which album (3):** "If the wrong album gets
+  the plays, change the album's start date on its page."
+- **Plays before release (4), off:** "The album page total will be lower than
+  the single + album added up."
+- **Compilations get single plays (7), on:** "A best-of and the original album
+  can both gain the same single's plays."
+- **Certifications setting (8):** "Turning this on can award several plaques at
+  once" (and no notification burst, see below).
+- Any switch that can move charts: a one-line preview of what changes
+  ("12 albums go up, 3 new plaques, 2 chart #1s change") inside the warning.
+
 ## Safety rules for every step
 
 - **Off = no change.** Before and after each step, compare with real plays:
