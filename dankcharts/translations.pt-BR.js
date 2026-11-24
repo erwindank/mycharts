@@ -661,6 +661,7 @@ TRANSLATIONS['pt-BR'] = Object.assign({
     sx_unit_runs: "{{n}} sequências",
     sx_h_explore: "Todas as sequências",
     sx_h_peers_album: "As maiores sequências diárias das faixas",
+    sx_h_peers_artist: "As maiores sequências diárias das músicas",
     sx_h_peers_song: "Maiores sequências diárias entre as músicas de {{artist}}",
     sx_peer_place: "#{{n}} de {{of}}",
     sch_loading: "Ranking de músicas: as músicas deste artista disputando entre si, dia a dia, semana a semana, mês a mês ou ano a ano.",

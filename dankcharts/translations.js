@@ -702,6 +702,7 @@ const TRANSLATIONS = {
     sx_unit_runs: "{{n}} streaks",
     sx_h_explore: "All streaks",
     sx_h_peers_album: "Its songs' longest daily streaks",
+    sx_h_peers_artist: "Their songs' longest daily streaks",
     sx_h_peers_song: "Longest daily streaks among {{artist}}'s songs",
     sx_peer_place: "#{{n}} of {{of}}",
     sch_loading: "Song Chart: this artist's songs ranked against each other, day by day, week by week, month by month or year by year.",

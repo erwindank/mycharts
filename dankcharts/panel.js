@@ -23,7 +23,7 @@
     album:  { overlay: 'albumModal',  img: 'albumModalImg',  fn: 'openAlbumModal',  tabs: ['overview', 'tracks', 'songchart', 'charts', 'streaks', 'plaques', 'listening', 'rating'] },
     // 'rating' holds the artist's full ratings since 2026-10-27 (the
     // Overview keeps a short card that opens it)
-    artist: { overlay: 'artistModal', img: 'modalArtistImg', fn: 'openArtistModal', tabs: ['overview', 'music', 'songchart', 'charts', 'listening', 'rating', 'awards'] }
+    artist: { overlay: 'artistModal', img: 'modalArtistImg', fn: 'openArtistModal', tabs: ['overview', 'music', 'songchart', 'charts', 'streaks', 'listening', 'rating', 'awards'] }
   };
 
   var hist = [];        // where ← back goes: [{ kind, arg, tab, scroll }]

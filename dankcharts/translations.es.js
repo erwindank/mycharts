@@ -661,6 +661,7 @@ TRANSLATIONS['es'] = Object.assign({
     sx_unit_runs: "{{n}} rachas",
     sx_h_explore: "Todas las rachas",
     sx_h_peers_album: "Las rachas diarias más largas de sus canciones",
+    sx_h_peers_artist: "Las rachas diarias más largas de sus canciones",
     sx_h_peers_song: "Rachas diarias más largas entre las canciones de {{artist}}",
     sx_peer_place: "#{{n}} de {{of}}",
     sch_loading: "Ranking de canciones: las canciones de este artista compitiendo entre sí, día a día, semana a semana, mes a mes o año a año.",

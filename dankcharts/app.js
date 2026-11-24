@@ -31869,7 +31869,12 @@ function openArtistModal(artistName) {
   _renderModalGrammyStrip(artistName);
 
   // Listening tab — now, the months, eras, clock, milestones (lsRender)
-  lsRender(artistName, artistPlays);
+  lsRender(artistName, artistPlays, { noStreaks: true });
+
+  // ── STREAKS (own tab since 2026-11-24, after the song / album windows) ──
+  sxRender('artistStreaks', 'artists', artistName, artistPlays, {
+    peers: { plays: artistPlays, head: t('sx_h_peers_artist') }
+  });
 
   /* ── Chart accomplishments as badges (redone 2026-10-27) ─────────────────
      Was one long list of sentences with a + on each. Now every achievement
@@ -70131,10 +70136,14 @@ function _rpTieOrder(a, b) {
    Left out, it follows the "Count Listening Scores" switch, as before.
    Every row carries src ('you' | 'mix' | 'ls': who the shown score is
    from), and the summary carries the split and both averages whatever the
-   mode, so the page can always show the two side by side. */
-function ratingLibrarySummary(mode) {
+   mode, so the page can always show the two side by side.
+   artistName (2026-11-24): the same split for one artist, for the artist
+   window's Rating tab — only plays that credit them count, the same rule
+   as _ratingArtistKeys, so its albums and songs are the ones the tab had. */
+function ratingLibrarySummary(mode, artistName) {
   const albumPlays = {}, songPlays = {}, songAlbums = {};
   for (const p of allPlays) {
+    if (artistName && !(p.artists || []).includes(artistName)) continue;
     const sk = songKey(p);
     songPlays[sk] = (songPlays[sk] || 0) + 1;
     if (!p.album || p.album === '—') continue;
@@ -70147,7 +70156,8 @@ function ratingLibrarySummary(mode) {
   else if (!mode) mode = asCounts() ? 'both' : 'yours';
   // An album is rated through its own scores or through its tracks', so the
   // candidates are the albums with an entry and the albums of rated songs
-  const cand = new Set(Object.keys(_ratings.albums));
+  // (for one artist: only their own releases)
+  const cand = new Set(artistName ? Object.keys(_ratings.albums).filter(k => albumPlays[k]) : Object.keys(_ratings.albums));
   for (const sk of Object.keys(_ratings.songs)) for (const ak of songAlbums[sk] || []) cand.add(ak);
   // With Listening Scores on, every played release can have one
   if (lsOn) for (const ak of Object.keys(albumPlays)) cand.add(ak);
@@ -70162,7 +70172,7 @@ function ratingLibrarySummary(mode) {
     return { key: k, name, artist, ...base, own: r ? r.score : null, view: v ? v.score : null, src, ...ratingReleaseKind(k), plays: albumPlays[k] || 0 };
   }).filter(Boolean);
   // Every song once: rated ones, and with Listening Scores on every played one
-  const songKeys = new Set(Object.keys(_ratings.songs));
+  const songKeys = new Set(artistName ? Object.keys(_ratings.songs).filter(k => songPlays[k]) : Object.keys(_ratings.songs));
   if (lsOn) for (const k of Object.keys(songPlays)) songKeys.add(k);
   const allSongs = [...songKeys].map(k => {
     const own = ratingSongScore(k);
@@ -70324,25 +70334,13 @@ function renderRatingsPage() {
   const headline = sum.albumAvg ?? sum.songAvg;
   const band = headline != null ? ratingBand(headline) : null;
   const act = _ratingsActivity();
-  // With Listening Scores on, each bar is split: solid = what you scored,
-  // striped = what only has a Listening Score, empty = nothing yet
-  const pct = (n, of) => (of ? Math.max(n ? 1.5 : 0, n / of * 100) : 0).toFixed(1);
-  const meter = (n, of, label, sp) => sp && lsOn ? `<div class="ar-meter rp-meter">
-      <div class="ar-meter-top"><span>${esc(label)}</span><b>${sp.you.toLocaleString()}<span> / ${of.toLocaleString()}</span></b></div>
-      <div class="ar-meter-track rp-meter-track"><span class="rp-m-you" style="width:${pct(sp.you, of)}%"></span><span class="rp-m-ls" style="width:${pct(sp.ls, of)}%"></span></div>
-      <div class="rp-meter-key"><span class="rp-k-you">${esc(t('rp_m_you', { n: sp.you.toLocaleString() }))}</span><span class="rp-k-ls">${esc(t('rp_m_ls', { n: sp.ls.toLocaleString() }))}</span></div>
-    </div>` : `<div class="ar-meter">
-      <div class="ar-meter-top"><span>${esc(label)}</span><b>${n.toLocaleString()}<span> / ${of.toLocaleString()}</span></b></div>
-      <div class="ar-meter-track"><span style="width:${pct(n, of)}%"></span></div>
-    </div>`;
   const chip = (icon, html) => `<span class="rp-act">${ic(icon)}<span>${html}</span></span>`;
   const acts = act.days ? `<div class="rp-acts">
       ${chip('calendar', t('rp_act_days', { n: `<b>${act.days.toLocaleString()}</b>` }))}
       ${act.longest > 1 ? chip('flame', t('rp_act_run', { n: `<b>${act.longest}</b>` })) : ''}
       ${act.last ? chip('clock', t('rp_act_last', { date: `<b>${esc(fmt(new Date(act.last + 'T12:00:00')))}</b>` })) : ''}
     </div>` : '';
-  const meters = `<div class="ar-meters">${meter(sum.ratedAlbums, sum.totalAlbums, t('rtg_albums_rated'), sum.split.albums)}${
-        sum.totalSingles ? meter(sum.ratedSingles, sum.totalSingles, t('ar_singles_rated'), sum.split.singles) : ''}${meter(sum.ratedSongs, sum.totalSongs, t('rtg_songs_rated'), sum.split.songs)}</div>`;
+  const meters = _rpMetersHTML(sum);
   let hero;
   if (!lsOn) {
     hero = `<div class="ar-hero rp-hero ${band ? band.cls : 'rt--none'}">
@@ -70357,44 +70355,11 @@ function renderRatingsPage() {
     </div>
   </div>`;
   } else {
-    /* You vs. Listening (2026-11-19): your own average and the Listening
-       Score average side by side, each with its own verdict, never blended.
-       Albums when you have scored any, else songs; both sides use the same
-       kind so the two numbers compare. Each side is also the switch to its
-       list. Your side is the solid ring, theirs the dashed one, the same
-       language every chip on the site uses. */
-    const D = sum.duel;
-    const dk = D.you.album || (!D.you.song && D.ls.album) ? 'album' : 'song';
-    const side = who => {
-      const d = D[who][dk];
-      const b = d ? ratingBand(d.avg) : null;
-      const on = mode === 'both' || mode === (who === 'you' ? 'yours' : 'ls');
-      return `<button type="button" class="rp-side rp-side--${who} ${b ? b.cls : 'rt--none'}${on ? ' is-on' : ''}" aria-pressed="${on}" onclick="rpSetSrc('${who === 'you' ? 'yours' : 'ls'}')">
-        ${ratingRing(d ? d.avg : null, { size: 112, ls: who === 'ls' ? 'listening' : undefined })}
-        <span class="rp-side-txt">
-          <span class="ao-kicker">${ic(who === 'you' ? 'star' : 'headphones')}${esc(t(who === 'you' ? 'rp_duel_you' : 'rp_duel_ls'))}</span>
-          <span class="ar-verdict">${esc(b ? b.label : t(who === 'you' ? 'rp_duel_none_you' : 'rp_duel_none_ls'))}</span>
-          <span class="ar-hero-sub">${esc(d ? t('rp_duel_sub_' + who + '_' + dk, { n: d.n.toLocaleString() }) : who === 'you' ? t('rp_none_sub') : t('as_song_sub'))}</span>
-        </span>
-      </button>`;
-    };
-    hero = `<div class="ar-hero rp-hero rp-hero--duel">
-    <div class="rp-duel">${side('you')}<span class="rp-duel-vs" aria-hidden="true">vs</span>${side('ls')}</div>
-    <p class="rp-legend"><span class="rp-legend-i"><span class="rt-chip rt--great">7.4</span>${esc(t('rp_legend_you'))}</span><span class="rp-legend-i"><span class="rt-chip rt--great rt-chip--ls">7.4</span>${esc(t('rp_legend_ls'))}</span></p>
-    ${meters}
-    ${acts}
-  </div>`;
+    hero = _rpDuelHeroHTML(sum, mode, 'rpSetSrc', meters + acts);
   }
 
   // The switch: whose scores the cards and lists below hold
-  const srcN = m => m === 'yours' ? sum.split.albums.you + sum.split.singles.you + sum.split.songs.you
-    : m === 'ls' ? sum.split.albums.ls + sum.split.singles.ls + sum.split.songs.ls
-    : sum.allRel.length + sum.allSongs.length;
-  const srcBar = lsOn ? `<div class="rp-src" role="group" aria-label="${esc(t('rp_src_label'))}">
-      <span class="rp-src-l">${esc(t('rp_src_label'))}</span>
-      ${[['yours', 'star'], ['ls', 'headphones'], ['both', 'eye']].map(([m, icon]) => `<button type="button" class="rp-src-btn rp-src-btn--${m}${m === mode ? ' is-on' : ''}" aria-pressed="${m === mode}" onclick="rpSetSrc('${m}')">
-        ${ic(icon)}<span>${esc(t('rp_src_' + m))}</span><span class="rp-src-n">${srcN(m).toLocaleString()}</span></button>`).join('')}
-    </div>` : '';
+  const srcBar = lsOn ? _rpSrcBarHTML(sum, mode, 'rpSetSrc') : '';
 
   // ── Next up: the most played album without a score
   const nk = sum.todo.find(k => ratingReleaseKind(k).kind === 'album') || sum.todo[0];
