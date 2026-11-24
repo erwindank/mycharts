@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Streaks tab in the song and album windows":
+    ["Pestaña Rachas en las ventanas de canción y álbum",
+     "Las canciones, álbumes, EPs y sencillos tienen ahora su propia pestaña Rachas. Muestra la racha diaria actual (y si sigue viva hoy), tu racha más larga con sus fechas y cuánto te falta para superarla, todas las rachas diarias en orden como una fila de barras, la mejor racha en reproducciones, días, semanas, meses y años, y la lista completa de rachas que ya conoces de las trayectorias. En un álbum ves además qué canciones tuvieron las rachas más largas; en una canción, en qué puesto está entre las canciones del artista."],
   "Song Chart in the artist and album windows":
     ["Ranking de canciones en las ventanas de artista y álbum",
      "Una nueva pestaña, Ranking de canciones, ordena las canciones de un artista (o las de un álbum) entre sí, día a día, semana a semana, mes a mes o año a año. Acumulado mantiene todas las canciones y las ordena por sus reproducciones hasta ese momento; Esa semana muestra solo lo que escuchaste entonces. Los periodos vacíos se saltan con un aviso, y puedes reproducir el tiempo, comparar dos periodos, seguir una canción en la Carrera de puestos, ver cada cambio de #1 y guardar la lista como imagen o playlist."],

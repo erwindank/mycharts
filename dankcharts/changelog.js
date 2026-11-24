@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 513;
+const DC_CL_I18N_V = 518;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -478,6 +478,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-24', t: 'feature', a: 'charts',
+    title: "Streaks tab in the song and album windows",
+    detail: "Songs, albums, EPs and singles now have their own Streaks tab. It shows the daily streak running now (and whether it is still alive today), your longest one with its dates and how far you are from beating it, every daily streak in order as a row of bars, the best streak in plays, days, weeks, months and years, and the full streak list you know from the chart runs. On an album you also see which of its songs had the longest streaks; on a song, where it stands among the artist's songs." },
   { d: '2026-11-21', t: 'feature', a: 'charts',
     title: "Song Chart in the artist and album windows",
     detail: "A new Song Chart tab ranks an artist's songs (or an album's tracks) against each other, day by day, week by week, month by month or year by year. Standing keeps every song on and ranks it by its plays so far; That week shows only what you played then. Empty periods are skipped with a note, and you can play through time, compare two periods, follow a song in the Rank race, see every #1 hand-off, and save the list as a picture or a playlist." },

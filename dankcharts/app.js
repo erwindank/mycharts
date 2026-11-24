@@ -20085,8 +20085,13 @@ function _crStkLastWeekKey() {
   return playWeekKey(new Date(n.getFullYear(), n.getMonth(), n.getDate() - 7));
 }
 
-function computeCrStreaks(type, key) {
-  const match = _crItemMatcher(type, key);
+/* `plays` (optional) is the exact list of plays to count — the song / album
+   window passes its own, so a single rolled up into its album or a
+   compilation counts the same here as everywhere else on that window. Without
+   it the plays are matched by key, as the chart-run panel always did. */
+function computeCrStreaks(type, key, plays) {
+  const own = plays ? new Set(plays) : null;
+  const match = own ? (p => own.has(p)) : _crItemMatcher(type, key);
   const chrono = _crChronoPlays();
   const itemPlays = [];
   const runs = [];
@@ -20162,15 +20167,25 @@ function computeCrStreaks(type, key) {
   };
 }
 
-function buildItemStreaksHTML(type, key) {
-  const data = computeCrStreaks(type, key);
+/* opts (all optional, used by the windows' Streaks tab):
+     plays — the window's own plays (see computeCrStreaks)
+     tab   — the unit to open on ('days' there; the chart-run panel opens on plays)
+     noNote — leave out the "range buttons above don't change them" note,
+              which only makes sense under a chart run's range buttons
+     id    — a fixed id for the block, so the rest of the tab can drive it */
+function buildItemStreaksHTML(type, key, opts) {
+  const o = opts || {};
+  const data = computeCrStreaks(type, key, o.plays);
   if (!data) return `<div class="cr-stk-empty">${t('cr_stk_none')}</div>`;
-  const cid = 'crstk-' + (++_crStkCtr);
+  if (o.tab) data.tab = o.tab;
+  data.noNote = !!o.noNote;
+  const cid = o.id || 'crstk-' + (++_crStkCtr);
   // Panels are rebuilt on every re-render; drop the oldest entries so reopened
   // rows don't pile up detached state forever.
   if (_crStreakData.size > 40) {
     for (const k of Array.from(_crStreakData.keys()).slice(0, 20)) _crStreakData.delete(k);
   }
+  _crStreakData.delete(cid);   // a fixed id goes to the back, so the trim above can't drop it
   _crStreakData.set(cid, data);
   const tabs = CR_STK_DIMS.map(d =>
     `<button type="button" class="cr-range-btn cr-stk-tab${d === data.tab ? ' active' : ''}" data-dim="${d}" onclick="crStkTab('${cid}','${d}');event.stopPropagation()">${t('cr_stk_tab_' + d)}<span class="cr-stk-tab-n">${data.dims[d].longest}</span></button>`
@@ -20231,7 +20246,7 @@ function _crStkViewHTML(cid) {
     : '';
 
   return `${statsHtml}
-    <div class="cr-stk-desc">${t('cr_stk_desc_' + dim)} <span class="cr-stk-note">${t('cr_stk_note')}</span></div>
+    <div class="cr-stk-desc">${t('cr_stk_desc_' + dim)}${st.noNote ? '' : ` <span class="cr-stk-note">${t('cr_stk_note')}</span>`}</div>
     <div class="cr-stk-list">${rows}</div>
     ${moreBtn}
     <div class="cr-stk-detail">${_crStkDetailHTML(cid)}</div>`;
@@ -20323,6 +20338,221 @@ function crStkToggleAll(cid) {
   st.expanded[st.tab] = !st.expanded[st.tab];
   const root = document.getElementById(cid);
   if (root) root.querySelector('.cr-stk-view').innerHTML = _crStkViewHTML(cid);
+}
+
+/* ─── STREAKS TAB (song / album window, 2026-11-24) ─────────────────
+   Everything about one song's or one release's streaks in its own tab of the
+   details panel (albums, EPs and singles all use the album window). Before
+   this the streaks were a folded "Streak records" row at the very bottom of
+   the Listening tab. Laid out like the chart run reads:
+     • a headline card — the daily streak running now (ongoing / at risk /
+       ended), the record with its dates, how far the current one is from it
+     • Every daily streak, in order: one bar per streak, height = its length,
+       coloured by the same heat tiers as the flames. Tapping one opens it in
+       the explorer below.
+     • Best streak per unit (plays, days, weeks, months, years) — tapping one
+       switches the explorer to that unit
+     • the streak explorer the chart-run panel has (buildItemStreaksHTML),
+       opening on days
+     • the songs around it: on an album its tracks' longest daily streaks, on
+       a song where it stands among the artist's songs
+   Works from the plays the window already counts, so all three data sources
+   and album roll-ups are covered. */
+const SX_PEERS_SHOWN = 8;
+
+// "2026-11-24" → a Date at local midnight, for fmt()
+function _sxDay(k) { return new Date(k + 'T00:00:00'); }
+
+/* Longest daily streak per song in a list of plays: [{ key, title, len,
+   start, end, current }], longest first. Ties go to the most played song. */
+function _sxPeerStreaks(plays) {
+  const bySong = new Map();
+  for (const p of plays) {
+    const k = songKey(p);
+    let e = bySong.get(k);
+    if (!e) { e = { key: k, title: p.title, days: new Set(), plays: 0 }; bySong.set(k, e); }
+    e.days.add(localDateStr(tzDateOf(p)));
+    e.plays++;
+  }
+  const today = _crStkOrd('days', localDateStr(tzNow()));
+  const out = [];
+  for (const e of bySong.values()) {
+    const ds = [...e.days].sort();
+    let best = null, s = 0;
+    for (let i = 1; i <= ds.length; i++) {
+      // a run ends where the next day is not the day after
+      if (i < ds.length && _crStkOrd('days', ds[i]) === _crStkOrd('days', ds[i - 1]) + 1) continue;
+      const len = i - s;
+      if (len >= CR_STK_MIN && (!best || len >= best.len)) best = { len, start: ds[s], end: ds[i - 1] };
+      s = i;
+    }
+    if (!best) continue;
+    // still running when it reaches today or yesterday (today is not over)
+    const endOrd = _crStkOrd('days', best.end);
+    out.push({ key: e.key, title: e.title, plays: e.plays, len: best.len, start: best.start, end: best.end, current: endOrd >= today - 1 });
+  }
+  return out.sort((a, b) => b.len - a.len || b.plays - a.plays);
+}
+
+/* el id, 'songs' | 'albums', the item key, its plays (newest first, like
+   allPlays) and opts.peers = { plays, head, self } — the plays of the songs
+   to compare with, the heading over them, and (on a song) its own key so its
+   row is marked and kept in view. */
+function sxRender(rootId, type, key, plays, opts) {
+  const el = document.getElementById(rootId);
+  if (!el) return;
+  const o = opts || {};
+  if (!plays.length) { el.innerHTML = ''; return; }
+  const cid = rootId + 'Stk';
+  // The explorer first: it builds and keeps the streak data the rest reads
+  const explorer = buildItemStreaksHTML(type, key, { plays, tab: 'days', noNote: true, id: cid });
+  const st = _crStreakData.get(cid);
+  if (!st) { el.innerHTML = ''; return; }
+  const ic = _amIco;
+  const D = st.dims.days;
+  const unitW = (dim, n) => tUnit(_crStkUnitKey(dim), n);
+  const byOrder = D.streaks.slice().sort((a, b) => a.order - b.order);
+  const rec = D.streaks[0];                      // longest, the newest on a tie
+  const cur = byOrder.find(s => s.isCurrent);
+  const last = byOrder[byOrder.length - 1];
+  const range = s => `${fmt(_sxDay(s.units[0].key))} – ${fmt(_sxDay(s.units[s.units.length - 1].key))}`;
+
+  // ── Headline: the streak now, the record, the distance between them ──
+  let status, statusTone;
+  if (cur && cur.live) { status = t('sx_live'); statusTone = 'live'; }
+  else if (cur) { status = t('sx_risk'); statusTone = 'risk'; }
+  else if (last) { status = t('sx_ended', { date: fmt(_sxDay(last.units[last.units.length - 1].key)) }); statusTone = 'off'; }
+  else { status = t('sx_none_yet'); statusTone = 'off'; }
+  const curLen = cur ? cur.len : 0;
+  const tier = curLen ? _crStkTier('days', curLen) : 0;
+  let goal = '', fill = 0;
+  if (rec) {
+    fill = Math.min(100, curLen / rec.len * 100);
+    goal = !cur ? t('sx_goal_start')
+      : cur === rec ? t('sx_goal_record')
+      : curLen === rec.len ? t('sx_goal_tie')
+      : t('sx_goal_beat', { n: tCount('days', rec.len - curLen + 1) });
+  }
+  const hero = `<div class="ao-hero sx-hero">
+      <div class="ao-hero-top">
+        <div class="ao-hero-main">
+          <span class="ao-kicker">${esc(t('sx_current'))}</span>
+          <span class="sx-now cr-streaks${tier ? ' cr-stk-t' + tier : ''}">
+            ${tier ? `<span class="cr-stk-flame sx-flame" aria-hidden="true">${CR_STK_FLAME}</span>` : ''}
+            <span class="ao-hero-num ao-count">${curLen.toLocaleString()}</span>
+            <span class="sx-now-u">${esc(tUnit('days', curLen))}</span>
+          </span>
+          <span class="sx-status sx-status--${statusTone}">${esc(status)}</span>
+        </div>
+        <div class="ao-rank sx-rec${rec ? '' : ' ao-rank--none'}">
+          <span class="ao-rank-ring">${ic('trophy')}<span class="ao-rank-num">${rec ? rec.len.toLocaleString() : '—'}</span></span>
+          <span class="ao-rank-lbl">${esc(t('sx_record'))}${rec ? `<br><small>${esc(range(rec))}</small>` : ''}</span>
+        </div>
+      </div>
+      ${rec ? `<div class="ao-span">
+        <div class="ao-span-track"><span class="ao-span-fill" style="width:${fill.toFixed(1)}%"></span></div>
+        <div class="ao-span-cap">${esc(goal)}</div>
+      </div>` : ''}
+      <div class="ao-trio">
+        <div class="ao-trio-cell ao-tone-songs"><span class="ao-trio-val ao-count">${D.count.toLocaleString()}</span><span class="ao-trio-lbl">${esc(t('sx_runs'))}</span></div>
+        <div class="ao-trio-cell ao-tone-albums"><span class="ao-trio-val ao-count">${D.totalUnits.toLocaleString()}</span><span class="ao-trio-lbl">${esc(t('sx_in_runs'))}</span></div>
+        <div class="ao-trio-cell ao-tone-avg"><span class="ao-trio-val">${D.count ? D.avg.toFixed(1) : '—'}</span><span class="ao-trio-lbl">${esc(t('sx_avg'))}</span></div>
+      </div>
+    </div>`;
+
+  // ── Every daily streak, in order (the chart run's row of boxes, as bars) ──
+  let order = '';
+  if (byOrder.length) {
+    // One group per year, the year written over it; a group is at least as
+    // wide as its label, so years with one short streak don't run together
+    const years = [];
+    byOrder.forEach((s, i) => {
+      const y = s.units[0].key.slice(0, 4);
+      if (!years.length || years[years.length - 1].y !== y) years.push({ y, bars: [] });
+      const h = Math.max(8, Math.round(s.len / rec.len * 100));
+      years[years.length - 1].bars.push(`<button type="button" class="sx-bar cr-stk-t${_crStkTier('days', s.len)}${s.isCurrent ? ' is-cur' : ''}${s === rec ? ' is-rec' : ''}" style="--h:${h}%;--i:${i}" data-order="${s.order}" title="${esc(tCount('days', s.len) + ' · ' + range(s))}" aria-label="${esc(tCount('days', s.len) + ', ' + range(s))}" onclick="sxPick('${cid}',${s.order})"><i></i></button>`);
+    });
+    const bars = years.map(g => `<div class="sx-yg"><span class="sx-yr">${g.y}</span><div class="sx-yg-bars">${g.bars.join('')}</div></div>`).join('');
+    order = `<div class="ao-head rk-head">${esc(t('sx_h_order'))}<span>${esc(t('sx_order_hint'))}</span></div>
+      <div class="sx-order cr-streaks"><div class="sx-order-in">${bars}</div></div>`;
+  }
+
+  // ── Best per unit: plays in a row, days, weeks, months, years ──
+  const tiles = CR_STK_DIMS.map(dim => {
+    const U = st.dims[dim];
+    const t2 = U.longest ? _crStkTier(dim, U.longest) : 0;
+    const sub = U.current
+      ? `${esc(t('sx_unit_now', { n: U.current.toLocaleString() }))}${U.currentLive ? '<span class="cr-stk-live-dot"></span>' : ''}`
+      : U.count ? esc(t('sx_unit_runs', { n: U.count.toLocaleString() })) : '—';
+    return `<button type="button" class="sx-unit${dim === st.tab ? ' is-on' : ''}${t2 ? ' cr-stk-t' + t2 : ''}" data-dim="${dim}" onclick="sxUnit('${cid}','${dim}')">
+        <span class="ao-kicker">${esc(t('cr_stk_tab_' + dim))}</span>
+        <span class="sx-unit-val">${t2 ? `<span class="cr-stk-flame" aria-hidden="true">${CR_STK_FLAME}</span>` : ''}<b>${U.longest ? U.longest.toLocaleString() : '—'}</b>${U.longest ? `<small>${esc(unitW(dim, U.longest))}</small>` : ''}</span>
+        <span class="sx-unit-sub">${sub}</span>
+      </button>`;
+  }).join('');
+  const units = `<div class="ao-head rk-head">${esc(t('sx_h_units'))}<span>${esc(t('sx_units_hint'))}</span></div>
+    <div class="sx-units cr-streaks">${tiles}</div>`;
+
+  // ── The songs around it ──
+  let peers = '';
+  if (o.peers && o.peers.plays && o.peers.plays.length) {
+    const all = _sxPeerStreaks(o.peers.plays);
+    // a song alone (a one-song single, an artist with one song) has nothing to compare
+    if (all.length >= 2) {
+      const selfAt = o.peers.self ? all.findIndex(p => p.key === o.peers.self) : -1;
+      const shown = all.slice(0, SX_PEERS_SHOWN).map((p, i) => ({ p, i }));
+      if (selfAt >= SX_PEERS_SHOWN) shown.push({ p: all[selfAt], i: selfAt, gap: true });
+      const max = all[0].len;
+      peers = `<div class="ao-head rk-head">${esc(o.peers.head)}${selfAt >= 0 ? `<span>${esc(t('sx_peer_place', { n: selfAt + 1, of: all.length }))}</span>` : ''}</div>
+        <div class="sx-peers cr-streaks">${shown.map(({ p, i, gap }) => {
+          const me = p.key === o.peers.self;
+          const tag = me ? 'div' : 'button';
+          return `<${tag}${me ? '' : ` type="button" onclick="${_lsOpenSong(p.key)}"`} class="sx-peer cr-stk-t${_crStkTier('days', p.len)}${me ? ' is-me' : ''}${gap ? ' is-gap' : ''}" style="--i:${i}">
+              <span class="sx-peer-n">${i + 1}</span>
+              <span class="cr-stk-flame" aria-hidden="true">${CR_STK_FLAME}</span>
+              <span class="sx-peer-t">${esc(p.title)}<small>${esc(fmt(_sxDay(p.start)))} – ${esc(fmt(_sxDay(p.end)))}${p.current ? ' · ' + esc(t('cr_stk_live')) : ''}</small></span>
+              <span class="cr-stk-bar"><i style="width:${Math.max(5, Math.round(p.len / max * 100))}%"></i></span>
+              <span class="sx-peer-len"><b>${p.len}</b> ${esc(tUnit('days', p.len))}</span>
+            </${tag}>`;
+        }).join('')}</div>`;
+    }
+  }
+
+  el.innerHTML = `${hero}
+    ${order}
+    ${units}
+    <div class="ao-head">${esc(t('sx_h_explore'))}</div>
+    <div class="sx-explore">${explorer}</div>
+    ${peers}`;
+}
+
+// A bar in "Every daily streak" → that streak, open in the explorer
+function sxPick(cid, order) {
+  const st = _crStreakData.get(cid);
+  if (!st) return;
+  if (st.tab !== 'days') sxUnit(cid, 'days', true);
+  const idx = st.dims.days.streaks.findIndex(s => s.order === order);
+  if (idx < 0) return;
+  st.sel.days = idx;
+  // a streak past the first few rows needs the whole list open to be marked
+  if (idx >= CR_STK_LIST_LIMIT) st.expanded.days = true;
+  const root = document.getElementById(cid);
+  if (!root) return;
+  root.querySelector('.cr-stk-view').innerHTML = _crStkViewHTML(cid);
+  const pane = root.closest('.sx');
+  if (pane) pane.querySelectorAll('.sx-bar').forEach(b => b.classList.toggle('is-sel', +b.dataset.order === order));
+  const row = root.querySelector('.cr-stk-row.selected') || root;
+  row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+// A unit tile → the explorer on that unit (quiet = no scrolling)
+function sxUnit(cid, dim, quiet) {
+  crStkTab(cid, dim);
+  const root = document.getElementById(cid);
+  if (!root) return;
+  const pane = root.closest('.sx');
+  if (pane) pane.querySelectorAll('.sx-unit').forEach(b => b.classList.toggle('is-on', b.dataset.dim === dim));
+  if (!quiet) root.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 // Delegated tooltip for streak blocks — reuses the heatmap tooltip element so
@@ -31194,7 +31424,7 @@ function lsRender(artistName, artistPlays, opts) {
     ${o.years || ''}
     <div class="ao-head rk-head">${esc(t(isSong ? 'ls_h_calendar_s' : isAlbum ? 'ls_h_calendar_a' : 'ls_h_calendar'))}</div>
     <div class="ls-cal" id="${o.root}Heat"><div class="modal-records-wait">${esc(t('ls_loading'))}</div></div>
-    <div class="ls-more">${sub(t('cr_sub_streaks'), 'streaks')}${sub(t('cr_sub_full_history'), 'rawdata')}</div>`;
+    <div class="ls-more">${o.noStreaks ? '' : sub(t('cr_sub_streaks'), 'streaks')}${sub(t('cr_sub_full_history'), 'rawdata')}</div>`;
 
   // Era artwork through the same source cascade as the chart rows
   shownEras.forEach((e, i) => {
@@ -32410,7 +32640,14 @@ function openAlbumModal(albumKey) {
   lsRender(albumName, albumPlays, {
     root: 'albumListening', type: 'albums', key: albumKey,
     chart: buildAlbumSparklineHTML(albumPlays),
-    full: fullHTML
+    full: fullHTML,
+    noStreaks: true
+  });
+
+  // ── STREAKS (own tab since 2026-11-24) ────────────────────────
+  // Albums, EPs and singles alike; a one-song single has no track list
+  sxRender('albumStreaks', 'albums', albumKey, albumPlays, {
+    peers: { plays: albumPlays, head: t('sx_h_peers_album') }
   });
 
   // ── CERTIFICATION PLAQUES ─────────────────────────────────────────────────
@@ -32640,13 +32877,14 @@ function openSongModal(key) {
   const famArtistName = songPlays[0]?.artists?.[0] || propArtist;
   const famAlbum = {}, famArtist = {};
   let albumTotal = 0, artistTotal = 0;
+  const artistPlaysAll = [];   // the artist's plays, for the Streaks tab's "among their songs"
   for (const p of allPlays) {
     const inAlb = albumKey && albumKeyOf(p) === albumKey;
     const inArt = p.artists.includes(famArtistName);
     if (!inAlb && !inArt) continue;
     const k = songKey(p);
     if (inAlb) { albumTotal++; (famAlbum[k] || (famAlbum[k] = { title: p.title, count: 0 })).count++; }
-    if (inArt) { artistTotal++; (famArtist[k] || (famArtist[k] = { title: p.title, count: 0 })).count++; }
+    if (inArt) { artistTotal++; artistPlaysAll.push(p); (famArtist[k] || (famArtist[k] = { title: p.title, count: 0 })).count++; }
   }
   const placeIn = fam => 1 + Object.values(fam).filter(x => x.count > totalPlays).length;
   const titlesOf = fam => Object.fromEntries(Object.entries(fam).map(([k, v]) => [k, v.title]));
@@ -32791,7 +33029,13 @@ function openSongModal(key) {
     found: _slFoundHTML(songIdx, key),
     along: _slAlongHTML(songIdx, key),
     seasons: _slSeasonsHTML(seasons, totalPlays),
-    years: _slYearsHTML(yearMap)
+    years: _slYearsHTML(yearMap),
+    noStreaks: true
+  });
+
+  // ── STREAKS (own tab since 2026-11-24) ────────────────────────
+  sxRender('songStreaks', 'songs', key, songPlays, {
+    peers: { plays: artistPlaysAll, self: key, head: t('sx_h_peers_song', { artist: famArtistName }) }
   });
 
   // ── AWARDS ────────────────────────────────────────────────────

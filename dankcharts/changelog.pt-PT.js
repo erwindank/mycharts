@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Streaks tab in the song and album windows":
+    ["Separador Sequências nas janelas de música e álbum",
+     "Músicas, álbuns, EPs e singles têm agora o seu próprio separador Sequências. Mostra a sequência diária atual (e se ainda está viva hoje), a tua maior sequência com as datas e quanto te falta para a bateres, todas as sequências diárias por ordem como uma fila de barras, a melhor sequência em reproduções, dias, semanas, meses e anos, e a lista completa de sequências que já conheces das trajetórias. Num álbum vês também que faixas tiveram as maiores sequências; numa música, em que lugar está entre as músicas do artista."],
   "Song Chart in the artist and album windows":
     ["Tabela de músicas nas janelas de artista e álbum",
      "Um novo separador, Tabela de músicas, ordena as músicas de um artista (ou as faixas de um álbum) entre si, dia a dia, semana a semana, mês a mês ou ano a ano. Acumulado mantém todas as músicas e ordena-as pelas reproduções até ali; Naquela semana mostra só o que ouviste nessa altura. Os períodos vazios são saltados com um aviso, e podes reproduzir o tempo, comparar dois períodos, seguir uma música na Corrida de posições, ver cada troca de #1 e guardar a lista como imagem ou playlist."],

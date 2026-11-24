@@ -53183,3 +53183,137 @@ span.sch-spark { visibility: hidden; }
 @media (prefers-reduced-motion: reduce) {
   .sch-row, .sch-row.sch-in, .sch-detail { animation: none; transition: none; }
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   STREAKS TAB — song / album window (2026-11-24, sxRender in app.js)
+   Built from the Overview's card (.ao-hero, .ao-trio, .ao-span) and the
+   chart run's streak pieces (.cr-streaks heat tiers, flames, bars), so it
+   reads as part of the same window. .sx-* adds only what is new: the big
+   flame by the current streak, the row of streak bars, the unit tiles and
+   the songs-around-it list.
+   ═══════════════════════════════════════════════════════════════ */
+.dp-body .sx-now { display: flex; align-items: baseline; gap: 8px; background: none; }
+.dp-body .sx-now .ao-hero-num { margin: 4px 0 2px; }
+.dp-body .sx-now-u { font-size: var(--fs-sm); font-weight: 600; color: var(--text2); }
+/* the flame next to the number, about the height of the digits */
+.dp-body .sx-flame { width: 1.6rem; height: 2rem; align-self: center; }
+.dp-body .sx-flame .cr-stk-flame-body { width: 1.3rem; height: 1.3rem; margin-left: -0.65rem; }
+.dp-body .sx-flame .cr-stk-flame-core { width: 0.62rem; height: 0.62rem; margin-left: -0.31rem; }
+.dp-body .sx-status { display: inline-flex; align-items: center; gap: 6px; margin-top: 4px; font-size: var(--fs-sm); color: var(--text2); }
+.dp-body .sx-status::before { content: ''; width: 8px; height: 8px; border-radius: 50%; flex: none; background: var(--text3); }
+.dp-body .sx-status--live::before { background: var(--chart-up); box-shadow: 0 0 0 3px color-mix(in srgb, var(--chart-up) 25%, transparent); }
+.dp-body .sx-status--risk::before { background: var(--medal-gold); box-shadow: 0 0 0 3px color-mix(in srgb, var(--medal-gold) 25%, transparent); }
+.dp-body .sx-rec { --tone: var(--medal-gold); }
+.dp-body .sx-rec.ao-rank--none { --tone: var(--text3); }
+.dp-body .sx-rec small { color: var(--text3); }
+
+/* Every daily streak, in order: bars standing on one line, height = length.
+   Scrolls sideways when there are many; the newest is on the right. */
+.dp-body .sx-order {
+  overflow-x: auto;
+  padding: var(--sp-3) var(--sp-3) var(--sp-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  background: var(--raised);
+  scrollbar-width: thin;
+}
+.dp-body .sx-order-in { display: flex; align-items: flex-end; gap: 3px; height: 110px; padding-top: 14px; min-width: min-content; }
+.dp-body .sx-bar {
+  position: relative;
+  flex: 0 0 12px;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  display: flex;
+  align-items: flex-end;
+}
+.dp-body .sx-bar > i {
+  display: block;
+  width: 100%;
+  height: var(--h);
+  border-radius: 3px 3px 1px 1px;
+  background: linear-gradient(0deg, var(--heat-1), var(--heat-2));
+  transform-origin: bottom;
+  animation: sxRise 0.5s var(--ease) both;
+  animation-delay: calc(min(var(--i), 40) * 12ms);
+  transition: filter 0.2s, box-shadow 0.2s;
+}
+@keyframes sxRise { from { transform: scaleY(0); } }
+.dp-body .sx-bar:hover > i,
+.dp-body .sx-bar:focus-visible > i { filter: brightness(1.2); box-shadow: 0 0 10px -2px var(--heat-1); }
+.dp-body .sx-bar.is-sel > i { box-shadow: 0 0 0 2px var(--text); }
+/* the record wears a gold cap on top; the running one pulses */
+.dp-body .sx-bar.is-rec > i { box-shadow: inset 0 3px 0 var(--medal-gold); }
+.dp-body .sx-bar.is-rec.is-sel > i { box-shadow: inset 0 3px 0 var(--medal-gold), 0 0 0 2px var(--text); }
+.dp-body .sx-bar.is-cur > i { animation: sxRise 0.5s var(--ease) both, sxPulse 1.6s ease-in-out 0.6s infinite; }
+@keyframes sxPulse { 50% { filter: brightness(1.35); } }
+/* one group per year: the year on top, its bars under it, a dashed line
+   between years */
+.dp-body .sx-yg { display: flex; flex-direction: column; height: 100%; min-width: 2.2rem; flex: none; }
+.dp-body .sx-yg + .sx-yg { padding-left: 6px; border-left: 1px dashed var(--border); }
+.dp-body .sx-yr { height: 14px; margin-top: -14px; font-size: 0.62rem; font-weight: 700; line-height: 14px; color: var(--text3); white-space: nowrap; }
+.dp-body .sx-yg-bars { display: flex; align-items: flex-end; gap: 3px; flex: 1; }
+
+/* Best per unit: five tiles, the open one outlined */
+.dp-body .sx-units { display: grid; grid-template-columns: repeat(5, 1fr); gap: var(--sp-2); }
+.dp-body .sx-unit {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: var(--sp-3) var(--sp-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--raised);
+  color: var(--text);
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+.dp-body .sx-unit:hover { border-color: color-mix(in srgb, var(--heat-1) 50%, var(--border)); }
+.dp-body .sx-unit.is-on { border-color: var(--heat-1); background: color-mix(in srgb, var(--heat-1) 10%, var(--raised)); }
+.dp-body .sx-unit-val { display: inline-flex; align-items: baseline; gap: 4px; }
+.dp-body .sx-unit-val b { font-family: var(--font-display); font-size: 1.35rem; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+.dp-body .sx-unit-val small { font-size: var(--fs-xs); color: var(--text3); }
+.dp-body .sx-unit-sub { display: inline-flex; align-items: center; gap: 4px; font-size: var(--fs-xs); color: var(--text2); }
+
+/* the explorer sits in a plain card */
+.dp-body .sx-explore { padding: var(--sp-3); border: 1px solid var(--border); border-radius: var(--r-lg); background: var(--raised); }
+
+/* The songs around it */
+.dp-body .sx-peers { display: flex; flex-direction: column; gap: 2px; }
+.dp-body .sx-peer {
+  display: grid;
+  grid-template-columns: 1.6rem 0.8rem minmax(0, 1.4fr) minmax(60px, 1fr) auto;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: 8px var(--sp-2);
+  border: 0;
+  border-radius: var(--r-md);
+  background: none;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  animation: sxIn 0.35s var(--ease) both;
+  animation-delay: calc(var(--i) * 30ms);
+}
+@keyframes sxIn { from { opacity: 0; transform: translateY(4px); } }
+button.sx-peer { cursor: pointer; }
+.dp-body button.sx-peer:hover { background: color-mix(in srgb, var(--text) 5%, transparent); }
+.dp-body .sx-peer.is-me { background: color-mix(in srgb, var(--dp-ac) 12%, transparent); box-shadow: inset 3px 0 0 var(--dp-ac); }
+.dp-body .sx-peer.is-gap { margin-top: var(--sp-2); }
+.dp-body .sx-peer-n { font-size: var(--fs-xs); font-weight: 700; color: var(--text3); text-align: right; font-variant-numeric: tabular-nums; }
+.dp-body .sx-peer-t { min-width: 0; font-size: var(--fs-sm); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dp-body .sx-peer-t small { display: block; font-size: var(--fs-xs); font-weight: 400; color: var(--text3); overflow: hidden; text-overflow: ellipsis; }
+.dp-body .sx-peer .cr-stk-bar { height: 8px; }
+.dp-body .sx-peer-len { font-size: var(--fs-xs); color: var(--text2); white-space: nowrap; }
+.dp-body .sx-peer-len b { font-size: var(--fs-sm); color: var(--text); }
+
+@media (max-width: 640px) {
+  .dp-body .sx-units { grid-template-columns: repeat(3, 1fr); }
+  .dp-body .sx-peer { grid-template-columns: 1.4rem 0.8rem minmax(0, 1fr) auto; }
+  .dp-body .sx-peer .cr-stk-bar { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dp-body .sx-bar > i, .dp-body .sx-peer { animation: none; }
+}
