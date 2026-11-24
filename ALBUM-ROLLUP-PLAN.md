@@ -219,6 +219,89 @@ Shown only for the choices that trigger it; the in-site warning window
 - **All three data sources** (Last.fm, Google Sheet, uploaded file) — nothing
   here depends on the source; it only needs album and artist names.
 
+## Checklist for every switch (user, 2026-11-23)
+
+The pre-evaluation above is a code reading, not a test. Each switch is only
+done when every row below has been checked **in a browser** for that switch,
+once with it off (must match today exactly) and once with it on. Rows marked
+⚠ were seen in the code to count albums on their own (do not use the shared
+step) and need their own fix if the switch should reach them.
+
+**Test library** (made-up CSV, one artist, loaded with parseCsv — see
+[[project_browser_verification]] in memory): a 2-song single before the album;
+two EPs ("…" and "…, A Moment…"); the album; a deluxe with 2 shared songs + 1
+bonus; a best-of with one album song; a joint album; a compilation; a
+same-name title-track single ("Lover"-style split); plays before and after the
+album's release; enough plays to cross gold/platinum on lowered thresholds.
+
+### Charts and history
+- [ ] Albums chart — week, month, year, day, All-Time; Singles / EPs / Deluxe
+      charts when Apart; the combined "All" view
+- [ ] Chart runs, peaks, weeks on chart, NEW / RE, movement arrows
+- [ ] Bubbling Under, Off the Chart, New Entries
+- [ ] A past week from before the album came out (must not change)
+- [ ] Chart insights ("Inside your Top N"), plays-peak badges
+
+### Certifications
+- [ ] Cert badges on chart rows (album rows and the album badge on song rows)
+- [ ] Records certifications table + per-type columns (singles / EPs / deluxe)
+- [ ] Cert wall plaques, "Certified this period" reel
+- [ ] Album window plaques + "plays to next plaque"; artist window plaques and
+      certification counts; song window
+- [ ] New-certification notifications (and no burst when a switch is flipped)
+- [ ] Certification ladder per type (a deluxe's ladder once it is a type)
+
+### Records
+- [ ] #1s, weeks at #1, debuts, longest runs, ties — per type
+- [ ] Play milestones (first to 50…), fastest to N
+- [ ] "Released as a single first"
+- [ ] Album streaks / back-to-back runs (meant to stay own plays)
+- [ ] New-record notifications
+
+### Windows (modals)
+- [ ] Album window: total, Tracks, Song Chart tab, "counted from these
+      singles/EPs/deluxe" line, start-date row
+- [ ] Artist window: Overview (favourite album, counts), Music → Albums /
+      Singles / EPs / Deluxe / Appears on, accomplishments
+- [ ] Song window: its album line and badge
+- [ ] Single / EP / deluxe opened in the album window
+
+### Stats, Daily and the rest
+- [ ] Stats: top 5, biggest movers, top charts, overview tiles, volume graph
+- [ ] Spotlight cards (album of the moment), stats tiles banner
+- [ ] Daily tab, Replay (chart replay credits), All-Time insights
+- [ ] Compare tab
+- [ ] ⚠ Chart race video (buildRaceFrames — own count)
+- [ ] Library search results, Raw Data (must keep the real names)
+
+### Awards
+- [ ] Nominees + picker for album categories; Best EP / Best Live / Best
+      Deluxe / Best Reissue ('rt:' and title categories) with the Deluxe type
+- [ ] Saved winners from past years unchanged; ceremony and share links
+
+### Sharing and outside
+- [ ] Share images: chart cards, chart-run cards, filmstrip, mosaic, stats
+      share, cert plaque share
+- [ ] Printable chart PDF
+- [ ] ⚠ Dank 100 (dank100.js tallies albums by their own name — decide whether
+      the shared chart should follow the user's switch; probably NOT, so every
+      user is counted the same way)
+- [ ] Board posts that embed a chart
+
+### Playlists, ratings, genres
+- [ ] Smart playlist rules (chart / Bubbling Under / New / certification rules)
+- [ ] Automatic chart playlists
+- [ ] Ratings (album rating ↔ deluxe), Listening Scores, rating fun
+- [ ] Genre Library album pages
+
+### Settings and words
+- [ ] Settings → Releases: the new switches, warnings, preview; the Deluxe
+      type in the release manager, auto-detect, bulk marking
+- [ ] Firestore sync of the new settings and marks (second device)
+- [ ] All three data sources (Last.fm, Google Sheet, uploaded file)
+- [ ] Translations ES / PT-BR / PT-PT, Charts Guide wording, changelog,
+      What's New card
+
 ## Steps
 
 1. Close gaps 1–4 above (Awards nominees, Album of the moment, milestones,
