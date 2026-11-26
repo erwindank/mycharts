@@ -2054,10 +2054,20 @@ function _rollupGen() {
   return _releaseEpoch + '|' + _playsVersion + '|' + _stampEpoch + '|' + singleRollup;
 }
 
+/* The four values _rollupGen() joins, kept apart as well (2026-11-25):
+   rollupParentOf() asks rollupMap() once per play inside the chart and
+   certification loops, and building the joined string every time cost more
+   than the lookup itself. Comparing the four values is the same test without
+   making a new string. */
+let _rgRelease = null, _rgPlays = null, _rgStamp = null, _rgRoll = null;
+
 function rollupMap() {
+  if (_rollupCache && _rgRelease === _releaseEpoch && _rgPlays === _playsVersion
+      && _rgStamp === _stampEpoch && _rgRoll === singleRollup) return _rollupCache;
   const gen = _rollupGen();
   if (_rollupCache && _rollupCacheGen === gen) return _rollupCache;
   _rollupCacheGen = gen;
+  _rgRelease = _releaseEpoch; _rgPlays = _playsVersion; _rgStamp = _stampEpoch; _rgRoll = singleRollup;
   _rollupCache = new Map();
   if (singleRollup === 'off') return _rollupCache;
 
@@ -9096,6 +9106,89 @@ function finalizeLoad() {
   // Notifications for a finished month's Soundtrack, new certifications and
   // Board replies (notifications.js)
   if (typeof ntWatch === 'function') ntWatch();
+  // Back where you were if Chrome reloaded the tab while it was in the background
+  dcResumeRestore();
+}
+
+/* ─── BACK WHERE YOU WERE (2026-11-25) ─────────────────────────────────────
+   On a phone, Chrome throws away a big tab while you are in another app and
+   loads it again from scratch when you come back. The tab itself already came
+   back (dc_period), but the week or month on screen, an open song / album /
+   artist window and the scroll spot were lost, so it felt like starting over.
+
+   When the page is hidden, those are written to sessionStorage — it belongs to
+   this one browser tab and survives Chrome's reload, but not closing the tab,
+   so a fresh visit still starts on the current week. They are put back once,
+   after the first full paint. Not for a link opened fresh (navigation type
+   'navigate'), so a shared chart or bookmark opens as it was sent. Works the
+   same for Last.fm, Google Sheets and file users: nothing here reads plays. */
+const DC_RESUME_KEY = 'dc_resume';
+const DC_RESUME_MAX_AGE = 12 * 60 * 60 * 1000;   // older than this: start fresh
+let _dcResumeArtist = null;   // set by openArtistModal (album/song keep their own)
+let _dcResumeDone = false;    // finalizeLoad runs more than once per load
+
+function dcResumeSave() {
+  try {
+    const open = id => document.getElementById(id)?.classList.contains('open');
+    // The window on top: the song window opens over an album or artist one
+    let win = null;
+    if (open('songModal') && _currentSongKey) win = { t: 'song', k: _currentSongKey };
+    else if (open('albumModal') && _currentAlbumKey) win = { t: 'album', k: _currentAlbumKey };
+    else if (open('artistModal') && _dcResumeArtist) win = { t: 'artist', k: _dcResumeArtist };
+    sessionStorage.setItem(DC_RESUME_KEY, JSON.stringify({
+      at: Date.now(),
+      day: localDateStr(new Date()),   // an offset counts back from today
+      period: currentPeriod, offset: currentOffset,
+      y: Math.round(window.scrollY), win
+    }));
+  } catch (e) {}
+}
+document.addEventListener('visibilitychange', () => { if (document.hidden) dcResumeSave(); });
+window.addEventListener('pagehide', dcResumeSave);
+
+function dcResumeRestore() {
+  if (_dcResumeDone) return;
+  _dcResumeDone = true;
+  let s = null;
+  try {
+    const nav = performance.getEntriesByType?.('navigation')?.[0];
+    if (nav && nav.type === 'navigate' && !document.wasDiscarded) return;
+    s = JSON.parse(sessionStorage.getItem(DC_RESUME_KEY) || 'null');
+  } catch (e) { return; }
+  if (!s || typeof s !== 'object' || !(Date.now() - s.at < DC_RESUME_MAX_AGE)) return;
+  // Only the tab dc_period already restored; anything else means the user
+  // went somewhere new since (or a link chose the tab)
+  if (s.period !== currentPeriod) return;
+  // A past week / month / year / day, if it is still the same day
+  const chartTab = ['day', 'week', 'month', 'year', 'alltime'].includes(currentPeriod);
+  if (chartTab && s.offset > 0 && s.day === localDateStr(new Date()) && currentOffset !== s.offset) {
+    currentOffset = s.offset;
+    savedOffsets[currentPeriod] = s.offset;
+    pageState.songs = 0; pageState.artists = 0; pageState.albums = 0;
+    renderAll();
+  }
+  // The window that was open. Its opener checks the key itself; a song or
+  // album that is no longer in the library simply does not open.
+  const w = s.win;
+  if (w && typeof w.k === 'string' && w.k) {
+    try {
+      if (w.t === 'song') openSongModal(w.k);
+      else if (w.t === 'album') openAlbumModal(w.k);
+      else if (w.t === 'artist') openArtistModal(w.k);
+    } catch (e) { console.warn('[dankcharts] could not reopen window', e); }
+  }
+  // The scroll spot, once the page is tall enough to reach it (images and
+  // lazy sections keep growing it for a moment); gives up after ~3s
+  const y = +s.y || 0;
+  if (y > 0) {
+    let tries = 0;
+    const go = () => {
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      window.scrollTo(0, Math.min(y, Math.max(0, max)));
+      if (max < y && ++tries < 15) setTimeout(go, 200);
+    };
+    requestAnimationFrame(go);
+  }
 }
 
 function splitCsvRow(row) {
@@ -31624,6 +31717,8 @@ function lsReadout(kind, i) {
 }
 
 function openArtistModal(artistName) {
+  // Remembered so a tab Chrome reloads in the background can reopen it (dcResume)
+  _dcResumeArtist = artistName;
   // Close any open IG modals so they don't stack behind the artist modal
   document.getElementById('crIgModal')?.classList.remove('open');
   document.getElementById('igPreviewModal')?.classList.remove('open');
