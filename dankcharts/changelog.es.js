@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['es'] = {
+  "Back where you were after your phone reloads the page":
+    ["Vuelves a donde estabas cuando el móvil recarga la página",
+     "En el móvil, Chrome cierra una página grande en segundo plano mientras usas otra app y la vuelve a cargar cuando regresas. Antes volvías a la pestaña correcta pero en la semana actual, sin la ventana de canción, álbum o artista que tenías abierta y otra vez arriba del todo. Ahora también vuelven la semana, el mes o el año que estabas mirando, la ventana abierta y tu sitio en la página. Si abres la web de nuevo, o desde un enlace compartido, empieza como siempre."],
   "Streaks tab in the song and album windows":
     ["Pestaña Rachas en las ventanas de canción y álbum",
      "Las canciones, álbumes, EPs y sencillos tienen ahora su propia pestaña Rachas. Muestra la racha diaria actual (y si sigue viva hoy), tu racha más larga con sus fechas y cuánto te falta para superarla, todas las rachas diarias en orden como una fila de barras, la mejor racha en reproducciones, días, semanas, meses y años, y la lista completa de rachas que ya conoces de las trayectorias. En un álbum ves además qué canciones tuvieron las rachas más largas; en una canción, en qué puesto está entre las canciones del artista."],

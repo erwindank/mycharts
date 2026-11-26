@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
+  "Back where you were after your phone reloads the page":
+    ["Você volta para onde estava quando o celular recarrega a página",
+     "No celular, o Chrome fecha uma página grande em segundo plano enquanto você usa outro app e a carrega de novo quando você volta. Antes você voltava para a aba certa, mas na semana atual, sem a janela de música, álbum ou artista que estava aberta e de novo no topo. Agora também voltam a semana, o mês ou o ano que você estava vendo, a janela aberta e o seu lugar na página. Abrir o site do zero, ou por um link compartilhado, continua começando como sempre."],
   "Streaks tab in the song and album windows":
     ["Aba Sequências nas janelas de música e álbum",
      "Músicas, álbuns, EPs e singles agora têm sua própria aba Sequências. Ela mostra a sequência diária atual (e se ainda está viva hoje), sua maior sequência com as datas e quanto falta para superá-la, todas as sequências diárias em ordem como uma fileira de barras, a melhor sequência em reproduções, dias, semanas, meses e anos, e a lista completa de sequências que você já conhece das trajetórias. Num álbum você também vê quais faixas tiveram as maiores sequências; numa música, em que posição ela está entre as músicas do artista."],

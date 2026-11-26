@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 518;
+const DC_CL_I18N_V = 519;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -478,6 +478,9 @@ const DC_CL_HIGHLIGHTS = [
 const DC_CHANGELOG = [
 
   /* ========== NOVEMBER 2026 ========== */
+  { d: '2026-11-25', t: 'change', a: 'mobile', h: 'd0beda8',
+    title: "Back where you were after your phone reloads the page",
+    detail: "On a phone, Chrome closes a big page in the background while you use another app, and loads it again when you come back. You used to land on the right tab but on the current week, with any open song, album or artist window gone and the page back at the top. Now the week, month or year you were looking at, the open window and your place on the page come back too. Opening the site fresh, or from a shared link, still starts as usual." },
   { d: '2026-11-24', t: 'feature', a: 'charts',
     title: "Streaks tab in the song and album windows",
     detail: "Songs, artists, albums, EPs and singles now have their own Streaks tab. It shows the daily streak running now (and whether it is still alive today), your longest one with its dates and how far you are from beating it, every daily streak in order as a row of bars, the best streak in plays, days, weeks, months and years, and the full streak list you know from the chart runs. On an artist or album you also see which of the songs had the longest streaks; on a song, where it stands among the artist's songs." },

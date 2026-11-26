@@ -13,6 +13,9 @@
 
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
+  "Back where you were after your phone reloads the page":
+    ["Voltas para onde estavas quando o telemóvel recarrega a página",
+     "No telemóvel, o Chrome fecha uma página grande em segundo plano enquanto usas outra app e volta a carregá-la quando regressas. Antes voltavas ao separador certo, mas na semana atual, sem a janela de música, álbum ou artista que tinhas aberta e outra vez no topo. Agora também voltam a semana, o mês ou o ano que estavas a ver, a janela aberta e o teu lugar na página. Abrir o site de novo, ou a partir de um link partilhado, continua a começar como sempre."],
   "Streaks tab in the song and album windows":
     ["Separador Sequências nas janelas de música e álbum",
      "Músicas, álbuns, EPs e singles têm agora o seu próprio separador Sequências. Mostra a sequência diária atual (e se ainda está viva hoje), a tua maior sequência com as datas e quanto te falta para a bateres, todas as sequências diárias por ordem como uma fila de barras, a melhor sequência em reproduções, dias, semanas, meses e anos, e a lista completa de sequências que já conheces das trajetórias. Num álbum vês também que faixas tiveram as maiores sequências; numa música, em que lugar está entre as músicas do artista."],
