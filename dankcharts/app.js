@@ -6981,6 +6981,9 @@ async function syncFromSheets() {
   btn.disabled = true;
   // Covers the landing-connect path, which calls this directly rather than via syncNow()
   startNowPlaying();
+  // Sheets users with no Last.fm account: one quiet check per visit so they
+  // still hear when Last.fm (which may feed their sheet) is down
+  if (!_lfmProbeDone) { _lfmProbeDone = true; probeLastfmHealth(); }
   setSyncStatus(t('sync_connecting'), 'loading');
   try {
     const text = await fetchSheetCsv();
@@ -7018,6 +7021,67 @@ const LASTFM_MIN_IN_FLIGHT = 2;
 // 29 = rate limit. Everything else (bad key, no such user) is permanent.
 const LASTFM_RETRYABLE_ERRORS = new Set([8, 11, 16, 29]);
 
+// ── Last.fm outage notice (2026-11-25) ─────────────────────────
+// Error 8 ("Operation failed - Most likely the backend service failed") and 16
+// ("temporarily unavailable") mean Last.fm's own servers are down. On 2026-11-25
+// user.getrecenttracks gave error 8 for every account for hours, which stopped
+// syncing, the ON AIR bar and Apps Script sheet feeds all at once — and the
+// old "Last.fm error" message pointed people at the setup guide as if their
+// settings were wrong. These errors get tagged so callers can show a notice
+// that says plainly it's Last.fm's fault and that the plays aren't lost.
+const LASTFM_OUTAGE_ERRORS = new Set([8, 16]);
+let _lfmOutageDismissed = false;   // closed by the user this page visit — stay closed
+let _lfmProbeDone = false;         // probeLastfmHealth() runs once per page visit
+
+// Turn a Last.fm error reply into an Error, tagged .lastfmOutage when it's theirs
+function lastfmError(data) {
+  const code = Number(data && data.error);
+  const err = new Error((data && data.message) || ('Last.fm error ' + code));
+  err.lastfmCode = code;
+  if (LASTFM_OUTAGE_ERRORS.has(code)) err.lastfmOutage = true;
+  return err;
+}
+
+// Show the notice strip. The wording depends on where the person's charts come
+// from: Last.fm users see saved charts; Sheets users may have a Last.fm feed.
+function showLastfmOutage() {
+  const box = document.getElementById('lfmOutage');
+  if (!box || _lfmOutageDismissed) return;
+  const src = getDataSource();
+  const msg = src === 'lastfm'
+    ? (allPlays.length
+        ? "It's not your setup. Your saved charts are shown, and new plays will come in by themselves once Last.fm is back. Nothing is lost."
+        : "It's not your setup. Your charts will load once Last.fm is back. Nothing is lost.")
+    : "It's not your setup. ON AIR is paused, and if your Google Sheet gets plays from Last.fm, it is paused too. It catches up by itself once Last.fm is back. Nothing is lost.";
+  document.getElementById('lfmOutageMsg').textContent = msg;
+  box.hidden = false;
+}
+
+// A Last.fm request worked again — take the notice away
+function hideLastfmOutage() {
+  const box = document.getElementById('lfmOutage');
+  if (box) box.hidden = true;
+}
+
+function dismissLastfmOutage() {
+  _lfmOutageDismissed = true;
+  hideLastfmOutage();
+}
+
+// Sheets/CSV users with no Last.fm account connected never call Last.fm, so they
+// would never see the notice — yet many of them have an Apps Script feeding
+// their sheet from Last.fm. One quiet health check per page visit covers them.
+// 'rj' is the public account Last.fm uses in its own API docs.
+async function probeLastfmHealth() {
+  if (getDataSource() === 'lastfm' || getNowPlayingUser()) return; // covered by their own requests
+  if (!localStorage.getItem('dc_sheet_id')) return;                // no sheet, nothing fed by Last.fm
+  try {
+    const res = await fetch(`https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=rj&api_key=${LASTFM_KEY}&format=json&limit=1`);
+    const data = await res.json();
+    if (data && data.error && LASTFM_OUTAGE_ERRORS.has(Number(data.error))) showLastfmOutage();
+  } catch (e) { /* offline or blocked — say nothing */ }
+}
+
 function lastfmThrottle(ms) {
   lastfmPauseUntil = Math.max(lastfmPauseUntil, Date.now() + ms);
   lastfmMaxInFlight = Math.max(LASTFM_MIN_IN_FLIGHT, Math.floor(lastfmMaxInFlight / 2));
@@ -7050,17 +7114,26 @@ async function fetchLastFmPage(username, page, fromUts = 0, attempts = 6, toUts 
     try {
       const res = await fetch(url);
       if (res.status === 429) { lastfmThrottle(Math.min(6000, 2000 * (attempt + 1))); lastErr = new Error('HTTP 429'); continue; }
-      if (!res.ok) { lastErr = new Error('HTTP ' + res.status); continue; }
-      data = await res.json();
+      if (!res.ok) {
+        // During an outage Last.fm answers HTTP 500 *with* a JSON body holding
+        // error 8 — read it, so the outage gets recognised (and tagged) below
+        let body = null;
+        try { body = await res.json(); } catch (_) {}
+        if (!(body && body.error)) { lastErr = new Error('HTTP ' + res.status); continue; }
+        data = body;
+      } else {
+        data = await res.json();
+      }
     } catch (e) { lastErr = e; continue; }   // network blip / connection dropped mid-flight
     if (data && data.error) {
       const code = Number(data.error);
-      lastErr = new Error(data.message || ('Last.fm error ' + code));
+      lastErr = lastfmError(data);   // tagged .lastfmOutage for Last.fm's own server trouble
       if (!LASTFM_RETRYABLE_ERRORS.has(code)) throw lastErr;  // permanent — don't waste retries
       if (code === 29) lastfmThrottle(Math.min(6000, 2000 * (attempt + 1)));
       continue;
     }
     if (!data || !data.recenttracks) { lastErr = new Error('malformed Last.fm response'); continue; }
+    hideLastfmOutage();   // Last.fm answered properly — any outage is over
     return data;
   }
   throw lastErr || new Error('Last.fm request failed');
@@ -7303,7 +7376,13 @@ async function syncFromLastFm() {
       }
     }
   } catch (e) {
-    setSyncStatus('Last.fm error: ' + e.message, 'err', { guide: 'tab=lastfm&step=1' });
+    if (e && e.lastfmOutage) {
+      // Last.fm's servers are down: don't send people to the setup guide
+      showLastfmOutage();
+      setSyncStatus("Last.fm's servers are having problems — not your setup. We'll keep trying.", 'err');
+    } else {
+      setSyncStatus('Last.fm error: ' + e.message, 'err', { guide: 'tab=lastfm&step=1' });
+    }
     btn.disabled = false;
     if (renderedFromCache) {
       // Cached charts are still on screen — keep them and retry on the normal schedule
@@ -7610,9 +7689,13 @@ async function fetchNowPlaying(username) {
     + `&user=${encodeURIComponent(username)}&api_key=${LASTFM_KEY}`
     + `&format=json&limit=1`;
   const res = await fetch(url);
-  if (!res.ok) throw new Error('HTTP ' + res.status);
-  const data = await res.json();
-  if (data.error) throw new Error(data.message);
+  // During an outage Last.fm answers HTTP 500 with a JSON error 8 body, so read
+  // the body before giving up on a bad status
+  let data = null;
+  try { data = await res.json(); } catch (_) {}
+  if (data && data.error) throw lastfmError(data);   // tagged .lastfmOutage for Last.fm's own server trouble
+  if (!res.ok || !data) throw new Error('HTTP ' + res.status);
+  hideLastfmOutage();                        // a good answer means any outage is over
   let tracks = data.recenttracks?.track;
   if (!Array.isArray(tracks)) tracks = tracks ? [tracks] : [];
   const tr = tracks[0];
@@ -7854,7 +7937,11 @@ async function pollNowPlaying(gen) {
   if (!document.hidden) {
     try {
       renderNowPlaying(await fetchNowPlaying(username));
-    } catch (e) { /* silent — transient Last.fm hiccup, next tick retries */ }
+    } catch (e) {
+      // Usually a passing hiccup and the next tick retries — but when Last.fm
+      // itself is down, say so (this is how Sheets users with ON AIR find out)
+      if (e && e.lastfmOutage) showLastfmOutage();
+    }
   }
   // A restart during the await above (tab refocus while the fetch was still open)
   // bumps npGen. clearTimeout can't cancel an already-running async call, so the

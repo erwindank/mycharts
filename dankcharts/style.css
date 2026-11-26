@@ -6216,6 +6216,62 @@
       }
     }
 
+    /* Last.fm outage notice (2026-11-25, app.js showLastfmOutage). A calm strip
+       under the top bar while Last.fm's servers are down: amber dot like the
+       sync toast's "working on it" state, normal text colour so it reads in
+       every theme, and a close button. */
+    .lfm-outage {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--sp-2);
+      /* same width as #mainApp's content (980px minus its 16px side padding) */
+      box-sizing: border-box;
+      width: calc(100% - 32px);
+      max-width: 948px;
+      margin: var(--sp-3) auto;
+      padding: var(--sp-2) var(--sp-2) var(--sp-2) var(--sp-3);
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-size: var(--fs-sm);
+      line-height: 1.4;
+    }
+    .lfm-outage[hidden] { display: none; }
+    .lfm-outage::before {
+      content: '';
+      flex-shrink: 0;
+      width: 8px;
+      height: 8px;
+      margin-top: 0.45em;
+      border-radius: 50%;
+      background: var(--amber);
+    }
+    .lfm-outage-text { flex: 1; min-width: 0; }
+    .lfm-outage-text strong { font-weight: 600; margin-right: 0.25em; }
+    .lfm-outage-text span { color: var(--text2); }
+    .lfm-outage-link {
+      margin-left: 0.25em;
+      color: var(--accent);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+      white-space: nowrap;
+    }
+    .lfm-outage-close {
+      flex-shrink: 0;
+      width: 26px;
+      height: 26px;
+      border: 0;
+      border-radius: var(--r-xs);
+      background: transparent;
+      color: var(--text3);
+      font-size: var(--fs-md);
+      line-height: 1;
+      cursor: pointer;
+    }
+    .lfm-outage-close:hover { background: var(--hover); color: var(--text); }
+
     /* Cassette-counter digit odometer for the sync toast's play count (see setSyncStatus) */
     .sync-count {
       display: inline-flex;

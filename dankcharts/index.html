@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=1115">
+  <link rel="stylesheet" href="style.css?v=1118">
   <!-- The Charts Guide's lessons (guide.js, GUIDE-PLAN.md) -->
   <link rel="stylesheet" href="guide.css?v=5">
   <!-- All scripts are deferred so the page paints without waiting on them.
@@ -484,6 +484,21 @@
     <svg class="dc-logo dc-logo-load sync-toast-logo" viewBox="73 7 342 506" width="14" height="20" aria-hidden="true" focusable="false" fill="none" stroke-width="30" stroke-linecap="round" stroke-linejoin="round"><path class="k-purple" style="--i:0;--c:#643992" stroke="#643992" d="M181.6 377.0A72 72 0 0 1 274.4 275.7" pathLength="1"/><path class="k-red" style="--i:1;--c:#d8323f" stroke="#d8323f" d="M212.4 405.7A72 72 0 0 0 313.9 358.4" pathLength="1"/><path class="k-violet" style="--i:2;--c:#8252a4" stroke="#8252a4" d="M132.9 358.6A112.5 112.5 0 0 1 273.1 232.3" pathLength="1"/><path class="k-purple" style="--i:3;--c:#623a93" stroke="#623a93" d="M143.8 392.1A112.5 112.5 0 0 0 226.4 452.1" pathLength="1"/><path class="k-red" style="--i:4;--c:#e9444b" stroke="#e9444b" d="M268.3 450.8A112.5 112.5 0 0 0 356.5 341.0V215" pathLength="1"/><path class="k-dkblue" style="--i:5;--c:#326a9f" stroke="#326a9f" d="M93.1 371.7A154 154 0 0 0 119.4 431.5" pathLength="1"/><path class="k-blue" style="--i:6;--c:#4da5eb" stroke="#4da5eb" d="M122.6 246.2A154 154 0 0 0 90.5 328.9" pathLength="1"/><path class="k-blue" style="--i:7;--c:#4ba4ea" stroke="#4ba4ea" d="M154.6 215.6A154 154 0 0 1 274.7 190.1" pathLength="1"/><path class="k-yellow" style="--i:8;--c:#fbb738" stroke="#fbb738" d="M151.3 464.0A154 154 0 0 0 282.6 490.1" pathLength="1"/><path class="k-yellow" style="--i:9;--c:#fcb638" stroke="#fcb638" d="M322.2 473.7A154 154 0 0 0 397.9 345.0" pathLength="1"/><path class="k-magenta" style="--i:10;--c:#ae3473" stroke="#ae3473" d="M316 321V281" pathLength="1"/><path class="k-blue lg-bar" style="--i:11;--c:#4ca4eb;--b:0" stroke="#4ca4eb" d="M316 237V85" pathLength="1"/><path class="k-purple lg-bar" style="--i:12;--c:#623995;--b:1" stroke="#623995" d="M356.5 171V53" pathLength="1"/><path class="k-orange lg-bar" style="--i:13;--c:#f6962c;--b:2" stroke="#f6962c" d="M398 304V176" pathLength="1"/><path class="k-olive lg-bar" style="--i:14;--c:#b9a247;--b:3" stroke="#b9a247" d="M398 132V24" pathLength="1"/></svg>
     <span id="syncStatus"></span>
     <button id="syncDismissBtn" type="button" aria-label="Dismiss" title="Dismiss">×</button>
+  </div>
+
+  <!-- LAST.FM OUTAGE NOTICE (2026-11-25). Shown by app.js showLastfmOutage() when
+       Last.fm answers with its "backend failed" / "temporarily unavailable"
+       errors, so people know the problem is on Last.fm's side and not their
+       setup. Hidden again by itself as soon as a Last.fm request works. -->
+  <div class="lfm-outage" id="lfmOutage" role="status" hidden>
+    <div class="lfm-outage-text">
+      <strong>Last.fm is having server problems right now.</strong>
+      <span id="lfmOutageMsg"></span>
+      <!-- Last.fm's own forum thread on the 2026-11-25 outage (error 8 on user.* and
+           library.* calls, reported to their staff). Swap the link for a future outage. -->
+      <a class="lfm-outage-link" href="https://support.last.fm/t/api-error-8-operation-failed-on-user-and-library-methods/121174" target="_blank" rel="noopener">Follow it on Last.fm&rsquo;s support forum</a>
+    </div>
+    <button class="lfm-outage-close" id="lfmOutageClose" type="button" aria-label="Dismiss" title="Dismiss" onclick="dismissLastfmOutage()">×</button>
   </div>
 
   <div class="upload-zone" id="uploadZone" style="display:none;">
@@ -4837,7 +4852,7 @@
   <!-- One behaviour and one icon set for every pop-up window (phase 10); before
        app.js so dcIco() is there when app.js draws a window -->
   <script defer src="popups.js?v=14"></script>
-  <script defer src="app.js?v=851"></script>
+  <script defer src="app.js?v=852"></script>
   <!-- Song Chart tab in the artist / album windows; must load BEFORE panel.js (it wraps the open functions first) -->
   <script defer src="songchart.js?v=1"></script>
   <!-- The song / album / artist details side panel (phase 10 step 3); wraps app.js's open functions -->
