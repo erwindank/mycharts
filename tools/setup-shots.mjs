@@ -70,6 +70,32 @@ async function rawData(pg) {
   await pg.evaluate(() => window.scrollTo(0, 0));
 }
 
+// The Add Play window filled in with one play. `to` = which send button
+// shows ('sheet' | 'lfm'); the others are hidden — on screen only.
+async function addPlay(pg, to) {
+  await rawData(pg);
+  await pg.evaluate(to => {
+    openScrobbleModal();
+    document.getElementById('scrobbleSheetBtn').style.display  = to === 'sheet' ? '' : 'none';
+    document.getElementById('scrobbleSubmitBtn').style.display = to === 'lfm' ? '' : 'none';
+    document.getElementById('scrobbleFileBtn').style.display   = 'none';
+    document.getElementById('scrobbleNoTarget').style.display  = 'none';
+  }, to);
+  await pg.fill('#scrobbleArtist', 'Fleetwood Mac');
+  await pg.fill('#scrobbleTrack', 'Dreams');
+  await pg.fill('#scrobbleAlbum', 'Rumours');
+  await pg.evaluate(() => { document.getElementById('scrobbleTime').value = '2026-11-25T21:30:00'; document.activeElement.blur(); });
+  await wait(pg, 600);
+}
+// Dots for the one-play window: the switch, artist, track, time, send
+const ADD_ONE_SPOTS = send => ({
+  1: '#scrobbleMode [data-smode="one"]',
+  2: { js: "document.getElementById('scrobbleArtist').closest('label')" },
+  3: { js: "document.getElementById('scrobbleTrack').closest('label')" },
+  4: { js: "document.getElementById('scrobbleTime').closest('label')" },
+  5: send
+});
+
 /* ── The shots ───────────────────────────────────────────────────
    id      file name (= the scene name the guide asks for)
    fresh   start from the landing screen (no data loaded)
@@ -159,6 +185,43 @@ const SHOTS = [
     clip: { from: '#rawDataView .raw-bar', to: { js: "[...document.querySelectorAll('#rawBody tr')][4]" }, pad: 10 },
     spots: { 1: '#rawBody .raw-edit-btn' } },
 
+  /* ── Add a play by hand (2026-11-26) ─────────────────────────────
+     The ✚ Add Play button only shows in the top bar while Raw Data is
+     open, so the first picture is the top bar ON Raw Data. The window
+     pictures show one target button each (Sheet or Last.fm), the way a
+     Sheets or a Last.fm user really sees it — set on screen only. */
+  { id: 'dc-add-btn',
+    setup: async pg => {
+      await rawData(pg);
+      await pg.evaluate(() => { document.getElementById('scrobbleBtn').style.display = ''; });
+      await wait(pg, 500);
+    },
+    clip: { from: '#topbarNav', to: '#rawDataView .raw-bar', pad: 12 },
+    spots: { 1: '#scrobbleBtn' } },   // More is dot 1 of the dc-more picture before it
+
+  { id: 'dc-add-one-sheet', setup: async pg => { await addPlay(pg, 'sheet'); },
+    clip: { from: '#scrobbleModal .dc-modal', to: '#scrobbleModal .dc-modal', pad: 10, narrow: true },
+    spots: ADD_ONE_SPOTS('#scrobbleSheetBtn') },
+  { id: 'dc-add-one-lfm', setup: async pg => { await addPlay(pg, 'lfm'); },
+    clip: { from: '#scrobbleModal .dc-modal', to: '#scrobbleModal .dc-modal', pad: 10, narrow: true },
+    spots: ADD_ONE_SPOTS('#scrobbleSubmitBtn') },
+
+  // Several plays: a pasted list and its preview (the send button is the
+  // same one as above, so the picture stops at the preview)
+  { id: 'dc-add-many',
+    setup: async pg => {
+      await addPlay(pg, 'sheet');
+      await pg.evaluate(() => document.querySelector('#scrobbleMode [data-smode="many"]').click());
+      await wait(pg, 300);
+      await pg.fill('#scrobbleManyText', 'Fleetwood Mac - Dreams | Rumours\nFleetwood Mac - The Chain | Rumours\nFleetwood Mac - Go Your Own Way | Rumours');
+      // a fixed time, so every language shows the same list
+      await pg.evaluate(() => { const t = document.getElementById('scrobbleManyAt'); t.value = '2026-11-25T22:00:00';
+        t.dispatchEvent(new Event('input', { bubbles: true })); t.dispatchEvent(new Event('change', { bubbles: true })); document.activeElement.blur(); });
+      await wait(pg, 900);
+    },
+    clip: { from: '#scrobbleModal .dc-frame-head', to: '#scrobbleManyPreview', pad: 10, narrow: true },
+    spots: { 1: '#scrobbleMode [data-smode="many"]', 2: '#scrobbleManyText', 3: '#scrobbleManyAnchor', 4: '#scrobbleManyPreview' } },
+
   { id: 'dc-raw-edit',
     setup: async pg => {
       await rawData(pg);
@@ -221,7 +284,7 @@ async function openApp(b, lang, fresh) {
     document.getElementById('cgWelcomeGate')?.remove();
     document.body.classList.remove('cg-gate-open');
     const st = document.createElement('style');
-    st.textContent = '.sync-toast,#syncToast,.dc-toast,#backToTop,.back-to-top,.gd-toast{display:none!important}';
+    st.textContent = '.sync-toast,#syncToast,.dc-toast,#backToTop,.back-to-top,.gd-toast,#lfmBack,#lfmOutage{display:none!important}';   // + the Last.fm notices
     document.head.appendChild(st);
   });
   return { ctx, pg };

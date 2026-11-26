@@ -7147,10 +7147,11 @@ function showLastfmBack() {
   msgEl.dataset.i18n = key;               // so a language switch re-translates it
   msgEl.textContent = t(key);
   document.getElementById('lfmBackSteps').hidden = src !== 'sheets';
-  // "How to add a missing play by hand" → the Setup Guide step that sets up + Add Play
+  // "How to add a missing play by hand" → the Setup Guide's "Add a play by
+  // hand" step, with pictures of where ✚ is (Sheets step 8, Last.fm step 6)
   document.getElementById('lfmBackHowto').href = src === 'sheets'
-    ? 'setup-guide.html?tab=sheets&step=7'
-    : 'setup-guide.html?tab=lastfm&step=2';
+    ? 'setup-guide.html?tab=sheets&step=8'
+    : 'setup-guide.html?tab=lastfm&step=6';
   box.hidden = false;
 }
 

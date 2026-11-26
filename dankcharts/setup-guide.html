@@ -26,7 +26,7 @@
   </script>
   <!-- The guide's own ES / PT strings, merged into TRANSLATIONS. Must load
        after translations.js and before its DOMContentLoaded pass runs. -->
-  <script src="setup-guide-i18n.js?v=4"></script>
+  <script src="setup-guide-i18n.js?v=5"></script>
   <style>
     /* ═══════════════════════════════════════════════════════════════════
        SETUP GUIDE — visual system
@@ -2938,6 +2938,66 @@ body.yellow-light .dc-gico, body.pink-light .dc-gico, body.green-light .dc-gico 
           </div>
         </div>
       </li>
+
+      <!-- Step 8 (2026-11-26): add a play by hand. The "Last.fm is working
+           again" card links here. ✚ Add Play only shows in the top bar while
+           Raw Data is open, so the pictures walk there first. -->
+      <li class="step step-optional" id="sheets-add-play">
+        <button type="button" class="step-node" aria-pressed="false" aria-label="Mark step 8 done">
+          <span class="step-num">08</span><span class="step-tick" aria-hidden="true">✓</span>
+        </button>
+        <div class="step-card">
+          <h3 class="step-title"><span data-i18n="sg_add_title">Add a play by hand</span> <span data-i18n="sg_optional" class="optional-badge">Optional</span></h3>
+          <div class="step-body">
+            <p data-i18n-html="sg_add_p1">Listened to something that never reached your charts: a record, the car radio, a phone that was offline, or a day Last.fm was down? Add it yourself and it counts like any other play.</p>
+            <aside class="note note-warn">
+              <span class="note-icon" aria-hidden="true">!</span>
+              <div data-i18n-html="sg_sh8_need" class="note-body">
+                <strong>Needs Step 7 first.</strong> The <strong>✚</strong> only shows up once the site can write to your sheet. Haven't done it? <a href="?tab=sheets&amp;step=7">Go to Step 7</a>, it takes about five minutes.
+              </div>
+            </aside>
+
+            <p data-i18n="sg_add_sub1" class="step-sub">One play</p>
+            <div class="shot-pair">
+              <figure class="shot" data-scenes="dc-more,dc-add-btn,dc-add-one-sheet" data-offsets="0,2,3"></figure>
+              <div class="do-col">
+                <p data-i18n="sg_do_head" class="do-head">Do this</p>
+                <ol class="do">
+                  <li data-dot="1" data-frame="1" data-i18n-html="sg_lf4_do0">In the top bar, open <strong>More</strong>…</li>
+                  <li data-dot="2" data-frame="1" data-i18n-html="sg_lf4_do1">…and pick <strong>Raw Data</strong>.</li>
+                  <li data-dot="3" data-frame="2" data-i18n-html="sg_add_do3">Now a <strong>✚</strong> shows in the top bar, beside the sync button. It's only there while <strong>Raw Data</strong> is open. Click it.</li>
+                  <li data-dot="4" data-frame="3" data-i18n-html="sg_add_do4">Leave <strong>One play</strong> picked.</li>
+                  <li data-dot="5" data-frame="3" data-i18n-html="sg_add_do5">Type the <strong>Artist</strong>…</li>
+                  <li data-dot="6" data-frame="3" data-i18n-html="sg_add_do6">…and the <strong>Track</strong>. The album is optional.</li>
+                  <li data-dot="7" data-frame="3" data-i18n-html="sg_add_do7">Set <strong>Date &amp; Time</strong> to when you listened. <strong>Now</strong> fills in this moment.</li>
+                  <li data-dot="8" data-frame="3" data-i18n-html="sg_sh8_send">Press <strong>Add to Sheet</strong>. It lands as a new row in your sheet and in your charts straight away.</li>
+                </ol>
+              </div>
+            </div>
+
+            <p data-i18n="sg_add_sub2" class="step-sub">Several plays at once</p>
+            <p data-i18n="sg_add_p2">Missed a whole afternoon? Add the lot in one go, in the same window.</p>
+            <div class="shot-pair">
+              <figure class="shot" data-scene="dc-add-many"></figure>
+              <div class="do-col">
+                <p data-i18n="sg_do_head" class="do-head">Do this</p>
+                <ol class="do">
+                  <li data-dot="1" data-i18n-html="sg_add_m1">Pick <strong>Several plays</strong>.</li>
+                  <li data-dot="2" data-i18n-html="sg_add_m2">Paste one play per line: <strong>Artist - Track</strong> or <strong>Artist - Track | Album</strong>. The top line is the first song you played. A CSV file works too.</li>
+                  <li data-dot="3" data-i18n-html="sg_add_m3">Choose whether your time is when the list <strong>starts</strong> or <strong>ends</strong>, and set it. The plays are spaced by <strong>Minutes between plays</strong>.</li>
+                  <li data-dot="4" data-i18n-html="sg_add_m4">Check the times in the list below, then press the same button as for one play.</li>
+                </ol>
+              </div>
+            </div>
+            <aside class="note note-tip">
+              <span class="note-icon" aria-hidden="true">✦</span>
+              <div data-i18n-html="sg_sh8_tip" class="note-body">
+                <strong>Plays missing after a Last.fm outage?</strong> First run <strong>Last.fm → Fetch Latest Tracks</strong> in your sheet: it brings in everything Last.fm has. Only add by hand what's still missing after that.
+              </div>
+            </aside>
+          </div>
+        </div>
+      </li>
     </ol>
 
     <section class="guide-section">
@@ -2993,7 +3053,7 @@ body.yellow-light .dc-gico, body.pink-light .dc-gico, body.green-light .dc-gico 
     <h2 class="section-label dc-gk-host"><svg data-gico="checklist" aria-hidden="true"></svg><span data-i18n="sg_needs_title">What you'll need</span></h2>
     <ul class="needs">
       <li data-i18n="sg_lf_need1">A Last.fm account</li>
-      <li data-i18n-html="sg_lf_need2b">For the optional steps 2–5 only: a free Last.fm API key &amp; shared secret (Step 2 makes them)</li>
+      <li data-i18n-html="sg_lf_need2b">For the optional steps 2–6 only: a free Last.fm API key &amp; shared secret (Step 2 makes them)</li>
     </ul>
 
     <div class="viewbar">
@@ -3174,6 +3234,72 @@ body.yellow-light .dc-gico, body.pink-light .dc-gico, body.green-light .dc-gico 
                 <p data-i18n-html="sg_lf4_why_body">Pick <strong>All plays of this song</strong> under <strong>Fix which plays?</strong> to correct that song across your whole local history, then save once.</p>
               </div>
             </details>
+          </div>
+        </div>
+      </li>
+
+      <!-- Step 6 (2026-11-26): add a play by hand. The "Last.fm is working
+           again" card links here. ✚ Add Play only shows in the top bar while
+           Raw Data is open, so the pictures walk there first. -->
+      <li class="step step-optional" id="lastfm-add-play">
+        <button type="button" class="step-node" aria-pressed="false" aria-label="Mark step 6 done">
+          <span class="step-num">06</span><span class="step-tick" aria-hidden="true">✓</span>
+        </button>
+        <div class="step-card">
+          <h3 class="step-title"><span data-i18n="sg_add_title">Add a play by hand</span> <span data-i18n="sg_optional" class="optional-badge">Optional</span></h3>
+          <div class="step-body">
+            <p data-i18n-html="sg_add_p1">Listened to something that never reached your charts: a record, the car radio, a phone that was offline, or a day Last.fm was down? Add it yourself and it counts like any other play.</p>
+            <aside class="note note-warn">
+              <span class="note-icon" aria-hidden="true">!</span>
+              <div data-i18n-html="sg_lf5_need" class="note-body">
+                <strong>Needs Steps 2 to 4 first.</strong> The <strong>✚</strong> only shows up once your Last.fm account is connected. Haven't done it? <a href="?tab=lastfm&amp;step=2">Go to Step 2</a>.
+              </div>
+            </aside>
+
+            <p data-i18n="sg_add_sub1" class="step-sub">One play</p>
+            <div class="shot-pair">
+              <figure class="shot" data-scenes="dc-more,dc-add-btn,dc-add-one-lfm" data-offsets="0,2,3"></figure>
+              <div class="do-col">
+                <p data-i18n="sg_do_head" class="do-head">Do this</p>
+                <ol class="do">
+                  <li data-dot="1" data-frame="1" data-i18n-html="sg_lf4_do0">In the top bar, open <strong>More</strong>…</li>
+                  <li data-dot="2" data-frame="1" data-i18n-html="sg_lf4_do1">…and pick <strong>Raw Data</strong>.</li>
+                  <li data-dot="3" data-frame="2" data-i18n-html="sg_add_do3">Now a <strong>✚</strong> shows in the top bar, beside the sync button. It's only there while <strong>Raw Data</strong> is open. Click it.</li>
+                  <li data-dot="4" data-frame="3" data-i18n-html="sg_add_do4">Leave <strong>One play</strong> picked.</li>
+                  <li data-dot="5" data-frame="3" data-i18n-html="sg_add_do5">Type the <strong>Artist</strong>…</li>
+                  <li data-dot="6" data-frame="3" data-i18n-html="sg_add_do6">…and the <strong>Track</strong>. The album is optional.</li>
+                  <li data-dot="7" data-frame="3" data-i18n-html="sg_add_do7">Set <strong>Date &amp; Time</strong> to when you listened. <strong>Now</strong> fills in this moment.</li>
+                  <li data-dot="8" data-frame="3" data-i18n-html="sg_lf5_send">Press <strong>Scrobble to Last.fm</strong>. It's saved on your Last.fm profile and shows up in your charts after the next sync.</li>
+                </ol>
+              </div>
+            </div>
+
+            <p data-i18n="sg_add_sub2" class="step-sub">Several plays at once</p>
+            <p data-i18n="sg_add_p2">Missed a whole afternoon? Add the lot in one go, in the same window.</p>
+            <div class="shot-pair">
+              <figure class="shot" data-scene="dc-add-many"></figure>
+              <div class="do-col">
+                <p data-i18n="sg_do_head" class="do-head">Do this</p>
+                <ol class="do">
+                  <li data-dot="1" data-i18n-html="sg_add_m1">Pick <strong>Several plays</strong>.</li>
+                  <li data-dot="2" data-i18n-html="sg_add_m2">Paste one play per line: <strong>Artist - Track</strong> or <strong>Artist - Track | Album</strong>. The top line is the first song you played. A CSV file works too.</li>
+                  <li data-dot="3" data-i18n-html="sg_add_m3">Choose whether your time is when the list <strong>starts</strong> or <strong>ends</strong>, and set it. The plays are spaced by <strong>Minutes between plays</strong>.</li>
+                  <li data-dot="4" data-i18n-html="sg_add_m4">Check the times in the list below, then press the same button as for one play.</li>
+                </ol>
+              </div>
+            </div>
+            <aside class="note note-tip">
+              <span class="note-icon" aria-hidden="true">✦</span>
+              <div data-i18n-html="sg_lf5_tip" class="note-body">
+                <strong>Plays missing after a Last.fm outage?</strong> Give it a little time first: most music apps keep the plays and send them once Last.fm is back. Only add by hand what's still missing after that.
+              </div>
+            </aside>
+            <aside class="note note-warn">
+              <span class="note-icon" aria-hidden="true">!</span>
+              <div data-i18n-html="sg_lf5_old" class="note-body">
+                <strong>Last.fm only takes plays from the last 14 days.</strong> Pick an older time and the window tells you Last.fm won't save it.
+              </div>
+            </aside>
           </div>
         </div>
       </li>
@@ -4970,7 +5096,7 @@ body.yellow-light .dc-gico, body.pink-light .dc-gico, body.green-light .dc-gico 
 <!-- Contact Support form (replaces the Zoho Desk widget) - see support.js -->
 <script defer src="support.js?v=4"></script>
 <!-- Step pictures engine + drawn screens (before DOMContentLoaded mounts them) -->
-<script defer src="setup-scenes.js?v=3"></script>
+<script defer src="setup-scenes.js?v=4"></script>
 <!-- Glow Kit icons (the glowing drawn icons used across the site) -->
 <script defer src="glowkit.js?v=10"></script>
 </body>

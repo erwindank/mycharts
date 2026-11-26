@@ -1053,7 +1053,11 @@
       c_dc_file: 'Settings → Data source → Upload File',
       c_dc_more: 'Top bar → More → Raw Data',
       c_dc_raw: 'Raw Data: ✎ on every row',
-      c_dc_edit: 'The Edit window'
+      c_dc_edit: 'The Edit window',
+      // Add a play by hand (2026-11-26)
+      c_dc_addbtn: 'With Raw Data open: ✚ in the top bar',
+      c_dc_addone: 'The Manual Scrobble window',
+      c_dc_addmany: 'Several plays: paste a list'
     },
     es: {
       c_dc_landing: 'Pantalla de inicio de dankcharts.fm',
@@ -1065,7 +1069,10 @@
       c_dc_file: 'Ajustes → Fuente de datos → Subir archivo',
       c_dc_more: 'Barra superior → Más → Base de datos',
       c_dc_raw: 'Base de datos: ✎ en cada fila',
-      c_dc_edit: 'La ventana de edición'
+      c_dc_edit: 'La ventana de edición',
+      c_dc_addbtn: 'Con Base de datos abierta: ✚ en la barra superior',
+      c_dc_addone: 'La ventana Scrobble Manual',
+      c_dc_addmany: 'Varias reproducciones: pega una lista'
     },
     'pt-BR': {
       c_dc_landing: 'Tela inicial do dankcharts.fm',
@@ -1077,7 +1084,10 @@
       c_dc_file: 'Configurações → Fonte de dados → Enviar arquivo',
       c_dc_more: 'Barra superior → Mais → Dados brutos',
       c_dc_raw: 'Dados brutos: ✎ em cada linha',
-      c_dc_edit: 'A janela de edição'
+      c_dc_edit: 'A janela de edição',
+      c_dc_addbtn: 'Com Dados brutos aberto: ✚ na barra superior',
+      c_dc_addone: 'A janela Scrobble Manual',
+      c_dc_addmany: 'Várias reproduções: cole uma lista'
     },
     'pt-PT': {
       c_dc_landing: 'Ecrã inicial do dankcharts.fm',
@@ -1089,14 +1099,18 @@
       c_dc_file: 'Definições → Fonte de dados → Carregar ficheiro',
       c_dc_more: 'Barra superior → Mais → Dados brutos',
       c_dc_raw: 'Dados brutos: ✎ em cada linha',
-      c_dc_edit: 'A janela de edição'
+      c_dc_edit: 'A janela de edição',
+      c_dc_addbtn: 'Com Dados brutos aberto: ✚ na barra superior',
+      c_dc_addone: 'A janela Scrobble Manual',
+      c_dc_addmany: 'Várias reproduções: cola uma lista'
     }
   };
   Object.keys(DC_CAPS).forEach(function (l) { Object.assign(LBL[l], DC_CAPS[l]); });
   [
     ['dc-landing-lfm', 'c_dc_landing'], ['dc-set-sheets', 'c_dc_sheets'], ['dc-set-webapp', 'c_dc_webapp'],
     ['dc-set-lfm-creds', 'c_dc_creds'], ['dc-set-lfm-connect', 'c_dc_connect'], ['dc-set-lfm-connected', 'c_dc_connected'],
-    ['dc-set-file', 'c_dc_file'], ['dc-more', 'c_dc_more'], ['dc-raw', 'c_dc_raw'], ['dc-raw-edit', 'c_dc_edit']
+    ['dc-set-file', 'c_dc_file'], ['dc-more', 'c_dc_more'], ['dc-raw', 'c_dc_raw'], ['dc-raw-edit', 'c_dc_edit'],
+    ['dc-add-btn', 'c_dc_addbtn'], ['dc-add-one-sheet', 'c_dc_addone'], ['dc-add-one-lfm', 'c_dc_addone'], ['dc-add-many', 'c_dc_addmany']
   ].forEach(function (s) {
     // w is replaced by the picture's own width once shots.json is in
     SCENES[s[0]] = { img: s[0], url: 'dankcharts.fm', w: 800, cap: s[1] };
@@ -1104,7 +1118,7 @@
 
   // Bump when the pictures in setup/<lang>/ are retaken, or browsers keep
   // showing the old ones (2: edit window redone, 2026-11-14)
-  var SHOT_V = '3';   // 3: Last.fm warning box added, 2026-11-14
+  var SHOT_V = '4';   // 3: Last.fm warning box added, 2026-11-14; 4: Add Play pictures, 2026-11-26
 
   /* ── Engine ──────────────────────────────────────────────────────────── */
   var mounted = [];   // every live figure controller
