@@ -856,6 +856,14 @@ TRANSLATIONS['es'] = Object.assign({
     lfm_outage_sheets: "No es tu configuración. ON AIR está en pausa y, si tu hoja de Google recibe reproducciones de Last.fm, también lo está. Se pondrá al día sola cuando Last.fm vuelva. No se pierde nada.",
     lfm_outage_link: "Síguelo en el foro de soporte de Last.fm",
     lfm_outage_sync: "Los servidores de Last.fm tienen problemas, no es tu configuración. Seguiremos intentándolo.",
+    // "Last.fm is back" notice after the outage (app.js showLastfmBack, 2026-11-26)
+    lfm_back_title: "Last.fm ya funciona de nuevo.",
+    lfm_back_lastfm: "Las reproducciones de la caída deberían llegar solas. ¿Todavía faltan algunas? Pulsa el botón ↻ Sincronizar ahora de arriba o recarga la página.",
+    lfm_back_sheets: "Si tu hoja de Google recibe reproducciones de Last.fm y todavía faltan las más recientes:",
+    lfm_back_sheets_1: "Abre tu hoja de Google y elige Last.fm → Fetch Latest Tracks. Añade hasta 200 reproducciones cada vez, así que repítelo hasta que no llegue nada nuevo.",
+    lfm_back_sheets_2: "Después elige Last.fm → Start Auto-Update (90 min) para que se siga actualizando solo.",
+    lfm_back_sheets_3: "Vuelve aquí y pulsa el botón ↻ Sincronizar ahora de arriba.",
+    lfm_back_howto: "Cómo añadir a mano una reproducción que falta",
     gd_setup_guide_link: '¿Te atascas al conectar tu música? La guía de configuración paso a paso muestra cada pantalla →',
     // Community board (board.js)
     nav_board: "Foro",

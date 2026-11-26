@@ -6280,6 +6280,23 @@
       cursor: pointer;
     }
     .lfm-outage-close:hover { background: var(--hover); color: var(--text); }
+    /* "Last.fm is back" (2026-11-26, app.js showLastfmBack): the same card in
+       green, with numbered steps for Sheets users. One glow, not three — it's
+       good news, but people still need to see the steps. */
+    .lfm-back {
+      background: color-mix(in srgb, var(--green) 13%, var(--bg2));
+      border-color: color-mix(in srgb, var(--green) 70%, transparent);
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--green) 12%, transparent), var(--shadow-2);
+      animation: lfmOutageIn 0.45s var(--ease, ease) both;
+    }
+    .lfm-back-steps {
+      margin: var(--sp-2) 0 0;
+      padding-left: 1.4em;
+    }
+    .lfm-back-steps li { margin-top: 4px; }
+    .lfm-back-steps li::marker { font-weight: 700; color: var(--green); }
+    .lfm-back-steps[hidden] { display: none; }
+    .lfm-back .lfm-outage-link { text-decoration-color: var(--green); }
     @keyframes lfmOutageIn {
       from { opacity: 0; transform: translateY(-8px); }
       to   { opacity: 1; transform: none; }

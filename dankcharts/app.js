@@ -6994,6 +6994,8 @@ async function syncFromSheets() {
   // Sheets users with no Last.fm account: one quiet check per visit so they
   // still hear when Last.fm (which may feed their sheet) is down
   if (!_lfmProbeDone) { _lfmProbeDone = true; probeLastfmHealth(); }
+  // After the 2026-11-25 outage: "Last.fm is back, here's what to do" (one week)
+  showLastfmBack();
   setSyncStatus(t('sync_connecting'), 'loading');
   try {
     const text = await fetchSheetCsv();
@@ -7066,6 +7068,51 @@ function showLastfmOutage() {
   msgEl.dataset.i18n = key;
   msgEl.textContent = t(key);
   box.hidden = false;
+  // Last.fm is down again — the "it's back" card would now be wrong
+  const back = document.getElementById('lfmBack');
+  if (back) back.hidden = true;
+}
+
+// ── "Last.fm is back" notice (2026-11-26) ───────────────────────
+// Last.fm fixed the 2026-11-25 outage on 2026-11-26. For a week afterwards this
+// card says so and tells people what to do if recent plays still haven't shown
+// up. Last.fm users: their next sync fetches everything since the last one, so
+// pressing Sync (or reloading) is enough. Sheets users: an Apps Script feed may
+// have stopped during the outage (the old script could lose its timer on an
+// error), so they restart it from the sheet's Last.fm menu. CSV users never
+// read from Last.fm and don't see it. Closing it hides it for good on this device.
+const LFM_BACK_UNTIL = new Date('2026-12-03T23:59:59Z').getTime();
+const LFM_BACK_KEY = 'dc_lfm_back_20261126';   // set when the person closes the card
+let _lfmBackDone = false;                       // decided once per page visit
+
+function showLastfmBack() {
+  if (_lfmBackDone) return;
+  _lfmBackDone = true;
+  if (Date.now() > LFM_BACK_UNTIL) return;
+  let seen = false;
+  try { seen = localStorage.getItem(LFM_BACK_KEY) === '1'; } catch (e) {}
+  if (seen) return;
+  const src = getDataSource();
+  if (src !== 'lastfm' && src !== 'sheets') return;
+  const box = document.getElementById('lfmBack');
+  const outage = document.getElementById('lfmOutage');
+  if (!box || (outage && !outage.hidden)) return;   // never next to an outage warning
+  const key = src === 'lastfm' ? 'lfm_back_lastfm' : 'lfm_back_sheets';
+  const msgEl = document.getElementById('lfmBackMsg');
+  msgEl.dataset.i18n = key;               // so a language switch re-translates it
+  msgEl.textContent = t(key);
+  document.getElementById('lfmBackSteps').hidden = src !== 'sheets';
+  // "How to add a missing play by hand" → the Setup Guide step that sets up + Add Play
+  document.getElementById('lfmBackHowto').href = src === 'sheets'
+    ? 'setup-guide.html?tab=sheets&step=7'
+    : 'setup-guide.html?tab=lastfm&step=2';
+  box.hidden = false;
+}
+
+function dismissLastfmBack() {
+  try { localStorage.setItem(LFM_BACK_KEY, '1'); } catch (e) {}
+  const box = document.getElementById('lfmBack');
+  if (box) box.hidden = true;
 }
 
 // A Last.fm request worked again — take the notice away
@@ -7151,6 +7198,8 @@ async function fetchLastFmPage(username, page, fromUts = 0, attempts = 6, toUts 
 }
 
 async function syncFromLastFm() {
+  // After the 2026-11-25 outage: "Last.fm is back, here's what to do" (one week)
+  showLastfmBack();
   const username = getLastFmUser();
   if (!username) {
     setSyncStatus('No Last.fm username set — click ⚙ Settings to get started.', 'err', { guide: 'tab=lastfm&step=1' });

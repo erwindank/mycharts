@@ -898,6 +898,14 @@ const TRANSLATIONS = {
     lfm_outage_sheets: "It's not your setup. ON AIR is paused, and if your Google Sheet gets plays from Last.fm, it is paused too. It catches up by itself once Last.fm is back. Nothing is lost.",
     lfm_outage_link: "Follow it on Last.fm's support forum",
     lfm_outage_sync: "Last.fm's servers are having problems — not your setup. We'll keep trying.",
+    // "Last.fm is back" notice after the outage (app.js showLastfmBack, 2026-11-26)
+    lfm_back_title: "Last.fm is working again.",
+    lfm_back_lastfm: "Plays from the outage should come in by themselves. Still missing some? Press the ↻ Sync now button at the top, or reload the page.",
+    lfm_back_sheets: "If your Google Sheet gets plays from Last.fm and recent ones are still missing:",
+    lfm_back_sheets_1: "Open your Google Sheet and choose Last.fm → Fetch Latest Tracks. It adds up to 200 plays at a time, so run it again until nothing new comes in.",
+    lfm_back_sheets_2: "Then choose Last.fm → Start Auto-Update (90 min) so it keeps updating by itself.",
+    lfm_back_sheets_3: "Come back here and press the ↻ Sync now button at the top.",
+    lfm_back_howto: "How to add a missing play by hand",
     gd_setup_guide_link: 'Stuck connecting your music? The step-by-step Setup Guide shows every screen →',
     // Community board (board.js)
     nav_board: "Board",
