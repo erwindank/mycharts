@@ -17086,9 +17086,16 @@
     }
 
     .raw-edit-cell {
-      width: 2rem;
+      width: 4rem;   /* two buttons: Play again + Edit */
       padding: 0.15rem 0.3rem !important;
       text-align: center;
+    }
+
+    /* Play again + Edit sit side by side, never wrapping */
+    .raw-row-btns {
+      display: inline-flex;
+      gap: 0.1rem;
+      white-space: nowrap;
     }
 
     /* The edit button shows on row hover or keyboard focus; on touch

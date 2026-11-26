@@ -3173,7 +3173,31 @@ function setScrobbleNow() {
   const now = new Date();
   now.setMilliseconds(0);
   document.getElementById('scrobbleTime').value = scrobbleDatetimeLocal(now);
+  _scrobbleCheckAge();   // a set value fires no input event
 }
+
+// Last.fm turns down plays more than 14 days old (same rule as the
+// Several plays list). True when the single-play time is past that.
+function _scrobbleIsTooOld() {
+  const ts = new Date(document.getElementById('scrobbleTime').value).getTime();
+  return !isNaN(ts) && ts < Date.now() - 14 * 86400 * 1000;
+}
+
+// Single-play form: show / hide the "Last.fm won't save this" note under the
+// time, and say where it can still be saved (Google Sheet, uploaded CSV plays).
+function _scrobbleCheckAge() {
+  const note = document.getElementById('scrobbleOldNote');
+  if (!note) return;
+  const { hasLfm, hasSheet, hasFile } = _scrobbleTargets();
+  const show = hasLfm && _scrobbleIsTooOld();
+  note.hidden = !show;
+  if (!show) return;
+  let msg = t('scrob_one_old');
+  if (hasSheet) msg += ' ' + t('scrob_one_old_sheet');
+  if (hasFile)  msg += ' ' + t('scrob_one_old_file');
+  note.textContent = msg;
+}
+document.getElementById('scrobbleTime')?.addEventListener('input', _scrobbleCheckAge);
 
 function setEditScrobbleNow() {
   const now = new Date();
@@ -3197,6 +3221,12 @@ async function submitScrobble() {
   const timestamp = Math.floor(new Date(timeVal).getTime() / 1000);
   if (isNaN(timestamp)) {
     statusEl.textContent = 'Invalid date/time.';
+    statusEl.className   = 'scrobble-status err';
+    return;
+  }
+  // Last.fm would quietly drop it — say so instead of "Scrobbled successfully"
+  if (_scrobbleIsTooOld()) {
+    statusEl.textContent = t('scrob_one_old');
     statusEl.className   = 'scrobble-status err';
     return;
   }
@@ -4951,6 +4981,21 @@ function _populateEditSuggestions() {
   fill('editArtistList', artists);
   fill('editTrackList',  tracks);
   fill('editAlbumList',  albums);
+}
+
+// Raw Data "Play again": open Add Play (single-play mode) already filled in
+// with this row's song, artist and album, timed "now". The user can change
+// the time and send it to Last.fm, the Sheet or the file like any added play.
+// Note: Last.fm only accepts plays from the last 14 days.
+function rawPlayAgain(rawIdx) {
+  const p = rawFiltered[rawIdx];
+  if (!p) return;
+  openScrobbleModal();
+  _scrobbleSetMode('one');
+  const album = rawAlbumOf(p);   // the album as the source has it, not a split's rename
+  document.getElementById('scrobbleArtist').value = p.artist || '';
+  document.getElementById('scrobbleTrack').value  = p.title  || '';
+  document.getElementById('scrobbleAlbum').value  = album && album !== '—' ? album : '';
 }
 
 function openEditScrobbleModal(rawIdx) {
@@ -16295,7 +16340,9 @@ let rawFiltered = [];
 let rawSortCol = 'date';
 let rawSortDir = -1; // -1 = desc, 1 = asc
 // Line pencil for each row's edit button
-const RAW_EDIT_ICO = '<svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M10.8 2.7l2.5 2.5L5.6 12.9l-3.1.6.6-3.1z"/><path d="M9.4 4.1l2.5 2.5"/></svg>';
+// "Play again": a circular arrow with a small plus — copy this play into Add Play
+const RAW_AGAIN_ICO = '<svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M13 8a5 5 0 1 1-1.5-3.6"/><path d="M11.8 1.8v2.8H9"/><path d="M8 6v4M6 8h4"/></svg>';
+const RAW_EDIT_ICO ='<svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M10.8 2.7l2.5 2.5L5.6 12.9l-3.1.6.6-3.1z"/><path d="M9.4 4.1l2.5 2.5"/></svg>';
 
 function rawFmtDate(d) {
   const td = tzDate(d);
@@ -16522,6 +16569,7 @@ function rawLoadCovers(start, slice) {
 // One play's row; idx is its place in rawFiltered
 function rawPlayRowHTML(p, idx, timeOnly, alt, editLabel) {
   const n = idx + 1;
+  const againLabel = esc(t('raw_play_again'));   // the "add this play again" button
   let correctedBadge = '';
   if (p._corrected) {
     const orig = p._orig;
@@ -16547,7 +16595,7 @@ function rawPlayRowHTML(p, idx, timeOnly, alt, editLabel) {
     <td class="raw-title"><span class="raw-song"><span class="raw-cover" id="rawimg-${idx}" aria-hidden="true"><div class="thumb-initials">${esc(initials(p.title || ''))}</div></span><button type="button" class="raw-link" data-open="song" data-i="${idx}">${esc(p.title)}</button></span></td>
     <td class="raw-artist">${rawArtistLinksHTML(p)}</td>
     <td class="raw-album">${p.album && p.album !== '—' ? `<button type="button" class="raw-link" data-open="album" data-i="${idx}">${esc(p.album)}</button>` : esc(p.album)}</td>
-    <td class="raw-edit-cell"><button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon raw-edit-btn" title="${editLabel}" aria-label="${editLabel}" onclick="openEditScrobbleModal(${idx})">${RAW_EDIT_ICO}</button></td>
+    <td class="raw-edit-cell"><span class="raw-row-btns"><button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon raw-edit-btn" title="${againLabel}" aria-label="${againLabel}" onclick="rawPlayAgain(${idx})">${RAW_AGAIN_ICO}</button><button class="dc-btn dc-btn-plain dc-btn-sm dc-btn-icon raw-edit-btn" title="${editLabel}" aria-label="${editLabel}" onclick="openEditScrobbleModal(${idx})">${RAW_EDIT_ICO}</button></span></td>
   </tr>`;
 }
 
