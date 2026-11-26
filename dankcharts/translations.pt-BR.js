@@ -849,6 +849,13 @@ TRANSLATIONS['pt-BR'] = Object.assign({
     landing_setup_banner_t: 'Primeira vez aqui?',
     landing_setup_banner_p: 'Siga o guia de configuração passo a passo, com uma imagem de cada tela.',
     sync_guide_link: 'Como resolver →',
+    // Last.fm outage notice (app.js showLastfmOutage, 2026-11-25)
+    lfm_outage_title: "O Last.fm está com problemas nos servidores agora.",
+    lfm_outage_lastfm: "Não é a sua configuração. Suas paradas salvas estão sendo mostradas, e as novas reproduções chegam sozinhas quando o Last.fm voltar. Nada se perde.",
+    lfm_outage_lastfm_empty: "Não é a sua configuração. Suas paradas vão carregar quando o Last.fm voltar. Nada se perde.",
+    lfm_outage_sheets: "Não é a sua configuração. O ON AIR está pausado e, se a sua planilha do Google recebe reproduções do Last.fm, ela também está. Ela se atualiza sozinha quando o Last.fm voltar. Nada se perde.",
+    lfm_outage_link: "Acompanhe no fórum de suporte do Last.fm",
+    lfm_outage_sync: "Os servidores do Last.fm estão com problemas — não é a sua configuração. Vamos continuar tentando.",
     gd_setup_guide_link: 'Travou ao conectar sua música? O guia de configuração passo a passo mostra cada tela →',
     // Community board (board.js)
     nav_board: "Fórum",

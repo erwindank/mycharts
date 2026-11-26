@@ -891,6 +891,13 @@ const TRANSLATIONS = {
     landing_setup_banner_t: 'First time here?',
     landing_setup_banner_p: 'Follow the step-by-step setup guide, with a picture of every screen.',
     sync_guide_link: 'How to fix this →',
+    // Last.fm outage notice (app.js showLastfmOutage, 2026-11-25)
+    lfm_outage_title: "Last.fm is having server problems right now.",
+    lfm_outage_lastfm: "It's not your setup. Your saved charts are shown, and new plays will come in by themselves once Last.fm is back. Nothing is lost.",
+    lfm_outage_lastfm_empty: "It's not your setup. Your charts will load once Last.fm is back. Nothing is lost.",
+    lfm_outage_sheets: "It's not your setup. ON AIR is paused, and if your Google Sheet gets plays from Last.fm, it is paused too. It catches up by itself once Last.fm is back. Nothing is lost.",
+    lfm_outage_link: "Follow it on Last.fm's support forum",
+    lfm_outage_sync: "Last.fm's servers are having problems — not your setup. We'll keep trying.",
     gd_setup_guide_link: 'Stuck connecting your music? The step-by-step Setup Guide shows every screen →',
     // Community board (board.js)
     nav_board: "Board",

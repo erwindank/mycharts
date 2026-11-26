@@ -6216,61 +6216,81 @@
       }
     }
 
-    /* Last.fm outage notice (2026-11-25, app.js showLastfmOutage). A calm strip
-       under the top bar while Last.fm's servers are down: amber dot like the
-       sync toast's "working on it" state, normal text colour so it reads in
-       every theme, and a close button. */
+    /* Last.fm outage notice (2026-11-25, app.js showLastfmOutage). Shown under
+       the top bar while Last.fm's servers are down. Made to be noticed (the user
+       asked for more attention): amber-tinted card with an amber border, a big
+       warning sign, the title on its own line, and a short glow when it appears.
+       Text stays in the normal text colours so it reads in every theme. */
     .lfm-outage {
       display: flex;
       align-items: flex-start;
-      gap: var(--sp-2);
+      gap: var(--sp-3);
       /* same width as #mainApp's content (980px minus its 16px side padding) */
       box-sizing: border-box;
       width: calc(100% - 32px);
       max-width: 948px;
       margin: var(--sp-3) auto;
-      padding: var(--sp-2) var(--sp-2) var(--sp-2) var(--sp-3);
-      background: var(--bg2);
-      border: 1px solid var(--border);
+      padding: var(--sp-3) var(--sp-2) var(--sp-3) var(--sp-4);
+      background: color-mix(in srgb, var(--amber) 15%, var(--bg2));
+      border: 2px solid color-mix(in srgb, var(--amber) 70%, transparent);
       border-radius: var(--r-md);
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--amber) 12%, transparent), var(--shadow-2);
       color: var(--text);
       font-family: var(--font-sans);
       font-size: var(--fs-sm);
-      line-height: 1.4;
+      line-height: 1.45;
+      animation: lfmOutageIn 0.45s var(--ease, ease) both, lfmOutageGlow 1.6s ease-in-out 0.45s 3;
     }
     .lfm-outage[hidden] { display: none; }
-    .lfm-outage::before {
-      content: '';
+    .lfm-outage-icon {
       flex-shrink: 0;
-      width: 8px;
-      height: 8px;
-      margin-top: 0.45em;
-      border-radius: 50%;
-      background: var(--amber);
+      font-size: 1.75rem;
+      line-height: 1;
+      margin-top: 2px;
     }
     .lfm-outage-text { flex: 1; min-width: 0; }
-    .lfm-outage-text strong { font-weight: 600; margin-right: 0.25em; }
-    .lfm-outage-text span { color: var(--text2); }
-    .lfm-outage-link {
-      margin-left: 0.25em;
-      color: var(--accent);
-      text-decoration: underline;
-      text-underline-offset: 2px;
-      white-space: nowrap;
+    .lfm-outage-title {
+      display: block;
+      margin-bottom: 2px;
+      font-size: var(--fs-base);
+      font-weight: 700;
     }
+    .lfm-outage-text span { color: var(--text); }
+    .lfm-outage-link {
+      display: inline-block;
+      margin-top: var(--sp-1);
+      color: var(--text);
+      font-weight: 600;
+      text-decoration: underline;
+      text-decoration-color: var(--amber);
+      text-decoration-thickness: 2px;
+      text-underline-offset: 3px;
+    }
+    .lfm-outage-link::after { content: ' \2192'; }
     .lfm-outage-close {
       flex-shrink: 0;
-      width: 26px;
-      height: 26px;
+      width: 28px;
+      height: 28px;
       border: 0;
       border-radius: var(--r-xs);
       background: transparent;
-      color: var(--text3);
+      color: var(--text2);
       font-size: var(--fs-md);
       line-height: 1;
       cursor: pointer;
     }
     .lfm-outage-close:hover { background: var(--hover); color: var(--text); }
+    @keyframes lfmOutageIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to   { opacity: 1; transform: none; }
+    }
+    /* the halo swells and settles three times, then stays still */
+    @keyframes lfmOutageGlow {
+      50% { box-shadow: 0 0 0 8px color-mix(in srgb, var(--amber) 22%, transparent), var(--shadow-2); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .lfm-outage { animation: none; }
+    }
 
     /* Cassette-counter digit odometer for the sync toast's play count (see setSyncStatus) */
     .sync-count {

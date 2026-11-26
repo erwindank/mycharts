@@ -7048,12 +7048,13 @@ function showLastfmOutage() {
   const box = document.getElementById('lfmOutage');
   if (!box || _lfmOutageDismissed) return;
   const src = getDataSource();
-  const msg = src === 'lastfm'
-    ? (allPlays.length
-        ? "It's not your setup. Your saved charts are shown, and new plays will come in by themselves once Last.fm is back. Nothing is lost."
-        : "It's not your setup. Your charts will load once Last.fm is back. Nothing is lost.")
-    : "It's not your setup. ON AIR is paused, and if your Google Sheet gets plays from Last.fm, it is paused too. It catches up by itself once Last.fm is back. Nothing is lost.";
-  document.getElementById('lfmOutageMsg').textContent = msg;
+  const key = src === 'lastfm'
+    ? (allPlays.length ? 'lfm_outage_lastfm' : 'lfm_outage_lastfm_empty')
+    : 'lfm_outage_sheets';
+  // Keep the key on the element so applyI18n() re-translates it on a language switch
+  const msgEl = document.getElementById('lfmOutageMsg');
+  msgEl.dataset.i18n = key;
+  msgEl.textContent = t(key);
   box.hidden = false;
 }
 
@@ -7379,7 +7380,7 @@ async function syncFromLastFm() {
     if (e && e.lastfmOutage) {
       // Last.fm's servers are down: don't send people to the setup guide
       showLastfmOutage();
-      setSyncStatus("Last.fm's servers are having problems — not your setup. We'll keep trying.", 'err');
+      setSyncStatus(t('lfm_outage_sync'), 'err');
     } else {
       setSyncStatus('Last.fm error: ' + e.message, 'err', { guide: 'tab=lastfm&step=1' });
     }
