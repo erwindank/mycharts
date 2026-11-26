@@ -5126,6 +5126,10 @@ function fetchAndLogLastFmHistory() {
     if (t.getHandlerFunction() === 'fetchAndLogLastFmHistory') ScriptApp.deleteTrigger(t);
   });
 
+  // Book the next sync (90 minutes) right away, so an error later in this run
+  // can never stop auto-sync for good
+  ScriptApp.newTrigger('fetchAndLogLastFmHistory').timeBased().after(90*60*1000).create();
+
   var ss    = SpreadsheetApp.getActiveSpreadsheet();
   var sheet = ss.getSheetByName(cfg.tabName);
   if (!sheet) {
@@ -5174,8 +5178,7 @@ function fetchAndLogLastFmHistory() {
       break;
     } catch(e) {
       if (++attempt >= 5) {
-        // Give up for now, try again in 90 minutes
-        ScriptApp.newTrigger('fetchAndLogLastFmHistory').timeBased().after(90*60*1000).create();
+        // Give up for now; the next sync (already booked) tries again
         return;
       }
       Utilities.sleep(Math.pow(2, attempt) * 1000 + Math.floor(Math.random() * 1000));
@@ -5185,7 +5188,6 @@ function fetchAndLogLastFmHistory() {
   var data = JSON.parse(response.getContentText());
   if (data.error) {
     Logger.log('Last.fm API error: ' + data.message);
-    ScriptApp.newTrigger('fetchAndLogLastFmHistory').timeBased().after(90*60*1000).create();
     return;
   }
 
@@ -5203,15 +5205,15 @@ function fetchAndLogLastFmHistory() {
           Utilities.formatDate(new Date(+t.date.uts * 1000), tz, 'yyyy-MM-dd HH:mm:ss')
         ];
       });
+      // Add empty rows first if the tab is full (Sheets can't write past its last row)
+      var needRows = actualLastRow + rows.length - sheet.getMaxRows();
+      if (needRows > 0) sheet.insertRowsAfter(sheet.getMaxRows(), needRows + 500);
       sheet.getRange(actualLastRow + 1, 1, rows.length, 4).setValues(rows);
       Logger.log('Added ' + rows.length + ' new track(s).');
     }
   } else {
     Logger.log('No new tracks since last sync.');
   }
-
-  // Schedule the next sync in 90 minutes
-  ScriptApp.newTrigger('fetchAndLogLastFmHistory').timeBased().after(90*60*1000).create();
 }
 
 
