@@ -2370,25 +2370,25 @@ window.GL_TEXT.es = {
     },
     worldcharts: {
       title: '{{t:wc_title}}',
-      promise: 'Las listas reales de Billboard, Spotify y YouTube, con tus propias reproducciones en cada fila: mira qué éxitos conoces, viaja al pasado y descubre los que te perdiste.',
+      promise: 'Los rankings reales de Billboard, Spotify y YouTube, con tus propias reproducciones en cada fila: mira qué éxitos conoces, viaja al pasado y descubre los que te perdiste.',
       scenes: {
         top: { title: 'La página', spots: {
-          title: ['{{t:wc_title}}', 'Listas reales del mundo, junto a lo que escuchas tú.'],
-          menu: ['Las listas', 'Tres de Billboard, dos de Spotify y una de YouTube. Cada botón muestra de dónde viene.'],
+          title: ['{{t:wc_title}}', 'Rankings reales del mundo, junto a lo que escuchas tú.'],
+          menu: ['Los rankings', 'Tres de Billboard, dos de Spotify y uno de YouTube. Cada botón muestra de dónde viene.'],
           pick: ['La que estás viendo', 'Toma los colores de su fuente.'],
-          week: ['Qué semana', 'Solo en las listas de Billboard: elige cualquier día y verás la lista de esa semana.'],
+          week: ['Qué semana', 'Solo en los rankings de Billboard: elige cualquier día y verás el ranking de esa semana.'],
           prev: ['{{t:d100_prev_week}}', 'Una semana atrás.'],
           next: ['{{t:d100_next_week}}', 'Una semana adelante.'],
           yourweek: ['{{t:wc_your_week}}', 'Abre tu propio ranking semanal de esos mismos días.'],
-          source: ['Fuente', 'De dónde viene la lista y su fecha. El enlace abre el original.'],
+          source: ['Fuente', 'De dónde viene el ranking y su fecha. El enlace abre el original.'],
           share: ['{{t:d100_share}}', 'Una imagen del top 10, con tus reproducciones.'],
-          sum: ['Cuántas conoces', 'Cuántas de la lista has escuchado.'],
+          sum: ['Cuántas conoces', 'Cuántas del ranking has escuchado.'],
           filter: ['{{t:wc_filter_all}} / {{t:wc_filter_known}} / {{t:wc_filter_new}}', 'Muestra todas las filas, solo las que conoces o solo las nuevas.'],
           range: ['{{t:wc_range_all}} / {{t:wc_range_week}}', 'Qué reproducciones cuentan: todas o solo las de los últimos 7 días.'],
           cols: ['Las columnas', 'Los números de cada fuente: semana pasada, pico y semanas en Billboard, reproducciones en Spotify, vistas en YouTube.'],
           row: ['Una fila', 'Pulsa una canción que conoces para abrir su ventana.'],
-          pos: ['Puesto', 'Su posición en la lista.'],
-          move: ['Movimiento', 'Sube o baja desde la lista anterior, o una marca de entrada nueva o regreso.'],
+          pos: ['Puesto', 'Su posición en el ranking.'],
+          move: ['Movimiento', 'Sube o baja desde el ranking anterior, o una marca de entrada nueva o regreso.'],
           tag: ['Tus reproducciones', 'Cuántas veces la escuchaste, o {{t:wc_new_to_you}}.'],
           acts: ['Escuchar', 'Una muestra, Spotify o YouTube.']
         } },
@@ -2396,10 +2396,10 @@ window.GL_TEXT.es = {
           week: ['La semana', 'Todos los Hot 100 desde 1958, todos los Billboard 200 desde 1963 y el Global 200 desde 2020.'],
           prev: ['{{t:d100_prev_week}}', 'Una semana atrás.'],
           next: ['{{t:d100_next_week}}', 'Una semana adelante.'],
-          latest: ['{{t:wc_latest}}', 'Vuelve a la lista más reciente.'],
+          latest: ['{{t:wc_latest}}', 'Vuelve al ranking más reciente.'],
           yourweek: ['{{t:wc_your_week}}', 'Tu ranking semanal de los días que contó Billboard.'],
-          source: ['La fecha', 'La fecha de la propia lista.'],
-          sum: ['Esa semana', 'Cuántas escuchaste en los días que contó esa lista.'],
+          source: ['La fecha', 'La fecha del propio ranking.'],
+          sum: ['Esa semana', 'Cuántas escuchaste en los días que contó ese ranking.'],
           range: ['{{t:wc_range_that_week}}', 'En una semana pasada, el segundo botón cuenta solo los días que contó Billboard.'],
           row: ['Una fila', 'Tal como estaba esa semana.']
         } },
@@ -2413,15 +2413,15 @@ window.GL_TEXT.es = {
         spotify: { title: 'Spotify', spots: {
           pick: ['{{t:wc_chart_spotify_global_daily}}', 'Las canciones más escuchadas del mundo, día a día. También hay una semanal.'],
           source: ['Fuente', 'kworb.net, que recopila los números de Spotify.'],
-          cols: ['Las columnas', 'Reproducciones y cuántos días lleva en la lista.'],
+          cols: ['Las columnas', 'Reproducciones y cuántos días lleva en el ranking.'],
           row: ['Una fila', 'Hasta 200 al día.'],
           spotify: ['Spotify', 'Abre esa misma canción en Spotify.'],
           sample: ['Muestra', 'Un fragmento corto, aquí mismo.'],
           newtag: ['{{t:wc_new_to_you}}', 'Todavía no la escuchaste.']
         } },
         youtube: { title: 'YouTube', spots: {
-          pick: ['{{t:wc_chart_youtube_music_videos}}', 'La lista de YouTube de los videos musicales más vistos del mundo cada semana. Solo cuentan videos musicales de verdad.'],
-          cols: ['Las columnas', 'Vistas de esa semana, el cambio frente a la semana anterior y semanas en la lista.'],
+          pick: ['{{t:wc_chart_youtube_music_videos}}', 'El ranking de YouTube de los videos musicales más vistos del mundo cada semana. Solo cuentan videos musicales de verdad.'],
+          cols: ['Las columnas', 'Vistas de esa semana, el cambio frente a la semana anterior y semanas en el ranking.'],
           art: ['El video', 'Su miniatura.'],
           row: ['Un video', 'Lo que el mundo está viendo esta semana.'],
           yt: ['YouTube', 'Abre el video.']
@@ -2436,7 +2436,7 @@ window.GL_TEXT.es = {
           'O cuenta solo los últimos 7 días.'
         ] },
         past: { title: 'Viaja al pasado', slides: [
-          'En una lista de Billboard, elige cualquier día…',
+          'En un ranking de Billboard, elige cualquier día…',
           '…o avanza semana a semana.',
           '{{t:wc_range_that_week}} cuenta solo los días que contó Billboard.',
           '{{t:wc_your_week}} abre tu propio ranking de esos días.',
@@ -2448,15 +2448,15 @@ window.GL_TEXT.es = {
           'O mírala en YouTube.',
           'Una canción que conoces abre su ventana.'
         ] },
-        share: { title: 'Comparte una lista', slides: [
-          'Elige una lista.',
+        share: { title: 'Comparte un ranking', slides: [
+          'Elige un ranking.',
           'Elige qué reproducciones cuentan.',
           '{{t:d100_share}}: una imagen del top 10 con tus reproducciones.'
         ] }
       },
       options: {
-        chart: { title: 'La lista', items: {
-          chart: ['Lista', 'La última que miraste.'],
+        chart: { title: 'El ranking', items: {
+          chart: ['Ranking', 'El último que miraste.'],
           week: ['Semana', 'La más reciente, o cualquier semana anterior de Billboard.'],
           filter: ['{{t:wc_filter_all}} / {{t:wc_filter_known}} / {{t:wc_filter_new}}', 'Qué filas se ven.'],
           range: ['{{t:wc_range_all}} / {{t:wc_range_week}}', 'Qué reproducciones cuentan. Se recuerda.']
@@ -2469,25 +2469,25 @@ window.GL_TEXT.es = {
         } }
       },
       challenges: {
-        'wc.chart': ['Cambia a otra lista', 'Los botones de arriba.'],
-        'wc.week': ['Mira otra semana', 'Las flechas o la fecha en una lista de Billboard.'],
-        'wc.filter': ['Muestra solo {{t:wc_filter_known}} o {{t:wc_filter_new}}', 'Encima de la lista.'],
+        'wc.chart': ['Cambia a otro ranking', 'Los botones de arriba.'],
+        'wc.week': ['Mira otra semana', 'Las flechas o la fecha en un ranking de Billboard.'],
+        'wc.filter': ['Muestra solo {{t:wc_filter_known}} o {{t:wc_filter_new}}', 'Encima del ranking.'],
         'wc.range': ['Cambia a {{t:wc_range_week}}', 'Junto al filtro.'],
         'wc.open': ['Abre una canción que conoces', 'Pulsa una fila con reproducciones.'],
         'wc.listen': ['Pon una muestra, o abre Spotify o YouTube', 'Los botones al final de una fila.'],
-        'wc.myweek': ['Abre {{t:wc_your_week}}', 'Junto a la semana, en una lista de Billboard.'],
+        'wc.myweek': ['Abre {{t:wc_your_week}}', 'Junto a la semana, en un ranking de Billboard.'],
         'wc.share': ['{{t:d100_share}}', 'Junto a la fuente.']
       },
       quiz: {
         q1: ['Una fila dice {{t:wc_new_to_you}}. ¿Qué significa?',
-          ['Es nueva en la lista esta semana', 'No la has escuchado', 'No la escuchaste en los últimos 7 días, sea cual sea el rango'],
-          'Significa que no tienes reproducciones de ella, contadas con el rango que elegiste ({{t:wc_range_all}} o {{t:wc_range_week}}). Una entrada nueva en la lista tiene su propia marca.'],
-        q2: ['¿En qué listas puedes viajar al pasado?',
+          ['Es nueva en el ranking esta semana', 'No la has escuchado', 'No la escuchaste en los últimos 7 días, sea cual sea el rango'],
+          'Significa que no tienes reproducciones de ella, contadas con el rango que elegiste ({{t:wc_range_all}} o {{t:wc_range_week}}). Una entrada nueva en el ranking tiene su propia marca.'],
+        q2: ['¿En qué rankings puedes viajar al pasado?',
           ['En todas', 'Solo en Spotify', 'Solo en las de Billboard'],
           'Billboard guarda todas sus semanas (el Hot 100 desde 1958). Spotify y YouTube muestran solo la más reciente.'],
         q3: ['En una semana pasada, ¿qué cuenta {{t:wc_range_that_week}}?',
-          ['Tus reproducciones de los días que Billboard contó para esa lista', 'Tus reproducciones de los últimos 7 días', 'Todas tus reproducciones'],
-          'Billboard cuenta una semana de reproducciones que termina más o menos una semana antes de la fecha de la lista. {{t:wc_range_that_week}} cuenta las tuyas en esos mismos días.']
+          ['Tus reproducciones de los días que Billboard contó para ese ranking', 'Tus reproducciones de los últimos 7 días', 'Todas tus reproducciones'],
+          'Billboard cuenta una semana de reproducciones que termina más o menos una semana antes de la fecha del ranking. {{t:wc_range_that_week}} cuenta las tuyas en esos mismos días.']
       },
       tips: [
         'En una semana pasada de Billboard, {{t:wc_your_week}} abre tu propio ranking de esos días.',
@@ -3160,8 +3160,8 @@ window.GL_TEXT.es = {
           start: ['{{t:sp_b_start}}', 'En blanco, o una copia de una lista predefinida para cambiarla.'],
           match: ['{{t:sp_b_match_all}} / {{t:sp_b_match_any}}', 'Todas las reglas, o solo una.'],
           rule: ['Una regla', 'Qué comprobar, cómo y el valor.'],
-          field: ['{{t:sp_b_field}}', 'Tócalo para elegir de una lista en la que cada regla está explicada: reproducciones, listas, Aspirantes, Nuevas Entradas, cuándo escuchas, puntuaciones, tus otras listas…'],
-          chart: ['{{t:sp_b_chart}}', 'Una regla de ranking elige su lista: diaria, semanal, mensual o anual.'],
+          field: ['{{t:sp_b_field}}', 'Tócalo para elegir de una lista en la que cada regla está explicada: reproducciones, rankings, Aspirantes, Nuevas Entradas, cuándo escuchas, puntuaciones, tus otras listas…'],
+          chart: ['{{t:sp_b_chart}}', 'Una regla de ranking elige su ranking: diario, semanal, mensual o anual.'],
           cond: ['{{t:sp_b_condition}}', 'Al menos, en el top, en los últimos… días, contiene…'],
           value: ['{{t:sp_b_value}}', 'Un número, una fecha o un nombre. Artista, álbum y género te sugieren los tuyos.'],
           group: ['Un grupo', 'Reglas dentro de las reglas, con su propio “todas / alguna”.'],
@@ -3280,7 +3280,7 @@ window.GL_TEXT.es = {
             title: ['La canción', 'Su nombre y su artista. El color suave de detrás sale de la portada.'],
             add: ['{{t:yt_np_add}}', 'Pone la canción en cualquiera de tus listas. P hace lo mismo.'],
             love: ['♥ Favorites', 'Añade la canción a tu lista Favorites, o la quita. K hace lo mismo.'],
-            story: ['Tu historia en las listas', 'Esta canción en tus propias listas: {{t:yt_np_this_week}}, {{t:yt_np_peak}}, {{t:yt_np_your_plays}} y {{t:yt_np_weeks_on}}. Haz clic en una para abrir la canción.']
+            story: ['Tu historia en los rankings', 'Esta canción en tus propios rankings: {{t:yt_np_this_week}}, {{t:yt_np_peak}}, {{t:yt_np_your_plays}} y {{t:yt_np_weeks_on}}. Haz clic en una para abrir la canción.']
           }
         },
         play: {
@@ -3375,13 +3375,13 @@ window.GL_TEXT.es = {
           media: ['Portada o vídeo', 'Se queda a la izquierda mientras usas el resto.'],
           seg: ['{{t:yt_np_art}} / {{t:yt_np_video}}', 'Cambia entre la portada y el videoclip.'],
           tabs: ['Las secciones', '{{t:yt_np_tab_next}}, {{t:yt_np_tab_lyrics}}, {{t:yt_np_tab_history}} y {{t:yt_np_tab_tools}} se abren a la derecha, así el vídeo sigue a la vista.'],
-          controls: ['Controles', 'A la derecha, con la canción y tu historia en las listas encima.'],
+          controls: ['Controles', 'A la derecha, con la canción y tu historia en los rankings encima.'],
           full: ['{{t:yt_np_full}}', 'En Android también gira la pantalla. Los iPhone no lo permiten: gira el móvil.']
         } },
         tv: { title: '{{t:yt_np_tv}}', spots: {
           cover: ['La portada', 'Grande, sobre los colores de la propia portada.'],
           title: ['La canción', 'Lo bastante grande para leerla desde el sofá.'],
-          story: ['Tu historia en las listas', 'Mejor puesto, tus escuchas y semanas en la lista.'],
+          story: ['Tu historia en los rankings', 'Mejor puesto, tus escuchas y semanas en el ranking.'],
           lyrics: ['Karaoke', 'La línea que se canta, grande. Las de alrededor, más pequeñas.'],
           next: ['{{t:yt_np_tv_next}}', 'Las cuatro canciones siguientes.']
         } },
@@ -3437,7 +3437,7 @@ window.GL_TEXT.es = {
         },
         tv: {
           title: 'Ponlo en tu tele',
-          slides: ['En {{t:yt_np_tab_tools}}, pulsa {{t:yt_np_tool_tv}}.', 'Pulsa {{t:yt_np_tvh_start}}. Para llevarlo a la tele, sigue los pasos de tu dispositivo justo debajo.', 'La portada, tu historia en las listas y la letra llenan la pantalla.', 'Con el vídeo, la letra sale como subtítulos. Pulsa el botón de la tele (o Esc) para salir.']
+          slides: ['En {{t:yt_np_tab_tools}}, pulsa {{t:yt_np_tool_tv}}.', 'Pulsa {{t:yt_np_tvh_start}}. Para llevarlo a la tele, sigue los pasos de tu dispositivo justo debajo.', 'La portada, tu historia en los rankings y la letra llenan la pantalla.', 'Con el vídeo, la letra sale como subtítulos. Pulsa el botón de la tele (o Esc) para salir.']
         },
         remote: {
           title: 'Usa el móvil como mando',

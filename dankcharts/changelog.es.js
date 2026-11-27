@@ -54,7 +54,7 @@ window.DC_CHANGELOG_I18N['es'] = {
      "Cuando empieza una semana nueva, un aviso te dice que el resumen de la anterior está listo: cuánto puntuaste, tu nota más alta y la más dura y tu mayor sorpresa frente a tu escucha. También está en la página de valoraciones y puedes compartirlo como imagen."],
   "Well-timed nudges to rate":
     ["Avisos en el momento justo para puntuar",
-     "Cuando una canción sin nota es el #1 de tu lista semanal, o escuchaste un álbum entero tres veces en una semana, un aviso te pregunta si quieres puntuarlo. Como mucho una vez al día."],
+     "Cuando una canción sin nota es el #1 de tu ranking semanal, o escuchaste un álbum entero tres veces en una semana, un aviso te pregunta si quieres puntuarlo. Como mucho una vez al día."],
   "Score history, and “Still a 9.5?”":
     ["Historial de notas y “¿Sigue siendo un 9.5?”",
      "Cada cambio de una nota se guarda y se dibuja como una línea en la pestaña Valoración de canciones y álbumes. Un año después de puntuar algo que sigues escuchando, la web te pregunta si la nota sigue valiendo."],
@@ -93,7 +93,7 @@ window.DC_CHANGELOG_I18N['es'] = {
      "Con las puntuaciones de escucha activadas, la p\u00e1gina de valoraciones las mezclaba con tus notas, as\u00ed que su gran veredicto era sobre todo una nota que nunca diste. Ahora arriba se ven las dos juntas: tu media en un anillo s\u00f3lido y la media de escucha en uno discontinuo, cada una con su veredicto. Las barras de valorados se dividen entre lo que puntuaste t\u00fa y lo que solo tiene puntuaci\u00f3n de escucha. Un selector Tuyas / De escucha / Ambas decide qu\u00e9 muestran las tarjetas y las listas, y cada tarjeta de m\u00e1s alta y m\u00e1s baja y cada fila dice qui\u00e9n dio la nota. Un nuevo bloque \u201cT\u00fa vs. tu escucha\u201d muestra cu\u00e1nto se separan de media tus notas de tu escucha, y lo que valoras muy por encima de lo que lo escuchas, y al rev\u00e9s. Tus r\u00e9cords cr\u00edticos siempre usan tus propias notas."],
   "TV mode for the music player":
     ["Modo TV para el reproductor",
-     "Herramientas \u2192 Modo TV abre una vista para pantalla grande: una tele, una pesta\u00f1a enviada o cualquier ventana grande. Con la portada muestra una portada grande, la canci\u00f3n, tu historia en las listas, la letra en modo karaoke y las cuatro canciones siguientes; con el v\u00eddeo, el v\u00eddeo llena la pantalla y la letra sale como subt\u00edtulos. Los controles se ocultan mientras suena la m\u00fasica y vuelven con cualquier tecla, clic o toque, y la pantalla se queda encendida. Funciona con el mando de la tele: las flechas pasan de un bot\u00f3n a otro, OK pulsa y Atr\u00e1s sale. La misma tarjeta explica c\u00f3mo llevarlo a una tele desde Chrome o Edge, un m\u00f3vil Android, un iPhone, iPad o Mac, o el navegador de la propia tele, donde dankcharts.fm/?tv=1 abre directamente en modo TV. Las teclas de reproducir/pausa, siguiente y anterior de teclados y mandos ahora funcionan en todas partes."],
+     "Herramientas \u2192 Modo TV abre una vista para pantalla grande: una tele, una pesta\u00f1a enviada o cualquier ventana grande. Con la portada muestra una portada grande, la canci\u00f3n, tu historia en los rankings, la letra en modo karaoke y las cuatro canciones siguientes; con el v\u00eddeo, el v\u00eddeo llena la pantalla y la letra sale como subt\u00edtulos. Los controles se ocultan mientras suena la m\u00fasica y vuelven con cualquier tecla, clic o toque, y la pantalla se queda encendida. Funciona con el mando de la tele: las flechas pasan de un bot\u00f3n a otro, OK pulsa y Atr\u00e1s sale. La misma tarjeta explica c\u00f3mo llevarlo a una tele desde Chrome o Edge, un m\u00f3vil Android, un iPhone, iPad o Mac, o el navegador de la propia tele, donde dankcharts.fm/?tv=1 abre directamente en modo TV. Las teclas de reproducir/pausa, siguiente y anterior de teclados y mandos ahora funcionan en todas partes."],
   "Use your phone as the remote for TV mode":
     ["Usa el m\u00f3vil como mando del modo TV",
      "Cuando un dispositivo con tu cuenta est\u00e1 en modo TV, tus otros dispositivos muestran En tu tele abajo en la pantalla. T\u00f3calo para tener un mando: la canci\u00f3n y su progreso, Anterior, Reproducir y Siguiente, el volumen de la tele, Portada o V\u00eddeo, la cola de la tele (ponerla ya, subir, bajar o quitar) y Apagar el modo TV en la tele. El men\u00fa \u22ee de una canci\u00f3n tiene Reproducir en la tele y A\u00f1adir a la cola de la tele. Solo la tele reproduce la m\u00fasica, as\u00ed que cada escucha se cuenta una sola vez."],
@@ -114,7 +114,7 @@ window.DC_CHANGELOG_I18N['es'] = {
      "Cada canción de una lista abierta tiene ahora un botón ⋮ con Reproducir ahora, Reproducir a continuación, Añadir a la cola, Añadir a una lista y Añadir a una lista nueva. El ⋮ junto al nombre de la lista hace lo mismo con la lista entera. Si no suena nada, Reproducir a continuación y Añadir a la cola empiezan la música enseguida."],
   "Chart rules in smart playlists can look further back":
     ["Las reglas de listas en las listas inteligentes miran más atrás",
-     "En la lista, Nueva entrada, Reentrada, Fuera del Ranking y En Aspirantes antes solo miraban la lista de esta semana o la de la semana pasada. Ahora también pueden mirar unas semanas atrás, la misma semana del año pasado, cualquier momento, alguna de las últimas semanas, cada una de ellas, un mes, un año o una estación, una lista que elijas por fecha, o entre dos fechas. Funciona igual con las listas diaria, mensual y anual."],
+     "En la lista, Nueva entrada, Reentrada, Fuera del Ranking y En Aspirantes antes solo miraban la lista de esta semana o la de la semana pasada. Ahora también pueden mirar unas semanas atrás, la misma semana del año pasado, cualquier momento, alguna de las últimas semanas, cada una de ellas, un mes, un año o una estación, una lista que elijas por fecha, o entre dos fechas. Funciona igual con los rankings diario, mensual y anual."],
   "Smart playlists can pick plays from yesterday, last month, a season and more":
     ["Las listas inteligentes pueden elegir reproducciones de ayer, el mes pasado, una estación y más",
      "Las reglas de reproducciones ahora tienen periodos rápidos: hoy, ayer, esta semana, la semana pasada, este mes, el mes pasado, este año y el año pasado. También puedes elegir un año, un mes, una estación, las últimas semanas, meses o años, este mes en años anteriores, o los primeros días de una canción desde que la descubriste. Primera escucha y Última escucha usan los mismos periodos, por ejemplo primera escucha el mes pasado."],
@@ -123,13 +123,13 @@ window.DC_CHANGELOG_I18N['es'] = {
      "Elegir una regla ya no es leer una lista larguísima. Toca una regla y elige entre grupos como Reproducciones, Listas y Cuándo escuchas, cada opción con una línea que explica lo que hace, o búscala. Las reglas de listas muestran los botones Diario, Semanal, Mensual y Anual en la propia regla. Reglas nuevas: en la lista ahora o la última vez, Nueva entrada, Reentrada, Fuera del Ranking y Aspirantes (estar ahora, tiempo pasado ahí, mejor puesto)."],
   "A countdown to the next Dank 100":
     ["Una cuenta atrás para la próxima Dank 100",
-     "La página de The Dank 100 ahora cuenta los días, horas, minutos y segundos que faltan para la próxima lista. Pulsa Avísame y te avisaremos cuando esté lista: un aviso mientras dankcharts esté abierto, y una línea en tus Notificaciones si has iniciado sesión."],
+     "La página de The Dank 100 ahora cuenta los días, horas, minutos y segundos que faltan para el próximo ranking. Pulsa Avísame y te avisaremos cuando esté lista: un aviso mientras dankcharts esté abierto, y una línea en tus Notificaciones si has iniciado sesión."],
   "Games has its own page":
     ["Los juegos tienen su propia página",
      "Los juegos salen de Estadísticas y pasan al menú Más. Los doce juegos, el Juego del día, tu racha y tus mejores marcas siguen tal como los dejaste. Un pequeño punto en Más te avisa cuando el Juego del día de hoy aún te espera."],
   "Listening Scores for what you haven't rated":
     ["Puntuaciones de escucha para lo que no has valorado",
-     "Cada canción, álbum, EP y sencillo que no has valorado recibe una puntuación de escucha, según cuánto lo escuchas, cuánto tiempo sigues volviendo a él, su recorrido en las listas y sus certificaciones. Puedes desactivarlas en Ajustes → Lanzamientos. Tus propias notas siempre van primero: un álbum que has valorado en parte mezcla tus notas de canciones con puntuaciones de escucha para el resto hasta que todas las canciones son tuyas. Las puntuaciones de escucha tienen un borde discontinuo para distinguirlas, y cada una explica por qué tiene esa nota. No cuentan en los récords de valoración, los Premios, las playlists inteligentes ni el veredicto de un artista a menos que lo actives."],
+     "Cada canción, álbum, EP y sencillo que no has valorado recibe una puntuación de escucha, según cuánto lo escuchas, cuánto tiempo sigues volviendo a él, su recorrido en los rankings y sus certificaciones. Puedes desactivarlas en Ajustes → Lanzamientos. Tus propias notas siempre van primero: un álbum que has valorado en parte mezcla tus notas de canciones con puntuaciones de escucha para el resto hasta que todas las canciones son tuyas. Las puntuaciones de escucha tienen un borde discontinuo para distinguirlas, y cada una explica por qué tiene esa nota. No cuentan en los récords de valoración, los Premios, las playlists inteligentes ni el veredicto de un artista a menos que lo actives."],
   "A friendlier window for fixing a play":
     ["Una ventana más amable para corregir una reproducción",
      "La ventana que se abre con el lápiz en Datos sin procesar tiene un nuevo aspecto. La portada de la canción aparece arriba, y una franja muestra cada cambio tachado y en verde mientras escribes. Elige Solo esta o todas las reproducciones de la canción con un solo interruptor. Un único botón Guardar lo hace todo: marca la hoja de Google o Last.fm en Guardar en, y tu elección se recuerda para la próxima vez. Guardar en Last.fm muestra antes un aviso claro: Last.fm conserva el scrobble antiguo, así que marcas que lo borrarás tú allí."],
@@ -143,10 +143,10 @@ window.DC_CHANGELOG_I18N['es'] = {
     ["El nombre completo y el logo en las imágenes compartidas",
      "Las imágenes para compartir ahora empiezan o terminan con el logo de colores y el nombre dankcharts.fm tal como se ve en el sitio. En formato Historia, un título largo ya no empuja la última fila debajo del nombre de abajo."],
   "Play or save the lists under the chart":
-    ["Reproduce o guarda las listas bajo la lista",
+    ["Reproduce o guarda las listas bajo el ranking",
      "Aspirantes, Fuera del Ranking y las listas de Nuevas Entradas tienen sus propios botones Reproducir todo, Aleatorio, Guardar como playlist y Exportar playlist. Las listas de artistas y álbumes usan sus canciones más escuchadas."],
   "Choose how long the lists under the chart are":
-    ["Elige cuántas entradas tienen las listas bajo la lista",
+    ["Elige cuántas entradas tienen las listas bajo el ranking",
      "Aspirantes y cada lista de Nuevas Entradas muestran ahora 20 entradas al empezar. Elige otro número en ⋮ → Tamaño, o escribe el tuyo. Los sencillos y los EP tienen su propio ajuste."],
   "Apple Music exports go straight in":
     ["Las exportaciones de Apple Music entran tal cual",
@@ -158,26 +158,26 @@ window.DC_CHANGELOG_I18N['es'] = {
     ["Aparece en, y álbumes conjuntos",
      "La ventana de un artista ahora separa sus propios álbumes de los álbumes en los que solo es invitado. Los álbumes de otros en los que aparece están en un botón nuevo, Aparece en, en la pestaña Música, y ya no cuentan para su total de álbumes, su álbum favorito ni sus certificaciones de álbum. Sus canciones siguen contando completas. Algunos álbumes son de más de un artista, así que ahora puedes elegir los dueños de un álbum desde su ventana, o revisar los álbumes conjuntos sugeridos en Ajustes → Lanzamientos. Funciona con Last.fm, Google Sheets y archivos CSV."],
   "A World Charts lesson in the Charts Guide":
-    ["Una lección de Listas mundiales en la Guía",
-     "La Guía tiene una lección nueva sobre Listas mundiales: imágenes de cada parte, pasos guiados, retos y un test corto."],
+    ["Una lección de Rankings mundiales en la Guía",
+     "La Guía tiene una lección nueva sobre Rankings mundiales: imágenes de cada parte, pasos guiados, retos y un test corto."],
   "Billboard Global 200 in World Charts":
-    ["Billboard Global 200 en Listas mundiales",
-     "Listas mundiales ahora tiene el Billboard Global 200, con todas las semanas desde 2020, y cada botón de lista muestra el logo de su fuente."],
+    ["Billboard Global 200 en Rankings mundiales",
+     "Rankings mundiales ahora tiene el Billboard Global 200, con todas las semanas desde 2020, y cada botón de lista muestra el logo de su fuente."],
   "Samples and a share picture for World Charts":
-    ["Muestras y una imagen para compartir en Listas mundiales",
-     "Escucha una muestra o abre una canción en Spotify o YouTube desde cualquier fila de Listas mundiales, y comparte el top 10 de una lista como imagen, con cuántas de ellas escuchaste."],
+    ["Muestras y una imagen para compartir en Rankings mundiales",
+     "Escucha una muestra o abre una canción en Spotify o YouTube desde cualquier fila de Rankings mundiales, y comparte el top 10 de una lista como imagen, con cuántas de ellas escuchaste."],
   "Past weeks of the Billboard charts":
-    ["Semanas anteriores de las listas de Billboard",
-     "Vuelve a cualquier semana del Hot 100 (desde 1958) o del Billboard 200 (desde 1963) y salta a tu propia lista semanal de esos mismos días."],
+    ["Semanas anteriores de los rankings de Billboard",
+     "Vuelve a cualquier semana del Hot 100 (desde 1958) o del Billboard 200 (desde 1963) y salta a tu propio ranking semanal de esos mismos días."],
   "See which world hits you've played":
     ["Mira qué éxitos mundiales escuchaste",
-     "Cada fila de Listas mundiales dice cuántas veces la escuchaste o si es nueva para ti. Muestra solo las que escuchaste o las nuevas, cuenta todo el tiempo o los últimos 7 días, y pulsa una canción que conoces para abrirla."],
+     "Cada fila de Rankings mundiales dice cuántas veces la escuchaste o si es nueva para ti. Muestra solo las que escuchaste o las nuevas, cuenta todo el tiempo o los últimos 7 días, y pulsa una canción que conoces para abrirla."],
   "World Charts in the site's chart look":
-    ["Listas mundiales con el aspecto de las listas del sitio",
-     "Las filas de Listas mundiales muestran movimientos, portadas y los números de cada fuente: pico, semanas, reproducciones o vistas. Se ven las primeras 50 y luego Ver todas."],
+    ["Rankings mundiales con el aspecto de los rankings del sitio",
+     "Las filas de Rankings mundiales muestran movimientos, portadas y los números de cada fuente: pico, semanas, reproducciones o vistas. Se ven las primeras 50 y luego Ver todas."],
   "World Charts: Billboard, Spotify and YouTube":
-    ["Listas mundiales: Billboard, Spotify y YouTube",
-     "Una pestaña nueva en Más muestra las listas reales: el Billboard Hot 100 y el Billboard 200, Spotify Global diaria y semanal, y los videos musicales más vistos de YouTube."],
+    ["Rankings mundiales: Billboard, Spotify y YouTube",
+     "Una pestaña nueva en Más muestra los rankings reales: el Billboard Hot 100 y el Billboard 200, Spotify Global diaria y semanal, y los videos musicales más vistos de YouTube."],
   "A Charts Guide lesson for smart playlists":
     ["Una lección de la Guía de Charts sobre listas inteligentes",
      "La Guía de Charts tiene una lección nueva sobre listas inteligentes: el editor, las listas ya hechas, Mezclar y compartir, con imágenes y retos."],
@@ -228,7 +228,7 @@ window.DC_CHANGELOG_I18N['es'] = {
      "¿Vídeo equivocado o que falta? “¿Vídeo equivocado?” bajo la imagen te deja buscar otra versión o pegar un enlace de YouTube. El reproductor comprueba que sea la canción correcta. La nota bajo la imagen dice de dónde salió cada vídeo."],
   "A new music player":
     ["Un reproductor nuevo",
-     "El reproductor se rediseñó: portada grande con un disco que gira o el videoclip, Anterior y Aleatorio, cada botón con su nombre al pasar el ratón, tu historia de la canción en las listas, una marca donde se hace el scrobble, y A continuación, Letra, Historial y Herramientas como pestañas. Un recorrido corto (?) y una lección de Reproductor en la Guía de Charts lo explican todo."],
+     "El reproductor se rediseñó: portada grande con un disco que gira o el videoclip, Anterior y Aleatorio, cada botón con su nombre al pasar el ratón, tu historia de la canción en los rankings, una marca donde se hace el scrobble, y A continuación, Letra, Historial y Herramientas como pestañas. Un recorrido corto (?) y una lección de Reproductor en la Guía de Charts lo explican todo."],
 
   "Export an artist's songs as a playlist":
     ['Exporta las canciones de un artista como playlist',
@@ -385,7 +385,7 @@ window.DC_CHANGELOG_I18N['es'] = {
     ["Las flechas de abrir y cerrar en Récords ya no parecen Reproducir",
      "Los pequeños triángulos que abren la trayectoria de una fila o su registro de certificaciones, y el triángulo doble que abre todas las filas, parecían botones de Reproducir. En todo Récords ahora son flechas que apuntan hacia abajo y giran hacia arriba cuando la fila está abierta. Funciona con Last.fm, Google Sheets y archivos CSV."],
   "Cover art in the Certifications list and ledger":
-    ["Portadas en la lista y el registro de Certificaciones",
+    ["Portadas en el ranking y el registro de Certificaciones",
      "La clasificación de Certificaciones ahora muestra la foto de cada artista junto a su nombre, y cada tarjeta del Registro de Certificaciones muestra la portada de su canción o álbum junto al título. Haz clic en una portada para abrir la canción o el álbum, o usa ✎ para elegir otra imagen. Las portadas se cargan al desplazarte. Funciona con Last.fm, Google Sheets y archivos CSV."],
   "A clearer Certification Ledger":
     ["Un Registro de Certificaciones más claro",
@@ -440,7 +440,7 @@ window.DC_CHANGELOG_I18N['es'] = {
      "Toca una barra del volumen de reproducciones en Estadísticas → Gráficos y ahora ves toda la historia de ese periodo: tu canción más escuchada en grande con su portada y una muestra, una barra por cada día (u hora, o mes) con el de más escuchas señalado, y pestañas de canciones top, descubrimientos y artistas top con sus fotos. Pasa al periodo anterior o siguiente con las flechas (o las teclas de flecha), mira cómo se compara con el anterior y ve cómo su barra se ilumina en la gráfica."],
   "Graphs: smoother when it draws":
     ["Gráficos: más fluido al dibujarse",
-     "Al abrir Estadísticas → Gráficos o cambiar las fechas, las cifras aparecen, el reloj de escucha recorre su esfera y las columnas de la semana y las barras crecen hasta su sitio. Se queda quieto si tu dispositivo pide menos movimiento. La Guía de listas describe la nueva pestaña Gráficos."],
+     "Al abrir Estadísticas → Gráficos o cambiar las fechas, las cifras aparecen, el reloj de escucha recorre su esfera y las columnas de la semana y las barras crecen hasta su sitio. Se queda quieto si tu dispositivo pide menos movimiento. La Guía de Charts describe la nueva pestaña Gráficos."],
   "Graphs: Listening Patterns you can read":
     ["Gráficos: Patrones de escucha que se pueden leer",
      "Los Patrones de escucha bajo el mapa de calor de Estadísticas → Gráficos usaban texto y cuadros diminutos. Ahora tienen un título de verdad, barras por día más grandes y una cuadrícula de horas por día que llena la tarjeta, con la mañana, la tarde, el atardecer y la noche marcados encima y las horas debajo. Tu hora con más escuchas de la semana va marcada y nombrada, y al pasar el cursor (o tocar) cualquier cuadro ves sus reproducciones."],
@@ -461,7 +461,7 @@ window.DC_CHANGELOG_I18N['es'] = {
      "En Estadísticas → Gráficos, el volumen de reproducciones en Diario con un rango largo dibujaba miles de barras más finas que un píxel, y la gráfica parecía vacía. Ahora dibuja los mismos números como un área suave, y al pasar el cursor (o tocar) sigues viendo ese día y lo que escuchaste."],
   "Compare: smoother when you change what you compare":
     ["Comparar: más fluido al cambiar lo que comparas",
-     "Al cambiar de tipo o de elecciones en Estadísticas → Comparar, las tarjetas de abajo aparecen una tras otra y sus barras crecen hasta su sitio. Ordenar una tabla no lo repite, y se queda quieto si tu dispositivo pide menos movimiento. La Guía de listas describe el nuevo aspecto de Comparar."],
+     "Al cambiar de tipo o de elecciones en Estadísticas → Comparar, las tarjetas de abajo aparecen una tras otra y sus barras crecen hasta su sitio. Ordenar una tabla no lo repite, y se queda quieto si tu dispositivo pide menos movimiento. La Guía de Charts describe el nuevo aspecto de Comparar."],
   "Compare: clearer listening habits":
     ["Comparar: hábitos de escucha más claros",
      "Los hábitos de escucha de Estadísticas → Comparar se leen mejor: las tarjetas de mañana, noche y fin de semana tienen un emoji, el color del ganador y una barra para la parte. La cuadrícula de horas muestra las partes del día, la hora y el día con más escuchas de cada elección van marcados, una columna Pico los nombra, y al pasar el cursor (o tocar) cualquier cuadro ves las reproducciones exactas."],
@@ -488,7 +488,7 @@ window.DC_CHANGELOG_I18N['es'] = {
      "Novedades empieza ahora con Lo más destacado: las grandes novedades de los dos últimos meses en tarjetas, cada una con una imagen, unos pocos puntos sencillos, un botón Llévame allí que abre esa parte del sitio y la lista de todos los cambios de esa novedad. Las más recientes salen primero y el botón Ver más abre el resto. La lista completa de cambios sigue debajo, y sus botones de filtro ahora se pliegan detrás de un botón Filtrar junto al buscador."],
   "A Dank 100 invite on the Charts page":
     ["Una invitación a The Dank 100 en Listas",
-     "Las pestañas de listas muestran ahora un pequeño aviso sobre The Dank 100 con un botón que te lleva directamente a enviar tu año (o tu semana). Desaparece cuando ya participas o cuando lo cierras con la ×."],
+     "Las pestañas de rankings muestran ahora un pequeño aviso sobre The Dank 100 con un botón que te lleva directamente a enviar tu año (o tu semana). Desaparece cuando ya participas o cuando lo cierras con la ×."],
   "Spotify button shows on light themes":
     ["El botón de Spotify se ve en los temas claros",
      "En los temas claros, el botón de Spotify en las ventanas de artista, canción y álbum (y junto a las filas de las listas) se veía solo como un punto negro, porque sus ondas estaban dibujadas en negro. Ahora las ondas están recortadas del círculo, así que el logo de Spotify se ve en todos los temas."],
@@ -497,16 +497,16 @@ window.DC_CHANGELOG_I18N['es'] = {
      "The Dank 100 ahora empieza el 2 de enero. En la pestaña The Dank 100, Enviar mi año envía tu lista de cada semana desde entonces de una vez, y esas semanas aparecen enseguida en el historial, marcadas como hechas con el historial de escucha. Hasta el 30 de noviembre, el historial se vuelve a contar cada vez que alguien envía su año, así que se completa a medida que se une más gente; después queda fijo."],
   "Dank 100 records and a shareable top 10":
     ["Récords de The Dank 100 y un top 10 para compartir",
-     "Debajo de la lista The Dank 100: récords de canciones, artistas y álbumes, desde más semanas en el n.º 1 y la racha más larga hasta la mayor subida, el mejor debut y más oyentes en una semana. Compartir top 10 crea una imagen del top 10 de la semana con portadas, lista para compartir desde el móvil o descargar. La Guía de listas y el recorrido ya explican The Dank 100, y la política de privacidad cuenta qué guarda una semana enviada y quién puede verla."],
+     "Debajo de la lista The Dank 100: récords de canciones, artistas y álbumes, desde más semanas en el n.º 1 y la racha más larga hasta la mayor subida, el mejor debut y más oyentes en una semana. Compartir top 10 crea una imagen del top 10 de la semana con portadas, lista para compartir desde el móvil o descargar. La Guía de Charts y el recorrido ya explican The Dank 100, y la política de privacidad cuenta qué guarda una semana enviada y quién puede verla."],
   "The Dank 100: older weeks, runs and number ones":
     ["The Dank 100: semanas anteriores, recorridos y números uno",
-     "Vuelve a cualquier Dank 100 anterior con el selector de semana (o las flechas de al lado). Haz clic en cualquier canción, artista o álbum para ver su recorrido justo debajo: una línea con sus posiciones semana a semana, su debut, su pico, sus semanas en la lista y sus semanas en el n.º 1. Debajo de la lista, Números uno muestra cada n.º 1 y cuántas semanas estuvo arriba; haz clic en uno para abrir esa semana."],
+     "Vuelve a cualquier Dank 100 anterior con el selector de semana (o las flechas de al lado). Haz clic en cualquier canción, artista o álbum para ver su recorrido justo debajo: una línea con sus posiciones semana a semana, su debut, su pico, sus semanas en el ranking y sus semanas en el n.º 1. Debajo de la lista, Números uno muestra cada n.º 1 y cuántas semanas estuvo arriba; haz clic en uno para abrir esa semana."],
   "The Dank 100 chart is here":
     ["Ya está la lista The Dank 100",
-     "La pestaña The Dank 100 ya muestra la última lista semanal, hecha con los envíos de todos. Cambia entre Canciones, Artistas y Álbumes. Cada fila muestra cómo se movió desde la semana pasada (o NUEVO / RE), sus puntos, cuántos oyentes la tenían, su puesto anterior, su pico y sus semanas en la lista. Las filas que tu envío ayudó a meter llevan la marca Tú. Cada lunes sale una lista nueva."],
+     "La pestaña The Dank 100 ya muestra el último ranking semanal, hecho con los envíos de todos. Cambia entre Canciones, Artistas y Álbumes. Cada fila muestra cómo se movió desde la semana pasada (o NUEVO / RE), sus puntos, cuántos oyentes la tenían, su puesto anterior, su pico y sus semanas en el ranking. Las filas que tu envío ayudó a meter llevan la marca Tú. Cada lunes sale una lista nueva."],
   "The Dank 100: send in your week":
     ["The Dank 100: envía tu semana",
-     "Una pestaña nueva en Más: The Dank 100, donde las listas semanales de todos se suman en una sola lista compartida. Inicia sesión y envía tu semana con un clic. Primero ves tus canciones más escuchadas; puedes actualizar tu envío hasta el domingo después de que acabe la semana, o retirarlo. Las semanas van de viernes a jueves (UTC) para todos. Los puntos salen de las posiciones, no de las reproducciones, así que cada oyente cuenta lo mismo. Activa Ajustes → Rankings → Enviar mi semana automáticamente y se hace solo cada vez que abres el sitio. Solo la lista combinada es pública. La primera lista llega pronto."],
+     "Una pestaña nueva en Más: The Dank 100, donde los rankings semanales de todos se suman en uno solo lista compartida. Inicia sesión y envía tu semana con un clic. Primero ves tus canciones más escuchadas; puedes actualizar tu envío hasta el domingo después de que acabe la semana, o retirarlo. Las semanas van de viernes a jueves (UTC) para todos. Los puntos salen de las posiciones, no de las reproducciones, así que cada oyente cuenta lo mismo. Activa Ajustes → Rankings → Enviar mi semana automáticamente y se hace solo cada vez que abres el sitio. Solo la lista combinada es pública. La primera lista llega pronto."],
   "Eight more games":
     ["Ocho juegos más",
      "Estadísticas → Juegos ahora tiene doce juegos. Nuevos: Adivina la canción (escucha unos segundos de una de tus canciones y elígela), ¿Cuántas reproducciones? (adivina con un control deslizante), Top 5 en orden (ordena de nuevo el top 5 de un año), Su canción más escuchada, Posición máxima, ¿De quién es?, El intruso (tres #1 y una que nunca lo fue) y ¿Día o noche? (cuándo sueles escuchar una canción). Todos se turnan como Juego del día. Funciona con Last.fm, Google Sheets y archivos CSV; ¿Día o noche? necesita reproducciones con hora."],
@@ -578,7 +578,7 @@ window.DC_CHANGELOG_I18N['es'] = {
      "Los iconos de línea que habían reemplazado a los emojis en todo el sitio ya no están: títulos como 🏆 Récords y Salón de la Fama, las tarjetas de Diario y sus pestañas, Reproducir todo, Aleatorio y Exportar del menú del ranking y los demás botones vuelven a mostrar su emoji. Las pestañas Canciones, Artistas y Álbumes y los títulos de los rankings usan ahora 🎵 🎤 💿 también."],
   "Bubbling Under names and rows are clickable again":
     ["Los nombres y las filas de Aspirantes al Top vuelven a poder pulsarse",
-     "En la lista Aspirantes al Top de las listas semanales, los nombres de canciones, artistas y álbumes vuelven a abrir su ventana, y un clic en cualquier otra parte de una fila abre su historial entre los aspirantes, igual que en la lista principal. Ambas cosas dejaron de funcionar tras el rediseño."],
+     "En la lista Aspirantes al Top de los rankings semanales, los nombres de canciones, artistas y álbumes vuelven a abrir su ventana, y un clic en cualquier otra parte de una fila abre su historial entre los aspirantes, igual que en el ranking principal. Ambas cosas dejaron de funcionar tras el rediseño."],
   "The Appearances table header no longer covers the #1 row":
     ["El encabezado de la tabla de Apariciones ya no tapa el n.º 1",
      "En Récords → Apariciones, los títulos de las columnas se deslizaban sobre la entrada n.º 1 y dejaban una franja vacía encima. Ahora se quedan justo debajo de la barra superior mientras recorres la lista, como en las demás tablas de Récords. En pantallas más estrechas, donde la tabla se desplaza de lado, se quedan arriba de la tabla."],
@@ -677,7 +677,7 @@ window.DC_CHANGELOG_I18N['es'] = {
      "Las últimas partes en inglés de los detalles de artista ya están también en español y portugués: los logros de canciones n.º 1 y de debuts en el n.º 1, la tabla de desglose por rankings, el botón de categorías de los Grammy y la lista de álbumes por puntuar. La nota bajo Animar rankings en Ajustes nombra ahora el botón de repetición como se llama en tu idioma."],
   "Settings: better organised, with search":
     ["Ajustes: mejor ordenados y con buscador",
-     "Ajustes tiene ahora cuatro pestañas. Rankings conserva la semana de los rankings, las secciones de la página de listas, el calendario de eventos y el comportamiento; una nueva pestaña Lanzamientos reúne todo sobre tipos de discos —tipos de lanzamiento, umbrales de certificación y álbumes recopilatorios—, y Perfil suma una sección Apariencia donde eliges cualquiera de los diez temas y el idioma. Un buscador arriba encuentra cualquier ajuste por su nombre y te lleva directo a él. La barra de abajo es solo un botón Cerrar hasta que cambias algo que hay que guardar; entonces muestra «Cambios sin guardar» con Cancelar y Guardar y cargar. No se ha quitado nada."],
+     "Ajustes tiene ahora cuatro pestañas. Rankings conserva la semana de los rankings, las secciones de la página de Charts, el calendario de eventos y el comportamiento; una nueva pestaña Lanzamientos reúne todo sobre tipos de discos —tipos de lanzamiento, umbrales de certificación y álbumes recopilatorios—, y Perfil suma una sección Apariencia donde eliges cualquiera de los diez temas y el idioma. Un buscador arriba encuentra cualquier ajuste por su nombre y te lleva directo a él. La barra de abajo es solo un botón Cerrar hasta que cambias algo que hay que guardar; entonces muestra «Cambios sin guardar» con Cancelar y Guardar y cargar. No se ha quitado nada."],
   "Share as image: one tidy window everywhere":
     ["Compartir como imagen: una ventana ordenada en todas partes",
      "Todas las ventanas de compartir como imagen —listas, recorridos, estadísticas, rachas, puntuaciones, las canciones de un álbum, las de un artista y el calendario Diario— se ven y funcionan ahora igual. La vista previa se apoya en un fondo suave y sigue visible mientras recorres las opciones, cada grupo de opciones (diseño, colores, formato, qué mostrar…) es una tarjeta que puedes plegar pulsando su título, y Copiar, Compartir y Descargar tienen iconos claros. En el móvil los grupos menos usados empiezan plegados para que la vista previa y las opciones principales quepan en pantalla. Copiar, Compartir y ¡Copiado! están ahora también en español y portugués, y la ventana del recorrido de una canción muestra su título tal como se escribe."],
@@ -773,7 +773,7 @@ window.DC_CHANGELOG_I18N['es'] = {
      "En Tu Banda Sonora ahora puedes hacer clic en el año entre las flechas para abrir la lista de todos los años en los que tienes reproducciones y saltar directamente a uno, como en Premios. En la vista Mes muestra los 12 meses, con flechas arriba para cambiar de año. Funciona con Last.fm, Google Sheets y archivos CSV."],
   "Your Soundtrack: Top Albums, and Top Singles and EPs":
     ["Tu Banda Sonora: Top Álbumes, y Top Sencillos y EP",
-     "El capítulo de canciones top de Tu Banda Sonora ahora también tiene un carrusel de Top Álbumes, después de Top Canciones y Top Artistas, con hasta 50 álbumes del año, del mes o de Todo el tiempo. Cuenta los álbumes igual que tu lista de álbumes. Si muestras los sencillos o los EP por separado en Ajustes → Listas, tienen sus propios carruseles de Top Sencillos y Top EP y no entran en Top Álbumes. Funciona con Last.fm, Google Sheets y archivos CSV."],
+     "El capítulo de canciones top de Tu Banda Sonora ahora también tiene un carrusel de Top Álbumes, después de Top Canciones y Top Artistas, con hasta 50 álbumes del año, del mes o de Todo el tiempo. Cuenta los álbumes igual que tu lista de álbumes. Si muestras los sencillos o los EP por separado en Ajustes → Rankings, tienen sus propios carruseles de Top Sencillos y Top EP y no entran en Top Álbumes. Funciona con Last.fm, Google Sheets y archivos CSV."],
   "Your Soundtrack: the big #1 artist photo is back":
     ["Tu Banda Sonora: vuelve la foto grande del artista #1",
      "El capítulo del artista #1 en Tu Banda Sonora vuelve a abrir con una foto grande y a plena intensidad del artista, con su nombre en la parte de abajo, en lugar de una franja atenuada. Funciona con Last.fm, Google Sheets y archivos CSV."],
@@ -957,7 +957,7 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   "Every button uses the site's font":
     ["Todos los botones usan la fuente del sitio",
-     "Algunos botones, como Hacer el recorrido y Buscar en la Guía de listas, el selector de diseño de Compartir como imagen, N/A en la ventana de valoración y las etiquetas de origen de las imágenes, se mostraban con la fuente del sistema de tu dispositivo en vez de la del sitio. Ahora coinciden con el texto que los rodea. Funciona con Last.fm, Google Sheets y archivos CSV."],
+     "Algunos botones, como Hacer el recorrido y Buscar en la Guía de Charts, el selector de diseño de Compartir como imagen, N/A en la ventana de valoración y las etiquetas de origen de las imágenes, se mostraban con la fuente del sistema de tu dispositivo en vez de la del sitio. Ahora coinciden con el texto que los rodea. Funciona con Last.fm, Google Sheets y archivos CSV."],
 
   "Two more places to find missing pictures":
     ["Dos sitios más donde buscar las imágenes que faltan",
@@ -977,7 +977,7 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   "Cards and panels share one look":
     ["Las tarjetas y los paneles comparten un mismo aspecto",
-     "Los paneles de todo el sitio, como los gráficos de Estadísticas, la Guía de listas, el resumen de Récords y tus listas de reproducción, comparten ahora un mismo estilo de tarjeta, y las tarjetas que están dentro de otro panel (tarjetas de eventos, Máquina del tiempo, categorías de Premios, los recuadros de la ventana de bienvenida) son un tono más oscuras para que se vean anidadas. Las tarjetas \"Del momento\" conservan su aspecto. Funciona con Last.fm, Google Sheets y archivos CSV."],
+     "Los paneles de todo el sitio, como los gráficos de Estadísticas, la Guía de Charts, el resumen de Récords y tus listas de reproducción, comparten ahora un mismo estilo de tarjeta, y las tarjetas que están dentro de otro panel (tarjetas de eventos, Máquina del tiempo, categorías de Premios, los recuadros de la ventana de bienvenida) son un tono más oscuras para que se vean anidadas. Las tarjetas \"Del momento\" conservan su aspecto. Funciona con Last.fm, Google Sheets y archivos CSV."],
 
   "Filter chips and small tags match across the site":
     ["Los filtros y las etiquetas pequeñas coinciden en todo el sitio",
@@ -985,7 +985,7 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   "Tabs look the same everywhere, and the \u22ee menu speaks your language":
     ["Las pestañas se ven igual en todas partes y el menú ⋮ habla tu idioma",
-     "Las pestañas comparten ahora un mismo estilo, una línea bajo la pestaña abierta: en Récords (Semanal, Mensual, Anual), Premios, la ventana de rachas, la ventana de valoración de álbumes y la ventana para compartir el recorrido en la lista. Los pequeños selectores Canciones / Artistas / Álbumes de Récords usan el mismo selector que el resto del sitio. Las pestañas Show, Size y Actions del menú ⋮ de cada lista estaban siempre en inglés; ahora están traducidas (Mostrar, Tamaño, Acciones). Funciona con Last.fm, Google Sheets y archivos CSV."],
+     "Las pestañas comparten ahora un mismo estilo, una línea bajo la pestaña abierta: en Récords (Semanal, Mensual, Anual), Premios, la ventana de rachas, la ventana de valoración de álbumes y la ventana para compartir el recorrido en el ranking. Los pequeños selectores Canciones / Artistas / Álbumes de Récords usan el mismo selector que el resto del sitio. Las pestañas Show, Size y Actions del menú ⋮ de cada lista estaban siempre en inglés; ahora están traducidas (Mostrar, Tamaño, Acciones). Funciona con Last.fm, Google Sheets y archivos CSV."],
 
   "Every \"pick one\" switch looks the same":
     ["Todos los selectores de \"elige uno\" tienen el mismo aspecto",
@@ -997,7 +997,7 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   "Every button outside the charts now looks the same":
     ["Todos los botones fuera de las listas tienen ahora el mismo aspecto",
-     "Los últimos botones pasaron al botón común del sitio: Ajustes (Conectar Last.fm, y Desconectar en rojo), Datos sin procesar, la ventana de bienvenida, el recorrido guiado, la Guía de listas, el selector de imágenes, el tablón de la comunidad y Contactar con soporte. Los botones para plegar las secciones de Récords y Eventos son ahora pequeños botones cuadrados, más fáciles de pulsar. Funciona con Last.fm, Google Sheets y archivos CSV."],
+     "Los últimos botones pasaron al botón común del sitio: Ajustes (Conectar Last.fm, y Desconectar en rojo), Datos sin procesar, la ventana de bienvenida, el recorrido guiado, la Guía de Charts, el selector de imágenes, el tablón de la comunidad y Contactar con soporte. Los botones para plegar las secciones de Récords y Eventos son ahora pequeños botones cuadrados, más fáciles de pulsar. Funciona con Last.fm, Google Sheets y archivos CSV."],
 
   "Player queue buttons match the rest of the site":
     ["Los botones de la cola del reproductor coinciden con el resto del sitio",
@@ -1021,7 +1021,7 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   "Share as image windows have clearer buttons":
     ["Las ventanas de Compartir como imagen tienen botones más claros",
-     "En todas las ventanas de Compartir como imagen (listas, recorridos en la lista, tarjetas de estadísticas, valoraciones, récords, rachas y el calendario Diario), Descargar imagen es ahora el único botón destacado, y Copiar y Compartir quedan al lado con un estilo más discreto, todos a la misma altura. En los teléfonos, Descargar imagen ocupa su propia fila a todo lo ancho, con Cancelar, Copiar y Compartir debajo, en vez de cuatro botones apretados con el texto partido. Funciona con Last.fm, Google Sheets y archivos CSV."],
+     "En todas las ventanas de Compartir como imagen (listas, recorridos en el ranking, tarjetas de estadísticas, valoraciones, récords, rachas y el calendario Diario), Descargar imagen es ahora el único botón destacado, y Copiar y Compartir quedan al lado con un estilo más discreto, todos a la misma altura. En los teléfonos, Descargar imagen ocupa su propia fila a todo lo ancho, con Cancelar, Copiar y Compartir debajo, en vez de cuatro botones apretados con el texto partido. Funciona con Last.fm, Google Sheets y archivos CSV."],
 
   "Corners and shadows match across the site":
     ["Las esquinas y las sombras coinciden en todo el sitio",
@@ -1048,13 +1048,13 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   "Listening streak shows again":
     ["La racha de escucha vuelve a aparecer",
-     "Al integrar la tarjeta de estadísticas de Histórico en el banner también se desactivó la racha de escucha al final de la franja superior, junto con la fila de debajo (mejores rachas, la más larga en curso). Ambas vuelven a aparecer en todas las pestañas de listas."],
+     "Al integrar la tarjeta de estadísticas de Histórico en el banner también se desactivó la racha de escucha al final de la franja superior, junto con la fila de debajo (mejores rachas, la más larga en curso). Ambas vuelven a aparecer en todas las pestañas de rankings."],
 
 
   /* ========== OCTUBRE 2026 ========== */
 
   "Travel back in time on the All-Time chart":
-    ["Viaja en el tiempo en la lista Histórico",
+    ["Viaja en el tiempo en el ranking Histórico",
      "Histórico ahora puede mostrar cómo eran tus listas en cualquier día anterior. Usa las flechas junto a la fecha para retroceder o avanzar un mes cada vez, o toca la fecha para elegir cualquier día desde tu primera reproducción hasta hoy. Las listas, el banner de estadísticas, la barra de reproducciones por año y los datos del Top N cuentan entonces solo las reproducciones hasta ese día. Avanza hasta hoy (o elige hoy) para volver a verlo todo. Funciona con Last.fm, Google Sheets y archivos CSV."],
 
   "The All-Time collage follows the chart you're looking at":
@@ -1331,7 +1331,7 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   "Livelier Daily cards: tap the hours, see covers, browse one list at a time":
     ["Tarjetas diarias más vivas: toca las horas, ve portadas y explora una lista a la vez",
-     "Las cuatro tarjetas bajo la lista diaria son más fáciles de leer y más divertidas. Cada una empieza con un breve resumen (como \"Un día de tarde\"). En Hora del día, toca o pasa sobre una hora para ver sus reproducciones, su canción top y su portada, y toca Madrugada, Mañana, Tarde o Noche para iluminar esas horas. Patrones muestra un número grande por tarjeta y una dona de géneros que puedes explorar. Recuerdos e Hitos muestran una lista a la vez en pestañas, con portadas, insignias de rachas e hitos, y barras de progreso hacia tus metas. Los premios del día son tarjetas de trofeo que se deslizan de lado en el móvil."],
+     "Las cuatro tarjetas bajo el ranking diario son más fáciles de leer y más divertidas. Cada una empieza con un breve resumen (como \"Un día de tarde\"). En Hora del día, toca o pasa sobre una hora para ver sus reproducciones, su canción top y su portada, y toca Madrugada, Mañana, Tarde o Noche para iluminar esas horas. Patrones muestra un número grande por tarjeta y una dona de géneros que puedes explorar. Recuerdos e Hitos muestran una lista a la vez en pestañas, con portadas, insignias de rachas e hitos, y barras de progreso hacia tus metas. Los premios del día son tarjetas de trofeo que se deslizan de lado en el móvil."],
 
   "Cleaner play and expand buttons in Daily Streaks and album windows":
     ["Botones de reproducir y desplegar más limpios en Rachas Diarias y en los álbumes",
@@ -1390,52 +1390,52 @@ window.DC_CHANGELOG_I18N['es'] = {
      "Sin ninguna canción sonando, la barra de arriba abre una segunda fila sobre tu racha de escucha: una barra hacia tu récord (y, una vez superado, hacia el siguiente número redondo como 100 o 365), cuántos días faltan para superarlo o \"Récord nuevo cada día\", qué puesto ocupa esta racha (\"Tu 2.ª racha más larga\"), desde cuándo y su primera canción, tus 3 mejores rachas con sus fechas (la actual resaltada si está entre ellas), y el artista, la canción y el álbum que llevas más días seguidos escuchando ahora mismo. Cuando suena una canción, recupera su espacio."],
 
   "Daily chart runs show the daily chart only":
-    ["Las trayectorias de la lista diaria muestran solo la lista diaria",
-     "Al abrir una entrada de la lista diaria ahora se ve su trayectoria solo en la lista diaria: una casilla por cada día que estuvo, los huecos contados en días, y Días en la lista, Días en el #1, Días en el Top 5 y Días en el Top 10. Los botones de rango dicen 2026 YTD, Hasta este día y Siempre, una casilla abre la lista de ese día, y la tarjeta para compartir dibuja la trayectoria diaria con sus fechas. Las trayectorias semanales, mensuales y anuales ya no aparecen ahí."],
+    ["Las trayectorias del ranking diario muestran solo el ranking diario",
+     "Al abrir una entrada del ranking diario ahora se ve su trayectoria solo en el ranking diario: una casilla por cada día que estuvo, los huecos contados en días, y Días en la lista, Días en el #1, Días en el Top 5 y Días en el Top 10. Los botones de rango dicen 2026 YTD, Hasta este día y Siempre, una casilla abre la lista de ese día, y la tarjeta para compartir dibuja la trayectoria diaria con sus fechas. Las trayectorias semanales, mensuales y anuales ya no aparecen ahí."],
 
   "The Daily chart has the same settings as the other charts":
-    ["La lista diaria tiene los mismos ajustes que las otras listas",
-     "La lista diaria es ahora la misma lista que Semanal y Mensual, así que todo su menú ⋮ funciona también ahí: Mostrar (insignias de certificación, tus puntuaciones, picos de reproducciones, etiquetas de pico, botones de YouTube y playlist, descripciones y las secciones Lista y Nuevas entradas), Tamaño (Top 10 a 50 o tu propio número, por lista y guardado en tu cuenta) y Acciones (compartir, PDF, exportar). Haz clic en una fila para ver su trayectoria, con su historial semanal, mensual y anual, y usa Animar lista para verla moverse desde el día con el que comparas. El selector de comparación, las acciones y las tarjetas del día siguen encima y debajo de la lista."],
+    ["El ranking diario tiene los mismos ajustes que las otras listas",
+     "El ranking diario es ahora la misma lista que Semanal y Mensual, así que todo su menú ⋮ funciona también ahí: Mostrar (insignias de certificación, tus puntuaciones, picos de reproducciones, etiquetas de pico, botones de YouTube y playlist, descripciones y las secciones Lista y Nuevas entradas), Tamaño (Top 10 a 50 o tu propio número, por lista y guardado en tu cuenta) y Acciones (compartir, PDF, exportar). Haz clic en una fila para ver su trayectoria, con su historial semanal, mensual y anual, y usa Animar ranking para verlo moverse desde el día con el que comparas. El selector de comparación, las acciones y las tarjetas del día siguen encima y debajo de la lista."],
 
   "Share images count the right unit on the chart":
     ["Las imágenes para compartir usan la unidad correcta en la lista",
-     "Las imágenes para compartir decían \"3 semanas\" para el tiempo en la lista fuera cual fuera el periodo. Ahora las mensuales dicen meses, las anuales años y las diarias días, y la opción del diseñador se llama igual (Días / Semanas / Meses / Años en el Ranking)."],
+     "Las imágenes para compartir decían \"3 semanas\" para el tiempo en el ranking fuera cual fuera el periodo. Ahora las mensuales dicen meses, las anuales años y las diarias días, y la opción del diseñador se llama igual (Días / Semanas / Meses / Años en el Ranking)."],
 
   "Your day, a calendar and live updates on the Daily chart":
-    ["Tu día, un calendario y actualizaciones en vivo en la lista diaria",
-     "La lista diaria gana una tarjeta Tu día: elige un estado de ánimo y escribe una línea sobre el día. Se guarda mientras escribes, en este dispositivo y, si iniciaste sesión, en tu cuenta para tenerlo en todos tus dispositivos; las copias de seguridad de la cuenta también lo incluyen. Un nuevo botón Calendario abre un mes de portadas de los #1 diarios, con el estado de ánimo de cada día y un punto donde escribiste una nota; haz clic en un día para abrirlo. Y mientras ves el día de hoy con Last.fm como fuente, aparece una insignia En vivo y las nuevas reproducciones se añaden cada 2 minutos, sin perder la nota que estés escribiendo."],
+    ["Tu día, un calendario y actualizaciones en vivo en el ranking diario",
+     "El ranking diario gana una tarjeta Tu día: elige un estado de ánimo y escribe una línea sobre el día. Se guarda mientras escribes, en este dispositivo y, si iniciaste sesión, en tu cuenta para tenerlo en todos tus dispositivos; las copias de seguridad de la cuenta también lo incluyen. Un nuevo botón Calendario abre un mes de portadas de los #1 diarios, con el estado de ánimo de cada día y un punto donde escribiste una nota; haz clic en un día para abrirlo. Y mientras ves el día de hoy con Last.fm como fuente, aparece una insignia En vivo y las nuevas reproducciones se añaden cada 2 minutos, sin perder la nota que estés escribiendo."],
 
   "Export a day's songs as a playlist":
     ["Exporta las canciones de un día como playlist",
-     "La lista diaria también tiene el botón Exportar playlist, igual que Semanal y Mensual: copia o descarga las canciones del día e impórtalas en Soundiiz a Spotify, Apple Music, YouTube Music, Deezer y más. Siempre exporta las canciones del día, aunque estés viendo la lista de artistas o de álbumes, y le pone la fecha como nombre."],
+     "El ranking diario también tiene el botón Exportar playlist, igual que Semanal y Mensual: copia o descarga las canciones del día e impórtalas en Soundiiz a Spotify, Apple Music, YouTube Music, Deezer y más. Siempre exporta las canciones del día, aunque estés viendo la lista de artistas o de álbumes, y le pone la fecha como nombre."],
 
   "Share, play and relive a day on the Daily chart":
-    ["Comparte, escucha y revive un día en la lista diaria",
-     "Cuatro botones bajo los controles de la lista diaria. Resumen del día abre una historia a pantalla completa del día, una diapositiva tras otra: tus reproducciones frente a tu día habitual, tu canción #1, tu artista top, cuándo escuchaste, los destacados y una última para compartir o escucharlo; avanza sola y puedes tocar cualquier lado o usar las flechas. Compartir imagen abre el mismo diseñador que las otras listas (todos los diseños, paletas y formatos), ahora con el título \"del Día\" y los días en la lista diaria. Reproducir top N pone las canciones del día en la cola del reproductor, y Guardar como playlist las guarda en Playlists."],
+    ["Comparte, escucha y revive un día en el ranking diario",
+     "Cuatro botones bajo los controles del ranking diario. Resumen del día abre una historia a pantalla completa del día, una diapositiva tras otra: tus reproducciones frente a tu día habitual, tu canción #1, tu artista top, cuándo escuchaste, los destacados y una última para compartir o escucharlo; avanza sola y puedes tocar cualquier lado o usar las flechas. Compartir imagen abre el mismo diseñador que las otras listas (todos los diseños, paletas y formatos), ahora con el título \"del Día\" y los días en el ranking diario. Reproducir top N pone las canciones del día en la cola del reproductor, y Guardar como playlist las guarda en Playlists."],
 
   "Milestones and goals on the Daily chart":
-    ["Hitos y metas en la lista diaria",
-     "Una tarjeta de Hitos y metas al final de la lista diaria. Reparte los premios del día (canción, artista y álbum del día, el descubrimiento del día y el regreso del día), muestra canciones, artistas y álbumes que llegaron a una cifra redonda de reproducciones, los récords batidos ese día (tus más reproducciones de una canción o un artista en un día, con un enlace a Récords), las rachas que siguen y las que terminaron, y metas: cuánto le faltó al día para tu mejor día de la semana igual y tu mayor día, lo que escuchaste últimamente que está a pocas reproducciones de su próximo hito y, hoy, las rachas que terminan si no las escuchas hoy. Las certificaciones ganadas ese día aparecen ahora en la misma cinta de Certificados que en Semanal y Mensual."],
+    ["Hitos y metas en el ranking diario",
+     "Una tarjeta de Hitos y metas al final del ranking diario. Reparte los premios del día (canción, artista y álbum del día, el descubrimiento del día y el regreso del día), muestra canciones, artistas y álbumes que llegaron a una cifra redonda de reproducciones, los récords batidos ese día (tus más reproducciones de una canción o un artista en un día, con un enlace a Récords), las rachas que siguen y las que terminaron, y metas: cuánto le faltó al día para tu mejor día de la semana igual y tu mayor día, lo que escuchaste últimamente que está a pocas reproducciones de su próximo hito y, hoy, las rachas que terminan si no las escuchas hoy. Las certificaciones ganadas ese día aparecen ahora en la misma cinta de Certificados que en Semanal y Mensual."],
 
   "Memories on the Daily chart":
-    ["Recuerdos en la lista diaria",
-     "Una tarjeta de Recuerdos bajo la lista diaria, mirando atrás desde el día que estás viendo: tu canción y artista top en la misma fecha uno, dos y tres años antes (haz clic para abrir ese día), favoritas olvidadas de tu top 100 que llevaban tres meses o más sin sonar, artistas del recuerdo de tu top 20 que no escuchabas desde hacía un mes o más, regresos (canciones que vuelven tras seis meses o más) y lo que escuchaste por primera vez ese día. Las canciones y artistas tienen el mismo ▶ de muestra y menú ⋮ que las otras listas, y las filas de la lista diaria ahora también."],
+    ["Recuerdos en el ranking diario",
+     "Una tarjeta de Recuerdos bajo el ranking diario, mirando atrás desde el día que estás viendo: tu canción y artista top en la misma fecha uno, dos y tres años antes (haz clic para abrir ese día), favoritas olvidadas de tu top 100 que llevaban tres meses o más sin sonar, artistas del recuerdo de tu top 20 que no escuchabas desde hacía un mes o más, regresos (canciones que vuelven tras seis meses o más) y lo que escuchaste por primera vez ese día. Las canciones y artistas tienen el mismo ▶ de muestra y menú ⋮ que las otras listas, y las filas del ranking diario ahora también."],
 
   "Listening patterns on the Daily chart":
-    ["Patrones de escucha en la lista diaria",
-     "Una tarjeta de Patrones bajo la lista diaria: la canción que más repetiste, la racha más larga de una canción y de un artista seguidos, los álbumes que escuchaste completos (comprobados con la lista de canciones real de Deezer, o con todas sus canciones de tu biblioteca mientras llega), lo variado que fue el día en una escala de fiel a explorador con lo habitual marcado, y la mezcla de géneros del día. Los géneros salen de las columnas Genre de tu hoja si las tiene; si no, de las etiquetas de artista de Last.fm."],
+    ["Patrones de escucha en el ranking diario",
+     "Una tarjeta de Patrones bajo el ranking diario: la canción que más repetiste, la racha más larga de una canción y de un artista seguidos, los álbumes que escuchaste completos (comprobados con la lista de canciones real de Deezer, o con todas sus canciones de tu biblioteca mientras llega), lo variado que fue el día en una escala de fiel a explorador con lo habitual marcado, y la mezcla de géneros del día. Los géneros salen de las columnas Genre de tu hoja si las tiene; si no, de las etiquetas de artista de Last.fm."],
 
   "Time of day on the Daily chart":
-    ["La hora del día en la lista diaria",
-     "Bajo la lista diaria, una tarjeta muestra en qué momento del día escuchaste: tu hora punta, cuántas sesiones de escucha tuviste (una pausa de más de 30 minutos empieza otra) y cuánto duró la más larga, una barra por cada hora, una tira de portadas con el álbum que más sonó en cada hora y el día en cuatro partes (madrugada, mañana, tarde, noche) con la canción top de cada una. Solo aparece cuando tus reproducciones tienen hora; una hoja solo con fechas la omite en lugar de poner todo el día a medianoche."],
+    ["La hora del día en el ranking diario",
+     "Bajo el ranking diario, una tarjeta muestra en qué momento del día escuchaste: tu hora punta, cuántas sesiones de escucha tuviste (una pausa de más de 30 minutos empieza otra) y cuánto duró la más larga, una barra por cada hora, una tira de portadas con el álbum que más sonó en cada hora y el día en cuatro partes (madrugada, mañana, tarde, noche) con la canción top de cada una. Solo aparece cuando tus reproducciones tienen hora; una hoja solo con fechas la omite en lugar de poner todo el día a medianoche."],
 
   "The day at a glance on the Daily chart":
-    ["El día de un vistazo en la lista diaria",
-     "Una tarjeta sobre la lista diaria resume el día que estás viendo. Un anillo se llena a medida que sus reproducciones se acercan a tu día habitual (la media de los días en que escuchaste el mes anterior), junto a la primera y la última canción del día y su artista top. Al lado, los 7 días que terminan ese día en barras, con el día iluminado, el total, el cambio frente a los 7 días anteriores y la canción en bucle. Haz clic en una barra para ir a ese día."],
+    ["El día de un vistazo en el ranking diario",
+     "Una tarjeta sobre el ranking diario resume el día que estás viendo. Un anillo se llena a medida que sus reproducciones se acercan a tu día habitual (la media de los días en que escuchaste el mes anterior), junto a la primera y la última canción del día y su artista top. Al lado, los 7 días que terminan ese día en barras, con el día iluminado, el total, el cambio frente a los 7 días anteriores y la canción en bucle. Haz clic en una barra para ir a ese día."],
 
   "A Daily chart":
-    ["Una lista diaria",
-     "Una nueva pestaña Diario aparece antes de Semanal. Retrocede día a día con las flechas o haz clic en la fecha para elegir cualquier día. Ordena las canciones, artistas y álbumes del día (Top 10, 20 o 50) y muestra cómo se movieron frente a ayer, o frente al mismo día de la semana pasada si lo prefieres. Cada entrada muestra cuántos días lleva en la lista diaria este mes y su pico, con la fecha en que lo alcanzó, y una línea sobre la lista dice cuánto tiempo lleva arriba el #1. Las cuatro tarjetas de estadísticas también comparan con ese día, cuentan tus primeras escuchas, muestran qué parte de la semana fue ese día y lo comparan con todos los demás días en que escuchaste (con una insignia para tu mayor día del mes o de siempre). Pulsa D para ir directamente."],
+    ["Un ranking diario",
+     "Una nueva pestaña Diario aparece antes de Semanal. Retrocede día a día con las flechas o haz clic en la fecha para elegir cualquier día. Ordena las canciones, artistas y álbumes del día (Top 10, 20 o 50) y muestra cómo se movieron frente a ayer, o frente al mismo día de la semana pasada si lo prefieres. Cada entrada muestra cuántos días lleva en el ranking diario este mes y su pico, con la fecha en que lo alcanzó, y una línea sobre la lista dice cuánto tiempo lleva arriba el #1. Las cuatro tarjetas de estadísticas también comparan con ese día, cuentan tus primeras escuchas, muestran qué parte de la semana fue ese día y lo comparan con todos los demás días en que escuchaste (con una insignia para tu mayor día del mes o de siempre). Pulsa D para ir directamente."],
 
   "Stats about your all-time charts":
     ["Estadísticas de tu lista de todos los tiempos",
@@ -1523,7 +1523,7 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   "A slim top bar instead of the big header":
     ["Una barra superior delgada en lugar de la cabecera grande",
-     "La cabecera grande que había arriba de cada página ya no está. En su lugar hay una barra delgada que se queda arriba al desplazarte, con Sincronizar, Configuración, Tema, Idioma y tu cuenta siempre a un clic. Con la sesión iniciada, tu foto de perfil abre un pequeño menú con Cerrar sesión. Haz clic en el logo de dankcharts.fm para volver a la lista semanal. Las cifras de todos los tiempos que estaban en la cabecera (reproducciones totales, días escuchados, artista principal, racha) ahora aparecen en la pestaña Histórico, porque hablan de todo el tiempo, no de esta semana."],
+     "La cabecera grande que había arriba de cada página ya no está. En su lugar hay una barra delgada que se queda arriba al desplazarte, con Sincronizar, Configuración, Tema, Idioma y tu cuenta siempre a un clic. Con la sesión iniciada, tu foto de perfil abre un pequeño menú con Cerrar sesión. Haz clic en el logo de dankcharts.fm para volver al ranking semanal. Las cifras de todos los tiempos que estaban en la cabecera (reproducciones totales, días escuchados, artista principal, racha) ahora aparecen en la pestaña Histórico, porque hablan de todo el tiempo, no de esta semana."],
 
   "Rounder artist cards, bigger streak covers":
     ["Tarjetas de artista redondas y portadas de racha más grandes",
@@ -1551,7 +1551,7 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   "More small text made easier to read":
     ["Más texto pequeño, ahora más fácil de leer",
-     "Una segunda revisión del cambio de texto encontró lugares que se habían pasado por alto: las ventanas de canciones, álbumes y artistas, los paneles de trayectoria en la lista, los datos sin procesar, los filtros, las listas de ajustes y las tarjetas de Récords en el móvil, algunos todavía por debajo de 10px. Ahora usan los mismos tamaños que el resto del sitio, 12px o más. Las cintas doradas de las tarjetas de bienvenida y de los pósteres de premios también dejaron las mayúsculas de máquina de escribir."],
+     "Una segunda revisión del cambio de texto encontró lugares que se habían pasado por alto: las ventanas de canciones, álbumes y artistas, los paneles de trayectoria en el ranking, los datos sin procesar, los filtros, las listas de ajustes y las tarjetas de Récords en el móvil, algunos todavía por debajo de 10px. Ahora usan los mismos tamaños que el resto del sitio, 12px o más. Las cintas doradas de las tarjetas de bienvenida y de los pósteres de premios también dejaron las mayúsculas de máquina de escribir."],
 
   "Easier-to-read text across the site":
     ["Texto más fácil de leer en todo el sitio",
@@ -1575,7 +1575,7 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   "Links to a tab open that tab again":
     ["Los enlaces a una pestaña vuelven a abrirla",
-     "Un enlace directo a una pestaña, como uno que termina en #t=awards, abría la lista semanal por un error al cargar la página. Ahora estos enlaces abren la pestaña a la que apuntan."],
+     "Un enlace directo a una pestaña, como uno que termina en #t=awards, abríal ranking semanal por un error al cargar la página. Ahora estos enlaces abren la pestaña a la que apuntan."],
 
   'Open the album from the ON AIR bar':
     ['Abre el álbum desde la barra EN EL AIRE',
@@ -1587,7 +1587,7 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   "Filmstrip scores and details are easier to read":
     ["Las notas y los detalles de la vista Tira se leen mejor",
-     "En la vista Tira de las listas, la etiqueta de tu nota y los detalles que se abren bajo cada tarjeta (semanas en la lista, reproducciones totales) eran diminutos. Ahora son bastante más grandes."],
+     "En la vista Tira de las listas, la etiqueta de tu nota y los detalles que se abren bajo cada tarjeta (semanas en el ranking, reproducciones totales) eran diminutos. Ahora son bastante más grandes."],
 
   "Pick the picture for track play images, now in full colour":
     ["Elige la imagen de las reproducciones por canción, ahora a todo color",
@@ -1643,7 +1643,7 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   'Your week start day follows you to every device':
     ['Tu día de inicio de semana te sigue en todos tus dispositivos',
-     'Con la sesión iniciada, el día en que empiezan tus listas semanales se guarda en tu cuenta como tus demás ajustes, así que todos tus dispositivos cortan las semanas igual. Un día o una zona horaria cambiados en otro dispositivo se aplican en cuanto inicias sesión, sin recargar la página.'],
+     'Con la sesión iniciada, el día en que empiezan tus rankings semanales se guarda en tu cuenta como tus demás ajustes, así que todos tus dispositivos cortan las semanas igual. Un día o una zona horaria cambiados en otro dispositivo se aplican en cuanto inicias sesión, sin recargar la página.'],
 
   'Changing your timezone now updates everything at once':
     ['Cambiar la zona horaria ahora lo actualiza todo a la vez',
@@ -1651,7 +1651,7 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   'Week start day moved to Settings':
     ['El día de inicio de semana pasa a Ajustes',
-     'El botón Día de inicio ya no está arriba de la página. Elige el día en que empiezan tus listas semanales en Ajustes → Rankings → Semana de las listas. Se aplica al instante y tu elección actual se mantiene.'],
+     'El botón Día de inicio ya no está arriba de la página. Elige el día en que empiezan tus rankings semanales en Ajustes → Rankings → Semana de los rankings. Se aplica al instante y tu elección actual se mantiene.'],
 
   'The rating editor closes instantly':
     ['El editor de calificaciones se cierra al instante',
@@ -1674,8 +1674,8 @@ window.DC_CHANGELOG_I18N['es'] = {
      'Toda la ventana de Ajustes está ahora traducida al español y a las dos variantes de portugués: las tres pestañas, los pasos de configuración de Google Sheets, los mensajes de conexión con Last.fm, el estado de la subida de archivos y las copias de seguridad. Al cambiar de idioma se actualiza al instante, incluso con la ventana abierta.'],
 
   'Choose which sections the charts page shows':
-    ['Elige qué secciones muestra la página de listas',
-     'Configuración → Listas tiene un nuevo grupo Secciones de la página de listas con un interruptor para Máquina del tiempo, las tarjetas de estadísticas del periodo, Certificados este periodo, Próximos lanzamientos y Lanzamientos recientes. Desactiva cualquiera para ocultarla de la página de listas. La pestaña Eventos conserva sus propios próximos y recientes lanzamientos. Los cambios se aplican al momento y se recuerdan en todos tus dispositivos.'],
+    ['Elige qué secciones muestra la página de Charts',
+     'Configuración → Listas tiene un nuevo grupo Secciones de la página de Charts con un interruptor para Máquina del tiempo, las tarjetas de estadísticas del periodo, Certificados este periodo, Próximos lanzamientos y Lanzamientos recientes. Desactiva cualquiera para ocultarla de la página de Charts. La pestaña Eventos conserva sus propios próximos y recientes lanzamientos. Los cambios se aplican al momento y se recuerdan en todos tus dispositivos.'],
 
   'Hide chart descriptions':
     ['Ocultar las descripciones de las listas',
@@ -1719,11 +1719,11 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   'The Chart Run panel has a cleaner, more modern look':
     ['El panel de Recorrido en el Ranking tiene un aspecto más limpio y moderno',
-     'El Recorrido en el Ranking que se abre debajo de una entrada ahora es su propia tarjeta redondeada. Los botones de rango son un solo selector con la opción elegida resaltada, y las pestañas de rachas funcionan igual. Las semanas en lista, las reproducciones totales, el pico y las demás cifras están en pequeños recuadros con el número arriba. Cada semana es una ficha suave y redondeada: el pico es dorado y las demás semanas en el top 3 tienen un tono de color, así que el mejor tramo destaca. El tiempo fuera de la lista se muestra como una pausa punteada. Récords de rachas, Mapa de calor y Historial completo son tarjetas redondeadas con una flecha que gira al abrirse.'],
+     'El Recorrido en el Ranking que se abre debajo de una entrada ahora es su propia tarjeta redondeada. Los botones de rango son un solo selector con la opción elegida resaltada, y las pestañas de rachas funcionan igual. Las semanas en lista, las reproducciones totales, el pico y las demás cifras están en pequeños recuadros con el número arriba. Cada semana es una ficha suave y redondeada: el pico es dorado y las demás semanas en el top 3 tienen un tono de color, así que el mejor tramo destaca. El tiempo fuera del ranking se muestra como una pausa punteada. Récords de rachas, Mapa de calor y Historial completo son tarjetas redondeadas con una flecha que gira al abrirse.'],
 
   'The chart tables have a cleaner, more modern look':
     ['Las tablas de las listas tienen un aspecto más limpio y moderno',
-     'La vista de tabla ya no parece una hoja de cálculo. Cada entrada es una franja redondeada con un poco de espacio entre filas, y desaparecen las líneas de columna y el encabezado relleno. Las tres primeras filas tienen un tono oro, plata y bronce con colores que también funcionan en los temas claros, y el número 1 tiene un efecto de lámina dorada. El movimiento en la columna Anterior, incluido sin cambios, se muestra como pequeñas píldoras de color, y las etiquetas de pico son redondeadas. En las listas semanales de Artistas y Álbumes, la etiqueta de récord de reproducciones ahora va debajo de la barra, igual que en Canciones.'],
+     'La vista de tabla ya no parece una hoja de cálculo. Cada entrada es una franja redondeada con un poco de espacio entre filas, y desaparecen las líneas de columna y el encabezado relleno. Las tres primeras filas tienen un tono oro, plata y bronce con colores que también funcionan en los temas claros, y el número 1 tiene un efecto de lámina dorada. El movimiento en la columna Anterior, incluido sin cambios, se muestra como pequeñas píldoras de color, y las etiquetas de pico son redondeadas. En los rankings semanales de Artistas y Álbumes, la etiqueta de récord de reproducciones ahora va debajo de la barra, igual que en Canciones.'],
 
   'Real-Life Awards now cover the BRIT Awards':
     ['Premios Reales ahora incluye los BRIT Awards',
@@ -1823,7 +1823,7 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   'Award nominee stats are easier to read':
     ['Las estadísticas de los nominados se leen más fácil',
-     'Cuando eliges nominados en Mis Grammys, la línea bajo cada sugerencia era una serie de abreviaturas como "8 days · 5 wk · 4 mo · peak #1 · 1 wk at #1". Ahora son unas pocas etiquetas cortas en palabras simples, como "#1 durante 1 semana", "4 días seguidos" y "Escuchada en 8 días", con la más importante primero. La tarjeta de estadísticas que se abre bajo cada fila también se entiende mejor: empieza con el puesto de la canción en el año y cuántas reproducciones tuvo, luego muestra las reproducciones por mes con el número sobre cada barra, después tus hábitos de escucha y, al final, cómo le fue en tus listas semanales y mensuales.'],
+     'Cuando eliges nominados en Mis Grammys, la línea bajo cada sugerencia era una serie de abreviaturas como "8 days · 5 wk · 4 mo · peak #1 · 1 wk at #1". Ahora son unas pocas etiquetas cortas en palabras simples, como "#1 durante 1 semana", "4 días seguidos" y "Escuchada en 8 días", con la más importante primero. La tarjeta de estadísticas que se abre bajo cada fila también se entiende mejor: empieza con el puesto de la canción en el año y cuántas reproducciones tuvo, luego muestra las reproducciones por mes con el número sobre cada barra, después tus hábitos de escucha y, al final, cómo le fue en tus rankings semanales y mensuales.'],
 
   'Genre awards follow the genres in your Google Sheet':
     ['Los premios de género siguen los géneros de tu hoja de Google',
@@ -1889,7 +1889,7 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   'Year stats for every candidate when picking Song, Album and Artist of the Year':
     ['Estadísticas del año de cada candidato al elegir Canción, Álbum y Artista del Año',
-     'Al elegir nominados para Canción del Año, Álbum del Año o Artista del Año, cada fila ahora muestra cómo le fue durante el año: su racha más larga de días seguidos, cuántos días, semanas y meses lo escuchaste, su mejor posición en la lista semanal y sus semanas en el #1, y su día con más reproducciones. El botón Stats abre todo lo demás: su puesto del año por reproducciones y su parte del total, su racha semanal más larga, su mejor día, semana y mes, la primera y la última reproducción, cuántas canciones y álbumes de un artista escuchaste o cuántas pistas de un álbum, sus récords en las listas semanales y mensuales, y una barra por cada mes. También puedes ordenar la lista por racha más larga, más días escuchado, mejor día, más semanas en el #1 o mejor posición. Todo cuenta solo las reproducciones dentro del periodo de elegibilidad de ese año.'],
+     'Al elegir nominados para Canción del Año, Álbum del Año o Artista del Año, cada fila ahora muestra cómo le fue durante el año: su racha más larga de días seguidos, cuántos días, semanas y meses lo escuchaste, su mejor posición en el ranking semanal y sus semanas en el #1, y su día con más reproducciones. El botón Stats abre todo lo demás: su puesto del año por reproducciones y su parte del total, su racha semanal más larga, su mejor día, semana y mes, la primera y la última reproducción, cuántas canciones y álbumes de un artista escuchaste o cuántas pistas de un álbum, sus récords en los rankings semanales y mensuales, y una barra por cada mes. También puedes ordenar la lista por racha más larga, más días escuchado, mejor día, más semanas en el #1 o mejor posición. Todo cuenta solo las reproducciones dentro del periodo de elegibilidad de ese año.'],
 
   'Change the picture of any nominee in My Grammys':
     ['Cambia la imagen de cualquier nominado en Mis Grammys',
@@ -1913,7 +1913,7 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   'Song and artist profiles say which chart each stat is from':
     ['Los perfiles de canciones y artistas indican de qué lista es cada dato',
-     'La tarjeta de debut del perfil de una canción ahora dice de qué lista se trata, por ejemplo Weekly Chart Debut · Week of Sep 20, 26 o Monthly Chart Debut · Sep 2026. Muestra el debut en la lista desde la que abriste la canción, o el de la semanal si la abres desde la lista histórica. Antes mezclaba las listas semanal, mensual y anual y podía mostrar un debut mensual como si fuera una fecha. Las semanas, meses y años en la lista, los reingresos y el tiempo en el #1 ahora también nombran su lista, en los perfiles de canciones y de artistas.'],
+     'La tarjeta de debut del perfil de una canción ahora dice de qué lista se trata, por ejemplo Weekly Chart Debut · Week of Sep 20, 26 o Monthly Chart Debut · Sep 2026. Muestra el debut en el ranking desde el que abriste la canción, o el del semanal si la abres desde el ranking histórico. Antes mezclaba las listas semanal, mensual y anual y podía mostrar un debut mensual como si fuera una fecha. Las semanas, meses y años en la lista, los reingresos y el tiempo en el #1 ahora también nombran su lista, en los perfiles de canciones y de artistas.'],
 
   'Click a name in the Songs and Albums charts to open it':
     ['Haz clic en un nombre de las listas de Canciones y Álbumes para abrirlo',
@@ -4940,13 +4940,13 @@ window.DC_CL_HIGHLIGHTS_I18N["es"] = {
     title: "Puntuaciones de escucha",
     intro: "Todo lo que aún no has valorado tiene ahora una nota, según cómo escuchas.",
     points: [
-      "Canciones, álbumes, EPs y sencillos reciben de 0 a 10 según tus reproducciones, cuánto tiempo sigues volviendo a ellos, su recorrido en las listas y sus certificaciones.",
+      "Canciones, álbumes, EPs y sencillos reciben de 0 a 10 según tus reproducciones, cuánto tiempo sigues volviendo a ellos, su recorrido en los rankings y sus certificaciones.",
       "Tus propias notas siempre ganan. Un álbum valorado en parte mezcla las dos hasta que todas las canciones son tuyas.",
       "Las notas con borde discontinuo son puntuaciones de escucha. Abre una para ver por qué tiene esa nota, o cambia lo que cuenta en Ajustes → Lanzamientos.",
     ],
   },
   "around-the-chart": {
-    title: "Más de las listas bajo tu lista",
+    title: "Más de las listas bajo tu ranking",
     intro: "Aspirantes, Fuera del Ranking y las listas de Nuevas Entradas ahora se pueden reproducir, guardar y ajustar.",
     points: [
       "Reproduce o mezcla una lista, guárdala como playlist o expórtala a Soundiiz.",
@@ -4954,8 +4954,8 @@ window.DC_CL_HIGHLIGHTS_I18N["es"] = {
     ],
   },
   "world-charts": {
-    title: "Listas mundiales",
-    intro: "Las listas reales que escucha todo el mundo, junto a las tuyas.",
+    title: "Rankings mundiales",
+    intro: "Los rankings reales que escucha todo el mundo, junto a las tuyas.",
     points: [
       "Billboard Hot 100, Billboard 200 y Global 200, Spotify Global y los videos más vistos de YouTube.",
       "Cada canción dice cuántas veces la escuchaste o si es nueva para ti.",
@@ -5054,10 +5054,10 @@ window.DC_CL_HIGHLIGHTS_I18N["es"] = {
     ] },
   "dank100": {
     title: "The Dank 100 ya está aquí",
-    intro: "Una lista semanal compartida, hecha con lo que escucha todo el mundo. Envía tu semana y ayuda a decidir qué es el n.º 1.",
+    intro: "Un ranking semanal compartido, hecho con lo que escucha todo el mundo. Envía tu semana y ayuda a decidir qué es el n.º 1.",
     points: [
       "Envía tu semana con un clic, o todo tu año desde enero.",
-      "Los puntos salen de las posiciones en la lista, no de las reproducciones, así que cada oyente cuenta igual.",
+      "Los puntos salen de las posiciones en el ranking, no de las reproducciones, así que cada oyente cuenta igual.",
       "Haz clic en cualquier canción, artista o álbum para ver su recorrido: debut, pico y semanas en el n.º 1.",
       "Vuelve a semanas anteriores, récords y cada n.º 1, y comparte el top 10 como imagen."
     ] },
@@ -5073,7 +5073,7 @@ window.DC_CL_HIGHLIGHTS_I18N["es"] = {
     title: "Compara lo que quieras, lado a lado",
     intro: "Pon hasta diez artistas, canciones, álbumes o años uno junto a otro y mira quién queda arriba.",
     points: [
-      "Totales acumulados, reproducciones por periodo, recorridos en la lista y una carrera, todo en un gráfico.",
+      "Totales acumulados, reproducciones por periodo, recorridos en el ranking y una carrera, todo en un gráfico.",
       "Cara a cara y Uno contra uno: quién iba delante, por cuánto y durante cuánto tiempo.",
       "Canciones principales y hábitos de escucha lado a lado, y las mayores diferencias entre ellos.",
       "Guarda una comparación para volver a ella, o compártela como imagen."
@@ -5101,7 +5101,7 @@ window.DC_CL_HIGHLIGHTS_I18N["es"] = {
     intro: "Haz clic en cualquier nombre de una lista para abrir su ventana. Ahora hay mucho más dentro.",
     points: [
       "Una pestaña Premios con el historial del artista en Mis Grammys y sus premios reales.",
-      "Listas diarias en cada artista, canción, álbum, single y EP, y récords de la lista diaria en Récords.",
+      "Rankings diarios en cada artista, canción, álbum, single y EP, y récords del ranking diario en Récords.",
       "Cambia la portada desde la pestaña Música de un artista.",
       "Botones de búsqueda y una tarjeta para compartir en cada ventana."
     ] },
@@ -5129,7 +5129,7 @@ window.DC_CL_HIGHLIGHTS_I18N["es"] = {
     points: [
       "Los diseños de lista son botones encima de la lista, y cada diseño funciona en cada periodo.",
       "Elige cualquier tamaño de lista entre 5 y 500, y cambia el ancho de las columnas.",
-      "Animar lista repite tus reproducciones una a una, en cada diseño.",
+      "Animar ranking repite tus reproducciones una a una, en cada diseño.",
       "Portadas más grandes en la tabla y más espacio para los títulos en el móvil."
     ] },
   "streaks": {
@@ -5142,7 +5142,7 @@ window.DC_CL_HIGHLIGHTS_I18N["es"] = {
       "Comparte tus rachas como imagen."
     ] },
   "alltime": {
-    title: "Viaja en el tiempo en la lista de Todo el tiempo",
+    title: "Viaja en el tiempo en el ranking de Todo el tiempo",
     intro: "Mira tus listas de Todo el tiempo tal como estaban cualquier día del pasado, y descubre qué hay dentro de tus canciones principales.",
     points: [
       "Retrocede mes a mes, o elige cualquier día desde tu primera reproducción.",
@@ -5159,7 +5159,7 @@ window.DC_CL_HIGHLIGHTS_I18N["es"] = {
       "Comparte el banner entero como imagen."
     ] },
   "daily": {
-    title: "Una lista diaria",
+    title: "Un ranking diario",
     intro: "Una lista para cada día, con todo sobre cómo sonó ese día.",
     points: [
       "El día de un vistazo, a qué horas escuchaste y recuerdos del mismo día en años anteriores.",
@@ -5184,10 +5184,10 @@ window.DC_CL_HIGHLIGHTS_I18N["es"] = {
     ] },
   "print": {
     title: "Imprime cualquier lista y elige qué muestra la página",
-    intro: "Crea un PDF limpio para imprimir de cualquier lista, y oculta las partes de la página de listas que no usas.",
+    intro: "Crea un PDF limpio para imprimir de cualquier lista, y oculta las partes de la página de Charts que no usas.",
     points: [
       "PDF para imprimir está junto a Compartir como imagen: una lista o las tres, con o sin portadas.",
-      "Elige qué secciones muestra la página de listas y oculta las descripciones cortas bajo los títulos.",
+      "Elige qué secciones muestra la página de Charts y oculta las descripciones cortas bajo los títulos.",
       "El día en que empieza tu semana ahora te sigue a todos tus dispositivos."
     ] },
   "mygrammys": {
