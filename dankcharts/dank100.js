@@ -1858,7 +1858,12 @@
   // the first try fails: without it the new weeks would wait for someone else's.
   function askRecount() {
     var ask = function () {
-      return fetch(API + '/dank100/dirty', { method: 'POST' }).then(function (r) { if (!r.ok) throw new Error('http ' + r.status); });
+      // With the sign-in token: the server only takes recount requests from
+      // signed-in accounts (security fix 2026-11-27; dcAuthHeader is in firebase.js)
+      var auth = typeof dcAuthHeader === 'function' ? dcAuthHeader() : Promise.resolve({});
+      return auth.then(function (headers) {
+        return fetch(API + '/dank100/dirty', { method: 'POST', headers: headers });
+      }).then(function (r) { if (!r.ok) throw new Error('http ' + r.status); });
     };
     return ask().catch(function () {
       return new Promise(function (res) { setTimeout(res, 2000); }).then(ask);

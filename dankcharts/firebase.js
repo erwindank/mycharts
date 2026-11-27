@@ -1096,14 +1096,28 @@ async function dcSignIn() {
   }
 }
 
+// The server sends the mail only to the signed-in account's own address and
+// only while the account is new, so it needs the sign-in token
+// (security fix 2026-11-27; it used to send to any address it was given).
 async function _sendWelcomeEmail(user) {
   try {
+    const token = await user.getIdToken();
     await fetch('https://dankcharts-api.onrender.com/send-welcome', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: user.email, displayName: user.displayName }),
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ displayName: user.displayName }),
     });
   } catch (_) {}
+}
+
+// Header that proves to our Render server which account is asking. Empty
+// when signed out (the server then says "sign in"). Used by the YouTube
+// search in app.js. Firebase refreshes the token by itself when it runs out.
+async function dcAuthHeader() {
+  try {
+    if (_currentUser) return { 'Authorization': 'Bearer ' + await _currentUser.getIdToken() };
+  } catch (_) {}
+  return {};
 }
 
 async function dcSignOut() {

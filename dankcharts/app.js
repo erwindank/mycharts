@@ -38570,6 +38570,11 @@ async function _ytFetchAlbum(title, artist) {
 // firestore.rules). Firestore's offline persistence also keeps a local copy,
 // so repeat plays on the same device don't even reach the network.
 const _ytMem = new Map();   // this session's lookups: query → videoId
+// Queries whose remembered video wouldn't play this session. Since the
+// 2026-11-27 security fix only the account that saved an entry (or a
+// moderator) may change or remove it, so for everyone else a broken entry
+// can't be deleted. This list makes the player skip it and search instead.
+const _ytMemBad = new Set();
 
 // "Drake  Hotline Bling" and "drake hotline bling" are the same search
 function _ytMemNorm(query) {
@@ -38591,6 +38596,7 @@ async function _ytMemRef(norm) {
 // after 3s so a slow Firestore can't hold the player up — it just searches.
 async function _ytMemGet(query) {
   const norm = _ytMemNorm(query);
+  if (_ytMemBad.has(norm)) return null;
   if (_ytMem.has(norm)) return _ytMem.get(norm);
   try {
     const lookup = (async () => {
@@ -38612,11 +38618,15 @@ function _ytMemPut(query, videoId) {
   const norm = _ytMemNorm(query);
   if (!norm || !/^[A-Za-z0-9_-]{11}$/.test(videoId || '')) return;
   _ytMem.set(norm, videoId);
+  _ytMemBad.delete(norm);   // a fresh search result replaces the broken one for this session
   if (typeof dcIsSignedIn !== 'function' || !dcIsSignedIn()) return;
   _ytMemRef(norm).then(ref => ref && ref.set({
     v: videoId,
     q: norm.slice(0, 300),
     at: firebase.firestore.FieldValue.serverTimestamp(),
+    // Who saved it: the rules only let this account (or a moderator) change
+    // or remove the entry later, so nobody can swap a song's video for everyone
+    by: (_currentUser && _currentUser.uid) || '',
   })).catch(() => {});
 }
 
@@ -38626,12 +38636,19 @@ function _ytMemForget(query) {
   const norm = _ytMemNorm(query);
   if (!norm) return;
   _ytMem.delete(norm);
+  _ytMemBad.add(norm);
   if (typeof dcIsSignedIn !== 'function' || !dcIsSignedIn()) return;
+  // Refused (quietly) unless this account saved the entry or is a moderator
   _ytMemRef(norm).then(ref => ref && ref.delete()).catch(() => {});
 }
 
 // Signed-out visitors can only play songs already in the shared memory. A new
 // search spends the site's shared YouTube quota, so it needs an account.
+// The sign-in token for YouTube searches: the server refuses searches from
+// signed-out visitors since the 2026-11-27 security fix (dcAuthHeader is in firebase.js)
+async function _ytAuth() {
+  return typeof dcAuthHeader === 'function' ? await dcAuthHeader() : {};
+}
 function _ytNeedsSignIn() {
   return typeof dcIsSignedIn !== 'function' || !dcIsSignedIn();
 }
@@ -38848,7 +38865,7 @@ async function _ytSearch(artist, title, overrideQuery) {
   const RETRY_DELAY_MS = 6000;
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     try {
-      const res  = await fetch(`${BACKEND_API}/api/youtube/search?q=${encodeURIComponent(query)}`);
+      const res  = await fetch(`${BACKEND_API}/api/youtube/search?q=${encodeURIComponent(query)}`, { headers: await _ytAuth() });
       if (res.status === 502 || res.status === 503) {
         if (attempt < MAX_RETRIES) {
           if (statusEl) { statusEl.textContent = t('yt_np_waking'); statusEl.className = 'yt-mini-status'; }
@@ -40751,7 +40768,7 @@ async function _ytSearchMultiYT(baseQuery) {
         const remembered = await _ytMemGet(q);
         if (remembered) return { videoId: remembered };
         if (_ytNeedsSignIn()) return {};   // new searches need an account
-        const r = await fetch(`${BACKEND_API}/api/youtube/search?q=${encodeURIComponent(q)}`);
+        const r = await fetch(`${BACKEND_API}/api/youtube/search?q=${encodeURIComponent(q)}`, { headers: await _ytAuth() });
         if (r.status === 502 || r.status === 503) throw new Error('server_unavailable');
         const data = await r.json();
         if (data && data.videoId) _ytMemPut(q, data.videoId);
@@ -56500,7 +56517,7 @@ async function _awardsPickerPreview(item) {
     // The server sleeps when idle and can take ~30s to wake, like in _ytSearch
     for (let attempt = 0; attempt <= 5 && vid === undefined; attempt++) {
       try {
-        const res = await fetch(`${BACKEND_API}/api/youtube/search?q=${encodeURIComponent(query)}`);
+        const res = await fetch(`${BACKEND_API}/api/youtube/search?q=${encodeURIComponent(query)}`, { headers: await _ytAuth() });
         if (res.status === 502 || res.status === 503) throw new TypeError('asleep');
         const data = await res.json();
         vid = data.videoId || '';

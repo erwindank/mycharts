@@ -41,7 +41,26 @@ service cloud.firestore {
     }
     // A post's or reply's pictures: a list of up to 4 {id, w, h} pointing at
     // boardImages docs. Leaving the field out means no pictures.
-    function imagesOk(d) { return !('images' in d) || (d.images is list && d.images.size() <= 4); }
+    // Security fix 2026-11-27: every post, reply and picture id must be a plain
+    // id (letters, digits, _ and -). The site puts ids inside onclick="…('id')",
+    // so an id with a quote in it could run code for whoever clicked.
+    function idOk(id) { return id is string && id.matches('^[A-Za-z0-9_-]{1,64}$'); }
+    // One entry of the images list: {id, w, h} with a plain id (lists can't be
+    // looped in rules, so each of the at most 4 places is checked by number).
+    function imgRefOk(l, i) {
+      return l.size() <= i || (l[i] is map && 'id' in l[i] && idOk(l[i].id));
+    }
+    function imagesOk(d) {
+      return !('images' in d) || (d.images is list && d.images.size() <= 4
+        && imgRefOk(d.images, 0) && imgRefOk(d.images, 1)
+        && imgRefOk(d.images, 2) && imgRefOk(d.images, 3));
+    }
+    // Profile picture: empty, or a Google account picture. Any other address
+    // could be a tracking picture that logs the IP of everyone reading the post.
+    function photoOk(v) {
+      return v is string && v.size() <= 500
+        && (v.size() == 0 || v.matches('^https://[a-z0-9-]+[.]googleusercontent[.]com/.*'));
+    }
     function hasImages(d) { return 'images' in d && d.images is list && d.images.size() > 0; }
     function postPath(postId) { return /databases/$(database)/documents/boardPosts/$(postId); }
     function replyPath(postId, replyId) {
@@ -51,19 +70,28 @@ service cloud.firestore {
     // ── YouTube search memory (app.js, _ytMemGet/_ytMemPut) ─────────────────
     // Site-wide: query → videoId, so a song anyone has played never costs
     // YouTube API quota again. Anyone can look a query up; nobody can list
-    // the collection. Signed-in users add entries and remove ones that turn
-    // out unplayable. Each entry is tiny and checked to be a real video id.
-    match /ytCache/{id} {
-      allow get: if true;
-      allow list: if false;
-      allow create, update: if signedIn()
-        && id.matches('^[0-9a-f]{40}$')
-        && request.resource.data.keys().hasOnly(['v', 'q', 'at'])
+    // the collection. Signed-in users add new entries. Each entry is tiny and
+    // checked to be a real video id.
+    // Security fix 2026-11-27: each entry remembers who saved it ('by'), and
+    // only that account or a board moderator can change or remove it. Before,
+    // any account could swap a popular song's video for everyone.
+    function ytEntryOk(id) {
+      return id.matches('^[0-9a-f]{40}$')
+        && request.resource.data.keys().hasOnly(['v', 'q', 'at', 'by'])
+        && request.resource.data.by == request.auth.uid
         && request.resource.data.v is string
         && request.resource.data.v.matches('^[A-Za-z0-9_-]{11}$')
         && textOk(request.resource.data.q, 1, 300)
         && request.resource.data.at == request.time;
-      allow delete: if signedIn();
+    }
+    match /ytCache/{id} {
+      allow get: if true;
+      allow list: if false;
+      allow create: if signedIn() && ytEntryOk(id);
+      allow update: if signedIn() && ytEntryOk(id)
+        && (resource.data.get('by', '') == request.auth.uid || isBoardAdmin());
+      allow delete: if signedIn()
+        && (resource.data.get('by', '') == request.auth.uid || isBoardAdmin());
     }
 
     // ── The Dank 100 (dank100.js) ──────────────────────────────────────────
@@ -164,6 +192,7 @@ service cloud.firestore {
       // A new post starts open, unpinned, with no votes or replies, stamped
       // with the server's clock and the poster's own uid.
       allow create: if signedIn()
+        && idOk(postId)
         && request.resource.data.keys().hasOnly(['title', 'body', 'category', 'authorUid', 'authorName',
              'authorPhoto', 'createdAt', 'lastActivity', 'status', 'pinned', 'votes', 'voteCount', 'replyCount', 'images'])
         && imagesOk(request.resource.data)
@@ -172,7 +201,7 @@ service cloud.firestore {
         && textOk(request.resource.data.body, 0, 5000)
         && request.resource.data.category in ['suggestion', 'bug', 'question', 'discussion']
         && textOk(request.resource.data.authorName, 1, 60)
-        && textOk(request.resource.data.authorPhoto, 0, 500)
+        && photoOk(request.resource.data.authorPhoto)
         && request.resource.data.createdAt == request.time
         && request.resource.data.lastActivity == request.time
         && request.resource.data.status == 'open'
@@ -211,6 +240,7 @@ service cloud.firestore {
         // 3. The reply counter, only in the same batch that adds a new reply
         //    (lastReplyId names it) or removes an existing one.
         (changedOnly(['replyCount', 'lastActivity', 'lastReplyId'])
+          && idOk(request.resource.data.lastReplyId)
           && (
             (request.resource.data.replyCount == resource.data.replyCount + 1
               && request.resource.data.lastActivity == request.time
@@ -238,6 +268,7 @@ service cloud.firestore {
         allow read: if true;
         // Must go in together with the post's counter bump (rule 3 above).
         allow create: if signedIn()
+          && idOk(replyId)
           && request.resource.data.keys().hasOnly(['body', 'authorUid', 'authorName', 'authorPhoto', 'createdAt', 'images'])
           && request.resource.data.authorUid == request.auth.uid
           && imagesOk(request.resource.data)
@@ -245,7 +276,7 @@ service cloud.firestore {
           && (textOk(request.resource.data.body, 1, 3000)
               || (textOk(request.resource.data.body, 0, 0) && hasImages(request.resource.data)))
           && textOk(request.resource.data.authorName, 1, 60)
-          && textOk(request.resource.data.authorPhoto, 0, 500)
+          && photoOk(request.resource.data.authorPhoto)
           && request.resource.data.createdAt == request.time
           && exists(postPath(postId))
           && getAfter(postPath(postId)).data.replyCount == get(postPath(postId)).data.replyCount + 1;
@@ -268,6 +299,7 @@ service cloud.firestore {
       allow get: if true;
       allow list: if false;
       allow create: if signedIn()
+        && idOk(imageId)
         && request.resource.data.keys().hasOnly(['data', 'w', 'h', 'authorUid', 'createdAt'])
         && request.resource.data.authorUid == request.auth.uid
         && request.resource.data.data is string

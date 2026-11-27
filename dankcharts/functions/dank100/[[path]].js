@@ -504,6 +504,9 @@ export async function onRequestPost(context) {
   try {
     if (route !== 'dirty') return reply({ error: 'not-found' }, 404);
     if (!historyOpen(now)) return reply({ ok: false, reason: 'closed' }, 200);
+    // Security fix 2026-11-27: only signed-in accounts may ask for a recount,
+    // so a script can't keep the function busy rebuilding every chart.
+    if (!(await signedInUid(context.request))) return reply({ error: 'sign-in-required' }, 401);
     const db = fsClient(await googleToken(context.env));
     const meta = await getMeta(db);
     await db.set('dank100Meta', 'state', Object.assign({}, meta, { dirtyAt: now }));
@@ -515,6 +518,27 @@ export async function onRequestPost(context) {
 }
 
 // ── The request ─────────────────────────────────────────────────────────────
+// Who is asking: the uid behind the Firebase sign-in token the site sends
+// (Authorization: Bearer …), or null. Firebase's own accounts:lookup checks
+// the token, so no key handling is needed here; the web key is the public
+// one from firebase.js.
+const FIREBASE_WEB_KEY = 'AIzaSyAftPCYx8Ja3z8n-gYAM5iDhJI_NfHwgTY';
+async function signedInUid(request) {
+  const h = request.headers.get('Authorization') || '';
+  const token = h.startsWith('Bearer ') ? h.slice(7).trim() : '';
+  if (!token || token.length > 4096) return null;
+  try {
+    const r = await fetch('https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=' + FIREBASE_WEB_KEY, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken: token })
+    });
+    if (!r.ok) return null;
+    const u = ((await r.json()).users || [])[0];
+    return (u && u.localId) || null;
+  } catch (e) { return null; }
+}
+
 function reply(body, status, maxAge) {
   return new Response(JSON.stringify(body), {
     status,

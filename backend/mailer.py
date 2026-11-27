@@ -1,8 +1,20 @@
 from flask import Blueprint, request, jsonify
+from html import escape
 import os
+import threading
+import time
 import resend
 
+from auth import signed_in_user, rate_limited, client_ip
+
+
 bp = Blueprint('email', __name__)
+
+# How new an account must be to get the welcome mail (15 minutes)
+WELCOME_WINDOW_MS = 15 * 60 * 1000
+# Accounts already welcomed by this server process
+_sent_to = set()
+_sent_lock = threading.Lock()
 
 WELCOME_HTML = """<!DOCTYPE html>
 <html>
@@ -89,19 +101,46 @@ WELCOME_HTML = """<!DOCTYPE html>
 
 @bp.route('/send-welcome', methods=['POST'])
 def send_welcome():
+    """Send the welcome mail to the account that just signed up.
+
+    Security fix 2026-11-27: this used to send to whatever address and name the
+    request gave, so anyone could use it to send our mail (with their own text
+    in the name) to anyone. Now it needs the new account's sign-in token, sends
+    only to that account's own address, only while the account is new, and
+    only once per account. The name is escaped so it can't add HTML.
+    """
     api_key = os.environ.get('RESEND_API_KEY', '')
     if not api_key:
         return jsonify({'error': 'email service not configured'}), 503
 
+    # A script hammering this from one place gets stopped before we even ask Firebase
+    if rate_limited('welcome-ip:' + client_ip(), 5, 3600):
+        return jsonify({'error': 'too many requests'}), 429
+
+    user = signed_in_user()
+    if not user:
+        return jsonify({'error': 'sign in required'}), 401
+
+    to_email = (user.get('email') or '').strip()
+    if not to_email or '@' not in to_email or not user.get('email_verified'):
+        return jsonify({'error': 'no verified email on this account'}), 400
+
+    # Only for accounts made in the last 15 minutes (the site calls this right
+    # after the first sign-in), so an old account can't be used to resend it
+    if not user.get('created_ms') or time.time() * 1000 - user['created_ms'] > WELCOME_WINDOW_MS:
+        return jsonify({'error': 'account is not new'}), 403
+
+    # Once per account (per server process; the 15-minute window covers restarts)
+    with _sent_lock:
+        if user['uid'] in _sent_to:
+            return jsonify({'ok': True, 'already': True})
+        _sent_to.add(user['uid'])
+
     data = request.get_json(silent=True) or {}
-    to_email = data.get('email', '').strip()
-    display_name = (data.get('displayName') or '').strip()
-
-    if not to_email or '@' not in to_email:
-        return jsonify({'error': 'invalid email'}), 400
-
-    first_name = display_name.split()[0] if display_name else 'there'
-    html = WELCOME_HTML.replace('{{NAME}}', first_name)
+    display_name = str(data.get('displayName') or '').strip()
+    first_name = display_name.split()[0][:40] if display_name else 'there'
+    # Escaped: a name like <a href=...> shows as text, never as a link
+    html = WELCOME_HTML.replace('{{NAME}}', escape(first_name))
 
     resend.api_key = api_key
     try:
@@ -112,5 +151,7 @@ def send_welcome():
             'html': html,
         })
         return jsonify({'ok': True})
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+    except Exception:
+        with _sent_lock:
+            _sent_to.discard(user['uid'])   # let a retry try again
+        return jsonify({'error': 'could not send'}), 500

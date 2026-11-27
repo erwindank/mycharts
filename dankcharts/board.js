@@ -99,6 +99,22 @@
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
     });
   }
+  // An id that goes inside onclick="fn('…')". esc() is NOT enough there: the
+  // browser turns &#39; back into ' before the click code runs, so a crafted
+  // post id like  x');alert(1);('  would break out and run. Real ids are
+  // Firestore auto-ids (letters and digits), so anything else is dropped.
+  // (Security fix 2026-11-27; firestore.rules also refuses such ids now.)
+  function jsId(s) {
+    return String(s == null ? '' : s).replace(/[^A-Za-z0-9_-]/g, '');
+  }
+  // The account picture saved with a post or reply. Only Google pictures are
+  // kept (firestore.rules refuses any other address), so a post still saves
+  // for an account whose picture lives somewhere else.
+  var PHOTO_RE = /^https:\/\/[a-z0-9-]+\.googleusercontent\.com\//i;
+  function photoOf(u) {
+    var p = String((u && u.photoURL) || '');
+    return p.length <= 500 && PHOTO_RE.test(p) ? p : '';
+  }
   function user() {
     try { if (typeof _currentUser !== 'undefined' && _currentUser) return _currentUser; } catch (e) {}
     return null;
@@ -164,6 +180,10 @@
 
   function avatar(photo, name) {
     var initial = esc((name || '?').trim().charAt(0).toUpperCase() || '?');
+    // Only Google account pictures (what sign-in gives us). Any other address
+    // is dropped, so a post can't load a stranger's tracking picture that logs
+    // the IP of everyone who reads it. (Security fix 2026-11-27.)
+    if (photo && !PHOTO_RE.test(photo)) photo = '';
     // Photo sits over the initial; if it fails to load it hides itself.
     return '<span class="bd-avatar" aria-hidden="true">' + initial +
       (photo ? '<img src="' + esc(photo) + '" alt="" referrerpolicy="no-referrer" loading="lazy" onerror="this.remove()">' : '') +
@@ -274,7 +294,7 @@
         if (S.smart) body = (body + smartTail(S.smart.code)).slice(-MAX_BODY);
         var doc = {
           title: title, body: body, category: cat,
-          authorUid: u.uid, authorName: authorName(), authorPhoto: (u.photoURL || '').slice(0, 500),
+          authorUid: u.uid, authorName: authorName(), authorPhoto: photoOf(u),
           createdAt: now, lastActivity: now,
           status: 'open', pinned: false,
           votes: [], voteCount: 0, replyCount: 0
@@ -337,7 +357,7 @@
         var rref = pref.collection('replies').doc();
         var now = FV().serverTimestamp();
         var b = d.batch();
-        var doc = { body: body, authorUid: u.uid, authorName: authorName(), authorPhoto: (u.photoURL || '').slice(0, 500), createdAt: now };
+        var doc = { body: body, authorUid: u.uid, authorName: authorName(), authorPhoto: photoOf(u), createdAt: now };
         var imgs = imageWrites(d, b, _pending.bdReply, u.uid);
         if (imgs.length) doc.images = imgs;
         b.set(rref, doc);
@@ -576,7 +596,7 @@
     // Vote column
     h += '<button type="button" class="bd-vote' + (voted ? ' voted' : '') + '" aria-pressed="' + voted + '" ' +
       'aria-label="' + esc(tr(voted ? 'board_unvote' : 'board_vote')) + '" title="' + esc(tr(u ? (voted ? 'board_unvote' : 'board_vote') : 'board_vote_signin')) + '" ' +
-      'onclick="dcBoard.vote(\'' + esc(p.id) + '\')"' + (S.busy['vote:' + p.id] ? ' disabled' : '') + '>' +
+      'onclick="dcBoard.vote(\'' + jsId(p.id) + '\')"' + (S.busy['vote:' + p.id] ? ' disabled' : '') + '>' +
       '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3.2 13.2 10H2.8Z" fill="currentColor"/></svg>' +
       '<span class="bd-vote-n">' + (p.voteCount || 0) + '</span></button>';
     // Main column
@@ -590,7 +610,7 @@
     if (S.editingId === p.id) {
       h += composerHTML(p);
     } else {
-      h += '<button type="button" class="bd-post-title" aria-expanded="' + open + '" onclick="dcBoard.toggle(\'' + esc(p.id) + '\')">' + esc(p.title) + '</button>';
+      h += '<button type="button" class="bd-post-title" aria-expanded="' + open + '" onclick="dcBoard.toggle(\'' + jsId(p.id) + '\')">' + esc(p.title) + '</button>';
       var text = smartStrip(p.body);
       if (open) h += '<div class="bd-post-body">' + richText(text) + '</div>' + imagesHTML(p.images) + (smartCode(p.body) ? smartCard(smartCode(p.body)) : '');
       else if (text) h += '<div class="bd-post-snippet">' + esc(text.slice(0, 220)) + '</div>';
@@ -601,7 +621,7 @@
       (p.editedAt ? '<span class="bd-sep">·</span><span>' + esc(tr('board_edited')) + '</span>' : '') +
       // closed posts say how many pictures they hold; open ones show them
       (!open && p.images && p.images.length ? '<span class="bd-sep">·</span><span class="bd-img-n" title="' + esc(tr('board_img_count', { n: p.images.length })) + '">' + ico('image') + p.images.length + '</span>' : '') +
-      '<span class="bd-sep">·</span><button type="button" class="bd-link bd-replies-link" onclick="dcBoard.toggle(\'' + esc(p.id) + '\')">' + ico('reply') +
+      '<span class="bd-sep">·</span><button type="button" class="bd-link bd-replies-link" onclick="dcBoard.toggle(\'' + jsId(p.id) + '\')">' + ico('reply') +
       esc(tr((p.replyCount || 0) === 1 ? 'board_replies_one' : 'board_replies_other', { n: p.replyCount || 0 })) + '</button>' +
       '</div>';
     if (open) h += detailHTML(p);
@@ -616,28 +636,28 @@
     var h = '';
     if ((mine || S.isAdmin) && S.editingId !== p.id) {
       h += '<div class="bd-actions">';
-      if (mine) h += '<button type="button" class="dc-btn dc-btn-normal dc-btn-sm" onclick="dcBoard.edit(\'' + esc(p.id) + '\')">' + ico('edit') + esc(tr('board_edit')) + '</button>';
-      h += '<button type="button" class="dc-btn dc-btn-normal dc-btn-sm" onclick="dcBoard.share(\'' + esc(p.id) + '\')">' + ico('link') + esc(tr('board_copy_link')) + '</button>';
+      if (mine) h += '<button type="button" class="dc-btn dc-btn-normal dc-btn-sm" onclick="dcBoard.edit(\'' + jsId(p.id) + '\')">' + ico('edit') + esc(tr('board_edit')) + '</button>';
+      h += '<button type="button" class="dc-btn dc-btn-normal dc-btn-sm" onclick="dcBoard.share(\'' + jsId(p.id) + '\')">' + ico('link') + esc(tr('board_copy_link')) + '</button>';
       if (S.isAdmin) {
-        h += '<button type="button" class="dc-btn dc-btn-normal dc-btn-sm" onclick="dcBoard.pin(\'' + esc(p.id) + '\')">' + ico('pin') + esc(tr(p.pinned ? 'board_unpin' : 'board_pin')) + '</button>';
-        h += '<label class="bd-status-pick"><span>' + esc(tr('board_status_label')) + '</span><select class="bd-input bd-select" onchange="dcBoard.setPostStatus(\'' + esc(p.id) + '\', this.value)">' +
+        h += '<button type="button" class="dc-btn dc-btn-normal dc-btn-sm" onclick="dcBoard.pin(\'' + jsId(p.id) + '\')">' + ico('pin') + esc(tr(p.pinned ? 'board_unpin' : 'board_pin')) + '</button>';
+        h += '<label class="bd-status-pick"><span>' + esc(tr('board_status_label')) + '</span><select class="bd-input bd-select" onchange="dcBoard.setPostStatus(\'' + jsId(p.id) + '\', this.value)">' +
           STATUSES.map(function (s) { return '<option value="' + s + '"' + ((p.status || 'open') === s ? ' selected' : '') + '>' + esc(statusLabel(s)) + '</option>'; }).join('') +
           '</select></label>';
         // Moderators can move a post to the right category (a "suggestion"
         // that is really a question). Authors change theirs through Edit.
-        h += '<label class="bd-status-pick"><span>' + esc(tr('board_category_label')) + '</span><select class="bd-input bd-select" onchange="dcBoard.setPostCategory(\'' + esc(p.id) + '\', this.value)">' +
+        h += '<label class="bd-status-pick"><span>' + esc(tr('board_category_label')) + '</span><select class="bd-input bd-select" onchange="dcBoard.setPostCategory(\'' + jsId(p.id) + '\', this.value)">' +
           CATEGORIES.map(function (c) { return '<option value="' + c + '"' + (p.category === c ? ' selected' : '') + '>' + esc(catLabel(c)) + '</option>'; }).join('') +
           '</select></label>';
         // A genre suggestion from the Genre Library (its title starts with
         // 🏷️): one click opens the add-a-genre window with the name filled in
         if ((p.title || '').indexOf('🏷') === 0 && window.dcGenreLib) {
-          h += '<button type="button" class="dc-btn dc-btn-main dc-btn-sm" onclick="dcGenreLib.addFromPost(\'' + esc(p.id) + '\')">🏷️ ' + esc(dcGenreLib.tx('ad_from_post')) + '</button>';
+          h += '<button type="button" class="dc-btn dc-btn-main dc-btn-sm" onclick="dcGenreLib.addFromPost(\'' + jsId(p.id) + '\')">🏷️ ' + esc(dcGenreLib.tx('ad_from_post')) + '</button>';
         }
       }
-      h += '<button type="button" class="dc-btn dc-btn-plain dc-btn-sm dc-btn-danger" onclick="dcBoard.askDeletePost(\'' + esc(p.id) + '\')">' + ico('trash') + esc(tr('board_delete')) + '</button>';
+      h += '<button type="button" class="dc-btn dc-btn-plain dc-btn-sm dc-btn-danger" onclick="dcBoard.askDeletePost(\'' + jsId(p.id) + '\')">' + ico('trash') + esc(tr('board_delete')) + '</button>';
       h += '</div>';
     } else if (S.editingId !== p.id) {
-      h += '<div class="bd-actions"><button type="button" class="dc-btn dc-btn-normal dc-btn-sm" onclick="dcBoard.share(\'' + esc(p.id) + '\')">' + ico('link') + esc(tr('board_copy_link')) + '</button></div>';
+      h += '<div class="bd-actions"><button type="button" class="dc-btn dc-btn-normal dc-btn-sm" onclick="dcBoard.share(\'' + jsId(p.id) + '\')">' + ico('link') + esc(tr('board_copy_link')) + '</button></div>';
     }
 
     var replies = S.replies[p.id];
@@ -655,12 +675,12 @@
           '<span class="bd-author">' + esc(r.authorName || tr('board_anon')) + '</span>' +
           (isOp ? '<span class="bd-op">' + esc(tr('board_op')) + '</span>' : '') +
           '<span class="bd-sep">·</span><span title="' + esc(new Date(toMs(r.createdAt)).toLocaleString()) + '">' + esc(ago(toMs(r.createdAt))) + '</span>' +
-          (canDel ? '<button type="button" class="bd-link bd-reply-del" onclick="dcBoard.askDeleteReply(\'' + esc(p.id) + '\',\'' + esc(r.id) + '\')" aria-label="' + esc(tr('board_delete_reply')) + '">' + esc(tr('board_delete')) + '</button>' : '') +
+          (canDel ? '<button type="button" class="bd-link bd-reply-del" onclick="dcBoard.askDeleteReply(\'' + jsId(p.id) + '\',\'' + jsId(r.id) + '\')" aria-label="' + esc(tr('board_delete_reply')) + '">' + esc(tr('board_delete')) + '</button>' : '') +
           '</div><div class="bd-reply-body">' + richText(r.body || '') + '</div>' + imagesHTML(r.images) + '</li>';
       }).join('') + '</ul>';
     }
     if (u) {
-      h += '<form class="bd-reply-form" onsubmit="dcBoard.reply(event,\'' + esc(p.id) + '\')">' +
+      h += '<form class="bd-reply-form" onsubmit="dcBoard.reply(event,\'' + jsId(p.id) + '\')">' +
         '<textarea id="bdReplyInput" data-draft class="bd-input bd-textarea" rows="3" maxlength="' + MAX_REPLY + '" placeholder="' + esc(tr('board_reply_ph')) + '" aria-label="' + esc(tr('board_reply_ph')) + '" oninput="dcBoard.count(this)" onpaste="dcBoard.pasteImg(event,\'bdReply\')"></textarea>' +
         attachHTML('bdReply', 'bdReplyInput') +
         '<div class="bd-composer-foot"><span class="bd-note"></span><span class="bd-count" data-for="bdReplyInput"></span>' +
@@ -708,7 +728,7 @@
       // 360 tall, so a tall picture doesn't sit in a wide empty frame.
       var box = '';
       if (list.length === 1 && im.w && im.h) box = ' style="width:' + Math.round(Math.min(560, +im.w, +im.w * 360 / +im.h)) + 'px"';
-      return '<button type="button" class="bd-img"' + box + ' onclick="dcBoard.viewImg(\'' + esc(im.id) + '\')" aria-label="' + esc(tr('board_img_open')) + '">' +
+      return '<button type="button" class="bd-img"' + box + ' onclick="dcBoard.viewImg(\'' + jsId(im.id) + '\')" aria-label="' + esc(tr('board_img_open')) + '">' +
         '<img ' + (src ? 'src="' + esc(src) + '"' : 'data-bdimg="' + esc(im.id) + '"') + ratio + ' alt="' + esc(tr('board_img_alt')) + '"></button>';
     }).join('') + '</div>';
   }
@@ -717,7 +737,9 @@
   var _imgLoading = {};
   function loadImages(root) {
     root.querySelectorAll('img[data-bdimg]').forEach(function (img) {
-      var id = img.getAttribute('data-bdimg');
+      // Cleaned like every other id (it also goes into a CSS selector below)
+      var id = jsId(img.getAttribute('data-bdimg'));
+      if (!id) return;
       if (_imgCache[id]) { img.src = _imgCache[id]; return; }
       if (_imgLoading[id] || _sampleOn) return;
       _imgLoading[id] = true;

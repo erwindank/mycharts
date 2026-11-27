@@ -1,2 +1,20 @@
+# Cloudflare Pages response headers for every page and file.
+# Security headers added 2026-11-27:
+#   X-Frame-Options / frame-ancestors: no other site can show dankcharts.fm
+#     inside a hidden frame and trick people into clicking things.
+#   nosniff: the browser never treats an uploaded/proxied file as a script.
+#   Referrer-Policy: other sites only see "dankcharts.fm", never the full
+#     address (YouTube still gets the origin it needs to play embeds).
+#   Permissions-Policy: the site never uses camera, microphone, location or
+#     payments, so nothing on it (even a bad script) can ask for them.
+#   object-src / base-uri: blocks two old tricks for loading foreign code.
+# A full script CSP isn't set: the pages use many inline onclick handlers, so
+# it would need 'unsafe-inline' and protect little. COOP stays for Google sign-in popups.
 /*
   Cross-Origin-Opener-Policy: same-origin-allow-popups
+  X-Frame-Options: DENY
+  Content-Security-Policy: frame-ancestors 'none'; object-src 'none'; base-uri 'self'
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
+  Strict-Transport-Security: max-age=31536000
