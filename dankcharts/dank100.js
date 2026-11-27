@@ -338,8 +338,92 @@
   function lsSet(k, v) { try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) {} }
   // Per account and week: when it was last sent, and whether it was taken back
   // (auto-send must not quietly put back an entry the user removed).
+  // Since 2026-11-26 both hold a time, so the account copy can tell which
+  // came last: a week is taken back while its back time is later than its
+  // sent time (older take-backs saved '1'; syncMarks() turns those into a time).
   function sentKey(uid, w) { return 'dc_d100_sent_' + uid + '_' + w; }
   function backKey(uid, w) { return 'dc_d100_back_' + uid + '_' + w; }
+  function isBack(uid, w) {
+    var b = lsGet(backKey(uid, w));
+    if (b === '1') return true;   // an old take-back not yet turned into a time
+    return (+b || 0) > (+lsGet(sentKey(uid, w)) || 0);
+  }
+  // A setting that follows the account (firebase.js SYNC_KEYS): saved here and
+  // to the account at once, so a full settings save can't race it back
+  function lsSetSynced(k, v) {
+    lsSet(k, v);
+    if (typeof dcSaveConfigKey === 'function') dcSaveConfigKey(k, v);
+  }
+
+  /* ── Send marks in the account (2026-11-26) ──
+     Which weeks were sent or taken back, and the "Send my year" result, used
+     to be kept only in this browser. So on another device the year card
+     offered "Send my year" again, the invite banner came back, and auto-send
+     could quietly put back a week the user had taken back somewhere else.
+     They now also live in users/{uid}/data/dank100:
+       { weeks: { weekId: { s: sentAt, b: backAt } }, year: { at, n, through } }
+     Merged both ways: per week the later time of each kind wins, the year
+     result with the later `at` wins. Run on sign-in, when the site comes back
+     on screen, and after each send / take-back. */
+  function syncMarks() {
+    var uid = signedInUid();
+    if (!uid || typeof dcMergeUserDoc !== 'function') return Promise.resolve();
+    // This browser's marks for the signed-in account
+    var mine = { weeks: {}, year: null };
+    var pre = { s: 'dc_d100_sent_' + uid + '_', b: 'dc_d100_back_' + uid + '_' };
+    try {
+      for (var i = 0; i < localStorage.length; i++) {
+        var k = localStorage.key(i);
+        if (!k) continue;
+        ['s', 'b'].forEach(function (kind) {
+          if (k.indexOf(pre[kind]) !== 0) return;
+          mine.weeks[k.slice(pre[kind].length)] = {};   // its times are read below
+        });
+      }
+    } catch (e) {}
+    Object.keys(mine.weeks).forEach(function (w) {
+      var s = +lsGet(sentKey(uid, w)) || 0, b = lsGet(backKey(uid, w));
+      // An old take-back ('1') counts as just after the last send
+      var bt = b === '1' ? s + 1 : (+b || 0);
+      mine.weeks[w] = {};
+      if (s) mine.weeks[w].s = s;
+      if (bt) mine.weeks[w].b = bt;
+    });
+    try { mine.year = JSON.parse(lsGet(yearKey(uid)) || 'null'); } catch (e) {}
+    var before = JSON.stringify(mine);
+    return dcMergeUserDoc('dank100', function (cloud) {
+      var out = { weeks: cloud.weeks || {}, year: cloud.year || null };
+      Object.keys(mine.weeks).forEach(function (w) {
+        var c = out.weeks[w] || {}, m = mine.weeks[w];
+        var n = {};
+        var s = Math.max(c.s || 0, m.s || 0), b = Math.max(c.b || 0, m.b || 0);
+        if (s) n.s = s;
+        if (b) n.b = b;
+        out.weeks[w] = n;
+      });
+      if (mine.year && mine.year.at && (!out.year || !out.year.at || mine.year.at > out.year.at)) out.year = mine.year;
+      // Weeks long closed are no use any more: keep about a year of them
+      var cut = Date.now() - 400 * DAY_MS;
+      Object.keys(out.weeks).forEach(function (w) {
+        var b = weekBounds(w);
+        if (!b || +b.end < cut) delete out.weeks[w];
+      });
+      if (!out.year) delete out.year;
+      return out;
+    }).then(function (merged) {
+      if (!merged || signedInUid() !== uid) return;
+      // Back into this browser
+      Object.keys(merged.weeks || {}).forEach(function (w) {
+        var m = merged.weeks[w] || {};
+        if (m.s) lsSet(sentKey(uid, w), String(m.s));
+        if (m.b) lsSet(backKey(uid, w), String(m.b));
+      });
+      if (merged.year && merged.year.at) lsSet(yearKey(uid), JSON.stringify(merged.year));
+      if (JSON.stringify(merged) === before) return;
+      renderPromo();
+      if (S.active) render();
+    });
+  }
 
   // The Monday 00:00 UTC a week's chart comes out (the day after sending closes).
   function chartDay(b) { return b.closes; }
@@ -449,7 +533,7 @@
   var CD_POS_KEY = 'dc_d100_cd_pos';
   function cdAtTop() { return lsGet(CD_POS_KEY) === 'top'; }
   function moveCountdown() {
-    lsSet(CD_POS_KEY, cdAtTop() ? null : 'top');
+    lsSetSynced(CD_POS_KEY, cdAtTop() ? 'bottom' : 'top');
     render();
     // keep the box in view after it jumps
     var el = document.querySelector('.d100-soon');
@@ -531,8 +615,9 @@
   }
 
   function toggleNotify() {
-    if (notifyOn()) { lsSet(NOTIFY_KEY, null); render(); return; }
-    lsSet(NOTIFY_KEY, '1');
+    // '0' rather than removing it, so turning it off reaches other devices too
+    if (notifyOn()) { lsSetSynced(NOTIFY_KEY, '0'); render(); return; }
+    lsSetSynced(NOTIFY_KEY, '1');
     // No telling about a chart that is already out: start from the newest one
     lsSet(TOLD_KEY, latestClosedWeek());
     render();
@@ -569,7 +654,8 @@
 
   function tellReady(w) {
     var range = rangeLabel(weekBounds(w));
-    if (typeof dcNotify === 'function') dcNotify({ kind: 'd100_ready', week: w, link: { tab: 'dank100' } });
+    // `once`: with Notify me on several devices, the panel still gets one line
+    if (typeof dcNotify === 'function') dcNotify({ kind: 'd100_ready', week: w, once: 'd100_' + w, link: { tab: 'dank100' } });
     if (canPopUp() && Notification.permission === 'granted') {
       try {
         var n = new Notification(tr('d100_ready_title'), {
@@ -1757,7 +1843,7 @@
     }, Promise.resolve()).then(function () {
       // `through` = the newest week this send covered; catchUpYear() sends
       // the ones that close after it
-      if (sent) lsSet(yearKey(uid), JSON.stringify({ at: Date.now(), n: sent, through: weeks[weeks.length - 1] }));
+      if (sent) { lsSet(yearKey(uid), JSON.stringify({ at: Date.now(), n: sent, through: weeks[weeks.length - 1] })); syncMarks(); }
       renderPromo();
       return askRecount();
     }).then(function () {
@@ -1803,7 +1889,7 @@
     var sent = 0, failed = 0;
     weeks.reduce(function (p, w) {
       return p.then(function () {
-        if (lsGet(backKey(uid, w)) || !(buildEntry(w).plays > 0)) return;
+        if (isBack(uid, w) || !(buildEntry(w).plays > 0)) return;
         return sendEntry(w).then(function () { sent++; lsSet(sentKey(uid, w), String(Date.now())); }, function (e) {
           console.warn('[dankcharts] Dank 100 catch-up week failed:', w, e && (e.code || e.message));
           failed++;
@@ -1817,6 +1903,7 @@
         lsSet(yearKey(uid), JSON.stringify(done));
       }
       if (!sent) return;
+      syncMarks();
       return askRecount().then(function () {
         C.cache = {}; C.arch = null; C.pendTries = 0;
         if (S.active) { render(); loadChart(true, C.week || latestClosedWeek()); }
@@ -1871,7 +1958,7 @@
     }, 250);
   }
   function hidePromo() {
-    lsSet(PROMO_OFF, '1');
+    lsSetSynced(PROMO_OFF, '1');
     renderPromo();
   }
 
@@ -1882,9 +1969,10 @@
     S.busy[w] = true; delete S.err[w];
     if (!quiet) render();
     return sendEntry(w).then(function () {
+      // Sending again undoes a take-back: the sent time is now the later one
       lsSet(sentKey(uid, w), String(Date.now()));
       renderPromo();
-      lsSet(backKey(uid, w), null);          // sending again undoes a take-back
+      syncMarks();
       return getMyEntry(w).then(function (e) { S.mine[w] = e; }, function () {});
     }).then(function () { return true; }, function (err) {
       console.warn('[dankcharts] Dank 100 send failed:', err && (err.code || err.message));
@@ -1900,7 +1988,8 @@
       S.busy[w] = true; delete S.err[w]; render();
       deleteMyEntry(w).then(function () {
         S.mine[w] = null;
-        lsSet(backKey(uid, w), '1');
+        lsSet(backKey(uid, w), String(Date.now()));
+        syncMarks();   // so other devices' auto-send leaves it out too
       }, function (err) {
         console.warn('[dankcharts] Dank 100 take-back failed:', err && (err.code || err.message));
         S.err[w] = 'd100_err_back';
@@ -1921,17 +2010,29 @@
   //    updating it at most every AUTO_EVERY_MS until sending closes.
   // A week the user took back is never sent again by itself.
   var _autoRunning = false;
+  var _marksReady = Promise.resolve();   // the latest syncMarks() run
   function autoSend() {
     syncSwitch();
     renderPromo();          // called after every data load (app.js finalizeLoad)
-    catchUpYear();          // weeks a "Send my year" couldn't send yet (own check, no switch needed)
+    // Weeks a "Send my year" couldn't send yet (own check, no switch needed),
+    // once the account's year result has landed here
+    _marksReady.then(catchUpYear, catchUpYear);
     var uid = signedInUid();
     if (_autoRunning || !uid || !autoOn() || isDemo() || !hasPlays()) return;
+    // Wait for the account's send marks first, so a week taken back on
+    // another device isn't sent again from this one
+    _autoRunning = true;
+    _marksReady.then(autoSendDue, autoSendDue);
+  }
+  function autoSendDue() {
+    _autoRunning = false;
+    var uid = signedInUid();
+    if (!uid || !autoOn() || isDemo() || !hasPlays()) return;
     var now = Date.now();
     var due = openWeeks().filter(function (w) {
       var b = weekBounds(w);
       if (now < +b.end) return false;                    // week still running
-      if (lsGet(backKey(uid, w))) return false;
+      if (isBack(uid, w)) return false;
       var last = +lsGet(sentKey(uid, w)) || 0;
       var finalDay = now >= +b.closes - DAY_MS;         // Sunday 00:00 UTC on
       if (!finalDay && last) return false;               // safety copy already sent
@@ -1983,6 +2084,13 @@
     document.addEventListener('DOMContentLoaded', function () {
       syncSwitch();
       if (typeof firebase !== 'undefined' && firebase.apps) hookAuth();
+      // On sign-in and each time the site comes back on screen (firebase.js):
+      // the account's send marks, the settings switch, and the tab's cards
+      if (typeof dcOnAccountReturn === 'function') dcOnAccountReturn(function () {
+        _marksReady = syncMarks();
+        syncSwitch();
+        if (S.active) loadMine().then(render);
+      });
       // Countdown ticks every second; "Notify me" checks for a new chart a
       // little after opening (sign-in has landed by then) and every minute
       setInterval(tickCountdown, 1000);

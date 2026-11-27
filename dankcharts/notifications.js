@@ -147,13 +147,15 @@ const NT_LISTS_KEEP = 20;
    there is no list to put it in. */
 function dcNotify(n) {
   if (typeof dcIsSignedIn !== 'function' || !dcIsSignedIn() || !n || !NT_KINDS[n.kind]) return;
-  const { kind, link, ...p } = n;
+  // once: an id for something that should be told only once across all the
+  // user's devices (the same Dank 100 chart seen by two devices); see _ntFlush
+  const { kind, link, once, ...p } = n;
   // Each one a millisecond after the last, so several posted in the same
   // moment (oldest first) still list newest first
   const at = _ntLastAt = Math.max(Date.now(), _ntLastAt + 1);
   _ntQueue.push({
     id: at.toString(36) + Math.random().toString(36).slice(2, 7),
-    kind, at, read: false, p, link: link || null
+    kind, at, read: false, p, link: link || null, ...(once ? { once } : {})
   });
   clearTimeout(_ntFlushTimer);
   _ntFlushTimer = setTimeout(_ntFlush, 300);
@@ -163,9 +165,11 @@ async function _ntFlush() {
   if (!_ntQueue.length) return;
   const add = _ntQueue;
   _ntQueue = [];
-  const saved = await dcUpdateNotifications(cur => _ntTrim(add.concat(cur)));
+  // Inside the transaction, so one already posted by another device is skipped
+  const fresh = cur => add.filter(x => !x.once || !cur.some(c => c && c.once === x.once));
+  const saved = await dcUpdateNotifications(cur => _ntTrim(fresh(cur).concat(cur)));
   // Couldn't save (offline): still show them on this device for now
-  ntItems = saved || _ntTrim(add.concat(ntItems));
+  ntItems = saved || _ntTrim(fresh(ntItems).concat(ntItems));
   ntRefresh();
 }
 
@@ -1142,4 +1146,10 @@ document.addEventListener('DOMContentLoaded', () => {
       ntWatch();
     });
   } catch (e) {}
+  // Coming back to the site (firebase.js): the account's list again, so the
+  // dot and count show what other devices added or already read meanwhile.
+  // Before this an open tab kept the list from when it was loaded.
+  if (typeof dcOnAccountReturn === 'function') dcOnAccountReturn(() => {
+    dcLoadNotifications().then(list => { if (list) { ntItems = _ntTrim(list); ntRefresh(); } });
+  });
 });

@@ -2207,15 +2207,50 @@ function _sxCmpVerdict(type, picks, names) {
 }
 
 // ── Saved comparisons (phase 17 step 9) ──────────────────────────────────
-/* Named sets of picks, kept per type in dc_sxCmpSaved (on this device, like
-   the picks themselves), up to 20 per type. A tap loads a set; the set
+/* Named sets of picks, kept per type in dc_sxCmpSaved, up to 20 per type.
+   Since 2026-11-26 also in the account (users/{uid}/data/compareSaved, see
+   _sxCmpSavedSync), so every device has the same sets. A tap loads a set; the set
    matching the picks shows as on. Save these asks for a name in place
    (it starts as the first two names), and deleting asks in the site's own
    warning window. */
 const SX_SAVED_MAX = 20;
 let sxCmpSaved = (() => { try { const v = JSON.parse(localStorage.getItem('dc_sxCmpSaved') || '[]'); return Array.isArray(v) ? v : []; } catch (e) { return []; } })();
 let _sxSavedNaming = false;
-function _sxCmpSavedStore() { try { localStorage.setItem('dc_sxCmpSaved', JSON.stringify(sxCmpSaved)); } catch (e) { } }
+function _sxCmpSavedStore() {
+  try { localStorage.setItem('dc_sxCmpSaved', JSON.stringify(sxCmpSaved)); } catch (e) { }
+  _sxCmpSavedSync();
+}
+
+/* Sets deleted here, { id: when }, so the account's copy (or another
+   device's) can't bring them back. Forgotten after 90 days. */
+let _sxCmpSavedDel = (() => { try { return JSON.parse(localStorage.getItem('dc_sxCmpSavedDel') || '{}') || {}; } catch (e) { return {}; } })();
+// This device's sets and the account's, merged: every set either side has,
+// minus the deleted ones, at most SX_SAVED_MAX per type (oldest dropped)
+function _sxCmpSavedMerge(a, b, delA, delB) {
+  const del = {}, old = Date.now() - 90 * 864e5;
+  for (const src of [delA || {}, delB || {}]) for (const [id, at] of Object.entries(src)) if (at > old && !(del[id] >= at)) del[id] = at;
+  const byId = new Map();
+  for (const x of [...(a || []), ...(b || [])]) if (x && x.id && !del[x.id] && !byId.has(x.id)) byId.set(x.id, x);
+  // Oldest first, as they're shown (the id is the time it was saved)
+  const all = [...byId.values()].sort((x, y) => parseInt(x.id, 36) - parseInt(y.id, 36));
+  const perType = {};
+  const sets = all.reverse().filter(x => (perType[x.type] = (perType[x.type] || 0) + 1) <= SX_SAVED_MAX).reverse();
+  return { sets, del };
+}
+function _sxCmpSavedSync() {
+  if (typeof dcMergeUserDoc !== 'function') return;
+  const before = JSON.stringify(sxCmpSaved);
+  dcMergeUserDoc('compareSaved', cloud => _sxCmpSavedMerge(sxCmpSaved, cloud.sets, _sxCmpSavedDel, cloud.del)).then(saved => {
+    if (!saved) return;
+    // Merged again with this device's copy, in case it changed meanwhile
+    const m = _sxCmpSavedMerge(sxCmpSaved, saved.sets, _sxCmpSavedDel, saved.del);
+    sxCmpSaved = m.sets; _sxCmpSavedDel = m.del;
+    try { localStorage.setItem('dc_sxCmpSaved', JSON.stringify(sxCmpSaved)); } catch (e) { }
+    try { localStorage.setItem('dc_sxCmpSavedDel', JSON.stringify(_sxCmpSavedDel)); } catch (e) { }
+    if (JSON.stringify(sxCmpSaved) !== before) _sxCmpSavedPaint();
+  });
+}
+if (typeof dcOnAccountReturn === 'function') dcOnAccountReturn(_sxCmpSavedSync);
 
 function _sxCmpSavedPaint() {
   const box = document.getElementById('sxCmpSaved');
@@ -2299,7 +2334,12 @@ document.getElementById('sxCmpSaved')?.addEventListener('click', e => {
   } else if (b.dataset.sdel) {
     const set = sxCmpSaved.find(x => x.id === b.dataset.sdel);
     if (!set) return;
-    const go = () => { sxCmpSaved = sxCmpSaved.filter(x => x.id !== set.id); _sxCmpSavedStore(); _sxCmpSavedPaint(); };
+    const go = () => {
+      sxCmpSaved = sxCmpSaved.filter(x => x.id !== set.id);
+      _sxCmpSavedDel[set.id] = Date.now();   // gone on every device, not only here
+      try { localStorage.setItem('dc_sxCmpSavedDel', JSON.stringify(_sxCmpSavedDel)); } catch (e) { }
+      _sxCmpSavedStore(); _sxCmpSavedPaint();
+    };
     if (typeof window.dcConfirmBox === 'function') window.dcConfirmBox(t('sx_saved_del_title'), t('sx_saved_del_text').replace('{name}', set.name), t('sx_saved_del_ok'), go);
   } else if (b.dataset.sact === 'save') { _sxSavedNaming = true; _sxCmpSavedPaint(); }
   else if (b.dataset.sact === 'ok') _sxCmpSavedAdd();
@@ -3723,7 +3763,10 @@ function _sxRemindHtml() {
 function sxToggleRemind(which) {
   const key = which === 'dot' ? SX_DOT_KEY : SX_NOTIFY_KEY;
   const on = !_sxRemindOn(key);
-  try { if (on) localStorage.removeItem(key); else localStorage.setItem(key, '0'); } catch (e) { }
+  // '1' / '0' (not removed when on), and saved to the account at once, so
+  // the switch is the same on every device (firebase.js SYNC_KEYS)
+  try { localStorage.setItem(key, on ? '1' : '0'); } catch (e) { }
+  if (typeof dcSaveConfigKey === 'function') dcSaveConfigKey(key, on ? '1' : '0');
   // Turning the notification back on today doesn't post one right away for
   // a day already told about; it starts again tomorrow (or now if not told)
   const box = document.querySelector('.sx-games-remind');
@@ -3731,6 +3774,44 @@ function sxToggleRemind(which) {
   sxSyncGamesDot();
 }
 document.addEventListener('visibilitychange', () => { if (!document.hidden) sxSyncGamesDot(); });
+
+/* Best scores and the Game of the day result in the account (2026-11-26).
+   They were kept on this device only, so a phone and a laptop each had
+   their own bests and their own streak. Now also in users/{uid}/data/games:
+     { best: { gameId: score }, daily: { date, id, scoreTxt, last, streak } }
+   Merged both ways (firebase.js dcMergeUserDoc): the higher best per game
+   wins, and the Game of the day result played last wins. Run on sign-in,
+   when the site comes back on screen, and after each finished game. */
+function _sxSyncGames() {
+  if (typeof dcMergeUserDoc !== 'function') return;
+  const before = JSON.stringify([_sxGameBest, _sxDaily]);
+  dcMergeUserDoc('games', cloud => {
+    const best = Object.assign({}, cloud.best || {});
+    for (const [id, v] of Object.entries(_sxGameBest)) if (typeof v === 'number' && !(best[id] >= v)) best[id] = v;
+    const c = cloud.daily || {}, m = _sxDaily || {};
+    let daily = (m.last || '') > (c.last || '') ? m : (c.last || '') > (m.last || '') ? c
+      : ((m.streak || 0) >= (c.streak || 0) ? m : c);
+    // Played today here while this device still had an older result: if the
+    // account says yesterday was played (on another device), the streak goes on
+    if (daily === m && m.last && c.last && m.streak === 1) {
+      const y = new Date(m.last + 'T12:00:00'); y.setDate(y.getDate() - 1);
+      if (c.last === _sxDayKey(y)) daily = Object.assign({}, m, { streak: (c.streak || 0) + 1 });
+    }
+    return { best, daily: daily && daily.last ? daily : null };
+  }).then(saved => {
+    if (!saved) return;
+    _sxGameBest = Object.assign({}, saved.best || {});
+    if (saved.daily && saved.daily.last) _sxDaily = Object.assign({}, saved.daily);
+    try { localStorage.setItem('dc_sxGameBest', JSON.stringify(_sxGameBest)); } catch (e) { }
+    try { localStorage.setItem('dc_sxGameDaily', JSON.stringify(_sxDaily)); } catch (e) { }
+    if (JSON.stringify([_sxGameBest, _sxDaily]) === before) return;
+    sxSyncGamesDot();
+    // Redraw the Games page if it's on screen (not mid-game: the stage is its own layer)
+    const v = document.getElementById('gamesView');
+    if (v && v.style.display !== 'none' && v.offsetParent !== null && typeof sxRenderGames === 'function') sxRenderGames();
+  });
+}
+if (typeof dcOnAccountReturn === 'function') dcOnAccountReturn(_sxSyncGames);
 
 // ── The full-screen stage ──
 // daily: true for Game of the day (seeded picks, the result is kept)
@@ -3832,7 +3913,11 @@ function _sxSongArt(el, s) {
 function _sxGameOver(score, scoreTxt, extraHtml) {
   const id = _sxGame.id, old = _sxGameBest[id];
   const isBest = old == null || score > old;
-  if (isBest) { _sxGameBest[id] = score; try { localStorage.setItem('dc_sxGameBest', JSON.stringify(_sxGameBest)); } catch (e) { } }
+  if (isBest) {
+    _sxGameBest[id] = score;
+    try { localStorage.setItem('dc_sxGameBest', JSON.stringify(_sxGameBest)); } catch (e) { }
+    _sxSyncGames();
+  }
   // Game of the day: the first finished try today is kept, and the day
   // streak goes up by one (or starts again after a missed day)
   let dailyLine = '';
@@ -3845,6 +3930,7 @@ function _sxGameOver(score, scoreTxt, extraHtml) {
       try { localStorage.setItem('dc_sxGameDaily', JSON.stringify(_sxDaily)); } catch (e) { }
       // Played: the dot goes and today's notification counts as read
       sxSyncGamesDot();
+      _sxSyncGames();
       if (typeof ntGameOfDayDone === 'function') ntGameOfDayDone();
     }
     dailyLine = `<div class="sx-game-daily-line">🔥 ${esc(t('sx_daily_over').replace('{n}', _sxDailyStreak()))}</div>`;

@@ -49823,9 +49823,14 @@ async function _backupCollect() {
   try { guide = JSON.parse(localStorage.getItem('dc_guide_progress') || 'null'); } catch (e) {}
   // The Genre Library's hand-picked genres (2026-11-18)
   const genres = Object.keys(_genreEdits).length ? { e: _genreEdits, r: _genreEditResets } : null;
+  // Smaller lists kept in the account since 2026-11-26, as saved here:
+  // saved comparisons, hand-ticked albums, game scores, search history
+  const lists = {};
+  for (const k of BACKUP_LIST_KEYS) { try { const v = localStorage.getItem(k); if (v) lists[k] = v; } catch (e) {} }
   return JSON.parse(JSON.stringify({
     app: 'dankcharts', v: 1, createdAt: Date.now(),
-    config, awards, ratings: hasRatings ? _ratings : null, diary, guide, genres
+    config, awards, ratings: hasRatings ? _ratings : null, diary, guide, genres,
+    lists: Object.keys(lists).length ? lists : null
   }));
 }
 
@@ -49877,6 +49882,7 @@ window.dcAfterSignInSync = dcAfterSignInSync;
 
 // Resolves after `ms` at the latest — the writes it guards keep going in the
 // background (Firestore queues them), the restore just stops waiting on them.
+const BACKUP_LIST_KEYS = ['dc_sxCmpSaved', 'dc_raPicks', 'dc_sxGameBest', 'dc_sxGameDaily', 'dc_lib_search_hist'];
 function _withTimeout(p, ms) {
   return Promise.race([p, new Promise(r => setTimeout(r, ms))]);
 }
@@ -49919,6 +49925,25 @@ async function _backupApply(p) {
     for (const e of Object.values(dd.days)) if (e && typeof e === 'object') e.ts = now;
     try { localStorage.setItem('dc_daily_diary', JSON.stringify(dd)); } catch (e) {}
     if (typeof dcSaveDiary === 'function') await _withTimeout(dcSaveDiary(dd), 10000);
+  }
+  if (p.lists && typeof p.lists === 'object') {
+    // Put back on this device; the reload after this merges them into the
+    // account (each feature's own sync on sign-in)
+    for (const [k, v] of Object.entries(p.lists)) {
+      if (BACKUP_LIST_KEYS.includes(k) && typeof v === 'string') { try { localStorage.setItem(k, v); } catch (e) {} }
+    }
+    // Restored sets aren't still marked as deleted, and restored album ticks
+    // count as the newest, so the merge keeps them
+    // (fresh ids: the account may still list the old ones as deleted)
+    try {
+      const sets = JSON.parse(p.lists.dc_sxCmpSaved || 'null');
+      if (Array.isArray(sets)) localStorage.setItem('dc_sxCmpSaved', JSON.stringify(sets.map((x, i) => Object.assign({}, x, { id: (now + i).toString(36) }))));
+    } catch (e) {}
+    try {
+      const at = {};
+      for (const artist of Object.keys(JSON.parse(p.lists.dc_raPicks || '{}') || {})) at[artist] = now;
+      localStorage.setItem('dc_raPicksAt', JSON.stringify(at));
+    } catch (e) {}
   }
   if (p.guide && typeof p.guide === 'object') {
     // Merged, not replaced: progress only ever grows (guide.js)
@@ -69768,8 +69793,55 @@ function _raSavePicks(artist, picks) {
     const all = JSON.parse(localStorage.getItem(RA_PICKS_LS) || '{}') || {};
     if (Object.keys(picks).length) all[artist] = picks; else delete all[artist];
     localStorage.setItem(RA_PICKS_LS, JSON.stringify(all));
+    // When each artist was last changed, so the account copy can be merged
+    const at = _raPicksAt();
+    at[artist] = Date.now();
+    localStorage.setItem(RA_PICKS_AT_LS, JSON.stringify(at));
   } catch {}
+  _raPicksSync();
 }
+
+/* The ticks in the account too (2026-11-26): users/{uid}/data/ratingPicks
+   = { a: { artist: { p: { albumKey: on/off }, at } } }. They were kept on
+   one device only. Merged per artist: the one changed last wins (an artist
+   put back to the default is kept as empty picks, so it stays put back).
+   Run after each change, on sign-in and when the site comes back on screen. */
+const RA_PICKS_AT_LS = 'dc_raPicksAt';   // artist → when its picks last changed
+function _raPicksAt() {
+  try { return JSON.parse(localStorage.getItem(RA_PICKS_AT_LS) || '{}') || {}; } catch { return {}; }
+}
+function _raPicksMerge(cloudA) {
+  let all = {};
+  try { all = JSON.parse(localStorage.getItem(RA_PICKS_LS) || '{}') || {}; } catch {}
+  const at = _raPicksAt();
+  const out = Object.assign({}, cloudA || {});
+  // This device's artists (the ones with no time yet, from before syncing, count as 0)
+  for (const artist of new Set([...Object.keys(all), ...Object.keys(at)])) {
+    const mine = { p: all[artist] || {}, at: at[artist] || 0 };
+    if (!out[artist] || mine.at > (out[artist].at || 0)) out[artist] = mine;
+  }
+  return out;
+}
+function _raPicksSync() {
+  if (typeof dcMergeUserDoc !== 'function') return;
+  dcMergeUserDoc('ratingPicks', cloud => ({ a: _raPicksMerge(cloud.a) })).then(saved => {
+    if (!saved || !saved.a) return;
+    const merged = _raPicksMerge(saved.a);
+    const all = {}, at = {};
+    for (const [artist, e] of Object.entries(merged)) {
+      if (e && e.p && Object.keys(e.p).length) all[artist] = e.p;
+      if (e && e.at) at[artist] = e.at;
+    }
+    const before = localStorage.getItem(RA_PICKS_LS) || '{}';
+    try {
+      localStorage.setItem(RA_PICKS_LS, JSON.stringify(all));
+      localStorage.setItem(RA_PICKS_AT_LS, JSON.stringify(at));
+    } catch {}
+    // The card on screen follows a change made on another device
+    if (JSON.stringify(all) !== before && _raArtist && typeof _raScheduleRender === 'function') _raScheduleRender();
+  });
+}
+if (typeof dcOnAccountReturn === 'function') dcOnAccountReturn(_raPicksSync);
 function _raIsOn(a, picks) { return a.key in picks ? !!picks[a.key] : a.auto; }
 
 // Every rated album by the artist, with what the card sorts and labels it by:

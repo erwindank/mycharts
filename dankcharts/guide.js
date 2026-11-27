@@ -53,23 +53,55 @@
     try { localStorage.setItem(STORE, JSON.stringify(P)); } catch (e) {}
     if (typeof window.dcSaveGuideProgress !== 'function' || typeof dcIsSignedIn !== 'function' || !dcIsSignedIn()) return;
     clearTimeout(_cloudTimer);
-    _cloudTimer = setTimeout(() => window.dcSaveGuideProgress(JSON.parse(JSON.stringify(P))), 1500);
+    _cloudTimer = setTimeout(pushP, 1500);
   }
+  /* To the account, merged with what's there (2026-11-26). It used to write
+     this device's copy over the account's, so a tab opened hours ago could
+     wipe out lessons done on another device since. Now the account's copy is
+     read and merged in the same step (firebase.js dcMergeUserDoc), and what
+     the other device did comes back here too. Falls back to the plain save
+     if firebase.js is older. */
+  function pushP() {
+    if (typeof window.dcMergeUserDoc !== 'function') {
+      if (typeof window.dcSaveGuideProgress === 'function') window.dcSaveGuideProgress(JSON.parse(JSON.stringify(P)));
+      return Promise.resolve();
+    }
+    return window.dcMergeUserDoc('guideProgress', cloud => {
+      const before = JSON.stringify(P);
+      mergeIn(cloud);
+      if (JSON.stringify(P) !== before) _pChanged = true;
+      return JSON.parse(JSON.stringify(P));
+    }).then(saved => {
+      if (!saved || !_pChanged) return;
+      _pChanged = false;
+      try { localStorage.setItem(STORE, JSON.stringify(P)); } catch (e) {}
+      if (host && host.isConnected && host.offsetParent !== null) render();
+    });
+  }
+  let _pChanged = false;
+  // The merge itself (see dcMergeGuideProgress below for the rules)
+  function mergeIn(remote) {
+    if (!remote || typeof remote !== 'object') return;
+    const early = (a, b) => (a && b ? Math.min(a, b) : a || b);
+    for (const [k, t] of Object.entries(remote.ch || {})) P.ch[k] = early(P.ch[k], t);
+    for (const [k, t] of Object.entries(remote.mastered || {})) P.mastered[k] = early(P.mastered[k], t);
+    for (const [k, t] of Object.entries(remote.seen || {})) P.seen[k] = Math.max(P.seen[k] || 0, t || 0);
+    for (const [ls, qs] of Object.entries(remote.quiz || {})) {
+      P.quiz[ls] = P.quiz[ls] || {};
+      for (const [q, ok] of Object.entries(qs || {})) if (ok) P.quiz[ls][q] = true;
+    }
+    if (!P.last && remote.last) P.last = remote.last;
+  }
+  // Coming back to the site, and on sign-in (firebase.js): pull the
+  // account's progress in, and push anything only this device has
+  if (typeof window.dcOnAccountReturn === 'function') window.dcOnAccountReturn(pushP);
   // Merges the account's progress into this device's: a challenge or a
   // mastered lesson keeps its earliest time, a lesson opened keeps its latest,
   // a right quiz answer stays right. Nothing is ever taken away, so two
   // devices can't undo each other. Then the merged copy is saved back.
   window.dcMergeGuideProgress = function (remote) {
     if (remote && typeof remote === 'object') {
-      const early = (a, b) => (a && b ? Math.min(a, b) : a || b);
-      for (const [k, t] of Object.entries(remote.ch || {})) P.ch[k] = early(P.ch[k], t);
-      for (const [k, t] of Object.entries(remote.mastered || {})) P.mastered[k] = early(P.mastered[k], t);
-      for (const [k, t] of Object.entries(remote.seen || {})) P.seen[k] = Math.max(P.seen[k] || 0, t || 0);
-      for (const [ls, qs] of Object.entries(remote.quiz || {})) {
-        P.quiz[ls] = P.quiz[ls] || {};
-        for (const [q, ok] of Object.entries(qs || {})) if (ok) P.quiz[ls][q] = true;
-      }
-      if (!P.last && remote.last) P.last = remote.last;
+      mergeIn(remote);
       // Redraw the guide if it's on screen (it reads P as it draws)
       if (host && host.isConnected && host.offsetParent !== null) render();
     }

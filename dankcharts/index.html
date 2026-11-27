@@ -58,7 +58,7 @@
   <script defer src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-  <script defer src="firebase.js?v=33"></script>
+  <script defer src="firebase.js?v=36"></script>
 </head>
 
 <body>
@@ -4882,7 +4882,7 @@
   <!-- One behaviour and one icon set for every pop-up window (phase 10); before
        app.js so dcIco() is there when app.js draws a window -->
   <script defer src="popups.js?v=14"></script>
-  <script defer src="app.js?v=860"></script>
+  <script defer src="app.js?v=861"></script>
   <!-- Song Chart tab in the artist / album windows; must load BEFORE panel.js (it wraps the open functions first) -->
   <script defer src="songchart.js?v=1"></script>
   <!-- The song / album / artist details side panel (phase 10 step 3); wraps app.js's open functions -->
@@ -4901,19 +4901,19 @@
   <!-- Rating fun (RATING-FUN-PLAN.md, 2026-11-19): Rate Rush, goals, badges, history… -->
   <script defer src="ratefun.js?v=16"></script>
   <!-- Notifications under the profile picture (any feature calls dcNotify); reads app.js + firebase.js -->
-  <script defer src="notifications.js?v=28"></script>
+  <script defer src="notifications.js?v=29"></script>
   <!-- The Stats page's tabs, Overview, Story, Games and Compare (phase 15); reads app.js globals -->
   <!-- Phase 20: the All #1s look laid over the other Records sections (recx*). -->
   <script defer src="records-look.js?v=14"></script>
   <script defer src="cert-plaque.js?v=4"></script>
-  <script defer src="stats.js?v=66"></script>
+  <script defer src="stats.js?v=68"></script>
   <!-- The Dank 100: weekly entries for the shared community chart; reads app.js and firebase.js globals -->
-  <script defer src="dank100.js?v=33"></script>
+  <script defer src="dank100.js?v=34"></script>
   <script defer src="worldcharts.js?v=14"></script>
   <!-- TV-PLAN.md steps 6–8: phone as a remote for a TV in TV mode (same account); reads app.js + firebase.js globals -->
   <script defer src="tvremote.js?v=3"></script>
   <!-- Top-bar library search: artists / songs / albums, opens their windows as from All-Time; after panel.js -->
-  <script defer src="library-search.js?v=1"></script>
+  <script defer src="library-search.js?v=2"></script>
   <!-- Genre Library + the genre picker (GENRE-LIBRARY-PLAN.md); after panel.js and board.js.
        The genre list itself (genres.js, ~85 KB) loads only when the page or picker opens:
        bump its ?v= in the meta tag when genres.js changes. -->
@@ -4924,7 +4924,7 @@
        anywhere in the app; the lessons themselves (guide-lessons*.js) and the
        picture measurements load only when the guide opens. After app.js: it
        wraps app functions and takes over dcRenderChartsGuideView. -->
-  <script defer src="guide.js?v=47"></script>
+  <script defer src="guide.js?v=48"></script>
 
   <!-- ── Settings Modal ──
        Split into three tabs so the whole form is never dumped on screen at

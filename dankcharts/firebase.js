@@ -11,6 +11,31 @@ const firebaseConfig = {
   measurementId: "G-G5LQYKKD5G"
 };
 
+/* Settings that follow the account without the code that changes them having
+   to save them itself (2026-11-26). Writing one to localStorage is noticed
+   below (_watchAutoSave) and that one setting is sent to the account a moment
+   later. They used to be kept on one device only. Small values only: they
+   all sit in the one config document. */
+const AUTO_SAVE_KEYS = [
+  'dc_rec_limit',          // how many rows Records shows (app.js recLimit)
+  'dc_gemini_api_key',     // Gemini key for genre lookups (Awards settings box)
+  'dc_board_prefs', 'dc_genrelib_prefs', 'dc_sch_prefs',   // Board / Genre Library / Song Chart options
+  'dc_pdf_opts',           // printable chart PDF options
+  'dc_grid_density',       // chart grid view: large or small tiles
+  'dc_ceremony_sound',     // awards ceremony sound on / off
+  'dc_daily_compare',      // Daily: compare with yesterday or the same weekday
+  'dc_rec_ov_slots',       // Records overview: which record sits in each slot
+  'dc_sp_mix',             // smart playlists: the last mix picks
+  'dc_edit_dest',          // Edit play: save to Sheet / Last.fm
+  'dc_cert_plaque',        // Certifications plaque wall options
+  'dc_sxCmp',              // Stats → Compare: the current picks
+  // Share-picture designs (template, palette, toggles)
+  'dc_igSettings', 'dc_raCardSettings', 'dc_rtCardSettings', 'dc_stCardSettings', 'dc_tpCardSettings', 'dc_crIgSettings',
+  // "Already seen" marks, so the same thing doesn't pop up again on every device
+  'dc_changelog_seen', 'dc_guide_seen', 'dc_genrelib_badges',
+  'dc_ati_hint_off', 'dc_ea_cover_hint_seen', 'dc_player_turn_hint', 'dc_nsmore_off'
+];
+
 // localStorage keys that sync across devices (settings only — not cached data or timestamps)
 const SYNC_KEYS = [
   'dc_source', 'dc_sheet_id', 'dc_sheet_gid', 'dc_sheet_tab',
@@ -36,11 +61,46 @@ const SYNC_KEYS = [
   'dc_awards_hide_decided', 'dc_awards_fav_cats',
   'dc_chart_page_sections',
   'dc_d100_autosend',
+  'dc_d100_notify', 'dc_d100_cd_pos', 'dc_d100_promo_off',   // Dank 100: Notify me, where the countdown sits, invite banner closed (dank100.js)
+  'dc_sxGamesDot', 'dc_sxGamesNotify',   // Games: the dot in More and the daily notification switches (stats.js)
   'dc_music_service',   // Spotify / Apple Music / Deezer for the search buttons (app.js _msKey)   // The Dank 100: send my week by itself (dank100.js)
   'dc_col_widths',  // the chart tables' adjusted column widths (app.js, _colw*)
   'dc_player_mini_style',  // shrunk player on big screens: capsule / filled / bar (app.js _ytMiniStyle)
-  'dc_player_hint_seen'    // the player's first-visit hint was answered (app.js _ytMaybeHint)
+  'dc_player_hint_seen',   // the player's first-visit hint was answered (app.js _ytMaybeHint)
+  ...AUTO_SAVE_KEYS
 ];
+
+/* Saves an AUTO_SAVE_KEYS setting to the account whenever it's written here.
+   localStorage.setItem is wrapped once; every other key passes straight
+   through. Waits 1.2 s per key so typing in a box (the Gemini key) is one
+   write, and sends what's still waiting when the page is hidden or closed.
+   Values coming in from the account (_loadAndApplyConfig) aren't sent back. */
+let _applyingCloud = false;
+const _autoSaveWaiting = new Map();   // key -> timer
+function _autoSaveFlush(key) {
+  clearTimeout(_autoSaveWaiting.get(key));
+  _autoSaveWaiting.delete(key);
+  if (!_currentUser || typeof dcSaveConfigKey !== 'function') return;
+  let v = null;
+  try { v = localStorage.getItem(key); } catch (e) { return; }
+  if (v !== null) dcSaveConfigKey(key, v);
+}
+(function _watchAutoSave() {
+  const keys = new Set(AUTO_SAVE_KEYS);
+  try {
+    const ls = window.localStorage;
+    const set = Storage.prototype.setItem;
+    Storage.prototype.setItem = function (k, v) {
+      set.call(this, k, v);
+      if (this !== ls || _applyingCloud || !keys.has(k)) return;
+      clearTimeout(_autoSaveWaiting.get(k));
+      _autoSaveWaiting.set(k, setTimeout(() => _autoSaveFlush(k), 1200));
+    };
+  } catch (e) { /* no localStorage (private window): nothing to save anyway */ }
+  const flushAll = () => { for (const k of [..._autoSaveWaiting.keys()]) _autoSaveFlush(k); };
+  document.addEventListener('visibilitychange', () => { if (document.hidden) flushAll(); });
+  window.addEventListener('pagehide', flushAll);
+})();
 
 let _auth = null;
 let _db   = null;
@@ -83,6 +143,7 @@ function _configRef(uid) {
 
 async function _loadAndApplyConfig(uid) {
   try {
+    _applyingCloud = true;   // nothing written here is sent back (_watchAutoSave)
     const snap = await _configRef(uid).get();
     if (!snap.exists) return false;
     const data = snap.data();
@@ -123,6 +184,8 @@ async function _loadAndApplyConfig(uid) {
   } catch (err) {
     console.warn('[dankcharts] Firebase load error:', err);
     return false;
+  } finally {
+    _applyingCloud = false;
   }
 }
 
@@ -215,7 +278,10 @@ async function dcSaveConfigKey(key, value) {
   if (!_currentUser || !SYNC_KEYS.includes(key)) return;
   await _ensureDb();
   try {
-    await _configRef(_currentUser.uid).set({ [key]: value }, { merge: true });
+    // null = the setting was removed on this device (a switch turned off), so
+    // it's removed from the account too, not left at its old value
+    const v = value == null ? firebase.firestore.FieldValue.delete() : value;
+    await _configRef(_currentUser.uid).set({ [key]: v }, { merge: true });
   } catch (err) {
     console.warn('[dankcharts] Firebase setting save error:', err);
   }
@@ -561,6 +627,94 @@ async function dcUpdateNotifications(change) {
     return null;
   }
 }
+
+/* ── Small account documents that merge (2026-11-26) ───────────────────────
+   For things kept per account that two devices may change at the same time:
+   search history (library-search.js), the Charts Guide's progress (guide.js),
+   game scores (stats.js) and Dank 100 send marks (dank100.js). Each one lives
+   in users/{uid}/data/<docId> (covered by the existing rule).
+
+   dcMergeUserDoc(docId, merge): in a transaction, `merge` gets the cloud's
+   copy ({} when there is none) and returns the merged copy, which is saved
+   only if it differs. Returns the merged copy, or null when it couldn't be
+   reached (offline, signed out) — the caller keeps its own copy then. Because
+   the merge always starts from the cloud's current copy, a device that has
+   been open for hours can't overwrite what another device saved meanwhile. */
+function _userDocRef(uid, docId) {
+  return _db.collection('users').doc(uid).collection('data').doc(docId);
+}
+async function dcMergeUserDoc(docId, merge) {
+  if (!_currentUser) return null;
+  await _ensureDb();
+  const ref = _userDocRef(_currentUser.uid, docId);
+  try {
+    return await _db.runTransaction(async tx => {
+      const snap = await tx.get(ref);
+      const cur = snap.exists ? snap.data() : {};
+      const next = merge(JSON.parse(JSON.stringify(cur)));
+      if (!next) return cur;
+      // Firestore keeps no undefined values; the round trip drops them
+      const clean = JSON.parse(JSON.stringify(next));
+      if (JSON.stringify(clean) !== JSON.stringify(cur)) tx.set(ref, clean);
+      return clean;
+    });
+  } catch (err) {
+    console.warn('[dankcharts] Account sync error (' + docId + '):', err && err.code);
+    return null;
+  }
+}
+
+/* Whose lists are on this browser (2026-11-27). The lists below are kept on
+   the device and merged into the signed-in account. On a shared browser that
+   would hand one person's search history, game scores and saved comparisons
+   to the next person who signs in. So the device remembers which account they
+   belong to (dc_lists_owner):
+   - no owner yet (made signed out, or from before this): the account that
+     signs in takes them, so nothing made signed out is lost;
+   - the same account: nothing to do;
+   - a different account: they're cleared here first. They're not lost: the
+     account they belong to has its own copy and brings it back when it signs
+     in again.
+   Returns true when it cleared anything; the caller reloads the page so no
+   feature keeps the old copy in memory. Signing out keeps them, as before. */
+const DEVICE_LIST_KEYS = [
+  'dc_lib_search_hist',                  // search bar history (library-search.js)
+  'dc_sxGameBest', 'dc_sxGameDaily',     // game best scores, Game of the day result (stats.js)
+  'dc_sxCmpSaved', 'dc_sxCmpSavedDel',   // saved comparisons (stats.js)
+  'dc_raPicks', 'dc_raPicksAt',          // albums ticked by hand on the ratings card (app.js)
+  'dc_guide_progress', 'dc_guide_checks' // Charts Guide progress (guide.js)
+];
+function _claimDeviceLists(uid) {
+  let owner = null;
+  try { owner = localStorage.getItem('dc_lists_owner'); } catch (e) { return false; }
+  if (owner === uid) return false;
+  try { localStorage.setItem('dc_lists_owner', uid); } catch (e) {}
+  if (!owner) return false;
+  let cleared = false;
+  for (const k of DEVICE_LIST_KEYS) {
+    try { if (localStorage.getItem(k) !== null) { localStorage.removeItem(k); cleared = true; } } catch (e) {}
+  }
+  return cleared;
+}
+
+/* Coming back to the site (switching back to the tab or app) pulls in what
+   other devices changed meanwhile. Before this, most per-account things were
+   only read once when the page loaded, so a phone left open in the
+   background kept showing old notifications, old guide progress and so on.
+   Features add themselves with dcOnAccountReturn(fn); each fn is also run
+   right after sign-in. At most once every 20 seconds. */
+const _returnHooks = [];
+let _returnLast = 0;
+function dcOnAccountReturn(fn) { if (typeof fn === 'function') _returnHooks.push(fn); }
+function _runReturnHooks(force) {
+  if (!_currentUser) return;
+  const now = Date.now();
+  if (!force && now - _returnLast < 20000) return;
+  _returnLast = now;
+  for (const fn of _returnHooks) { try { fn(); } catch (e) { console.warn('[dankcharts] Account refresh error:', e); } }
+}
+document.addEventListener('visibilitychange', () => { if (!document.hidden) _runReturnHooks(false); });
+window.addEventListener('focus', () => _runReturnHooks(false));
 
 /* ── What the notification watchers have already told (notifications.js) ──
    users/{uid}/data/notifyState:
@@ -1024,6 +1178,8 @@ window.dcClaimAutoPlaylist         = dcClaimAutoPlaylist;
 window.dcLoadNotifications         = dcLoadNotifications;
 window.dcUpdateNotifications       = dcUpdateNotifications;
 window.dcUpdateNotifyState         = dcUpdateNotifyState;
+window.dcMergeUserDoc              = dcMergeUserDoc;
+window.dcOnAccountReturn           = dcOnAccountReturn;
 window.dcLoadMyBoardPosts          = dcLoadMyBoardPosts;
 window.dcLoadBoardRepliesSince     = dcLoadBoardRepliesSince;
 
@@ -1038,6 +1194,10 @@ _auth.onAuthStateChanged(async (user) => {
   if (typeof spOnAuth === 'function') spOnAuth(user);
 
   if (!user) return;
+
+  // Someone else's lists on this browser are cleared first (see
+  // _claimDeviceLists); the page then starts again clean for this account
+  if (_claimDeviceLists(user.uid)) { location.reload(); return; }
 
   await _ensureDb();
 
@@ -1082,6 +1242,11 @@ _auth.onAuthStateChanged(async (user) => {
   // The Charts Guide's progress, merged per challenge / answer (guide.js)
   const remoteGuide = await dcLoadGuideProgress();
   if (typeof dcMergeGuideProgress === 'function') dcMergeGuideProgress(remoteGuide);
+
+  // Search history, game scores, Dank 100 send marks, notifications: each
+  // feature's own refresh (dcOnAccountReturn), run now and again whenever
+  // the site comes back on screen. Not awaited: none of them holds up the charts.
+  _runReturnHooks(true);
 
   const hasLocalConfig = SYNC_KEYS.some(k => localStorage.getItem(k) !== null);
   if (!hasLocalConfig && !applied) return; // truly fresh user with no data anywhere

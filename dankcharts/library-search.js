@@ -12,7 +12,9 @@
        the Rankings tab picks the same chart it would from there).
    With the box empty it shows the history: recent searches as chips (click
    one to run it again) and recent picks as rows (click to reopen).
-   History is per browser (localStorage 'dc_lib_search_hist').
+   History is kept in localStorage 'dc_lib_search_hist' and, signed in,
+   in the account too (users/{uid}/data/searchHistory, since 2026-11-26),
+   so every device shows the same recent searches — see syncHist().
    Loaded after app.js and panel.js; reads their globals at click time.
    ═══════════════════════════════════════════════════════════════════════ */
 (function () {
@@ -136,15 +138,82 @@
   /* ── History ───────────────────────────────────────────────────────── */
   const HKEY = 'dc_lib_search_hist';
   const H_MAX = 8;
+  /* { q: [typed searches, newest first], picks: [{ kind, key, title, artist, ts }],
+       qt: { lowercased search: when }, rm: { 'kindkey': when removed },
+       cleared: when "Clear history" was pressed }
+     qt / rm / cleared are only there so two devices' histories can be merged
+     without a removed or cleared entry coming back from the other one. */
   function loadHist() {
-    try { const h = JSON.parse(localStorage.getItem(HKEY) || '{}'); return { q: h.q || [], picks: h.picks || [] }; }
-    catch (e) { return { q: [], picks: [] }; }
+    try {
+      const h = JSON.parse(localStorage.getItem(HKEY) || '{}');
+      return { q: h.q || [], picks: h.picks || [], qt: h.qt || {}, rm: h.rm || {}, cleared: h.cleared || 0 };
+    } catch (e) { return { q: [], picks: [], qt: {}, rm: {}, cleared: 0 }; }
   }
-  function saveHist(h) { try { localStorage.setItem(HKEY, JSON.stringify(h)); } catch (e) {} }
+  let _syncTimer = null;
+  function saveHist(h) {
+    try { localStorage.setItem(HKEY, JSON.stringify(h)); } catch (e) {}
+    // To the account a moment later (one write for a few quick changes)
+    clearTimeout(_syncTimer);
+    _syncTimer = setTimeout(syncHist, 1500);
+  }
+
+  // Two histories into one: the newest of each search / pick, without the
+  // ones removed or cleared later than they were made
+  function mergeHist(a, b) {
+    const cleared = Math.max(a.cleared || 0, b.cleared || 0);
+    const rm = {};
+    const old = Date.now() - 90 * 864e5;
+    for (const src of [a.rm || {}, b.rm || {}]) for (const [k, t] of Object.entries(src)) if (t > old && !(rm[k] >= t)) rm[k] = t;
+    // Typed searches (older ones saved no time: they count as 0)
+    const qs = new Map();
+    for (const src of [a, b]) {
+      (src.q || []).forEach((q, i) => {
+        const k = String(q).toLowerCase(), t = (src.qt || {})[k] || 0;
+        const cur = qs.get(k);
+        if (!cur || t > cur.t) qs.set(k, { q, t, i });
+      });
+    }
+    const qList = [...qs.values()].filter(x => !cleared || x.t > cleared)
+      .sort((x, y) => y.t - x.t || x.i - y.i).slice(0, H_MAX);
+    const qt = {};
+    for (const x of qList) if (x.t) qt[x.q.toLowerCase()] = x.t;
+    // Opened entries
+    const ps = new Map();
+    for (const src of [a, b]) for (const p of (src.picks || [])) {
+      if (!p || !p.kind) continue;
+      const id = p.kind + '' + p.key, cur = ps.get(id);
+      if (!cur || (p.ts || 0) > (cur.ts || 0)) ps.set(id, p);
+    }
+    const picks = [...ps.entries()].filter(([id, p]) => (p.ts || 0) > cleared && (p.ts || 0) > (rm[id] || 0))
+      .map(([, p]) => p).sort((x, y) => (y.ts || 0) - (x.ts || 0)).slice(0, H_MAX);
+    return { q: qList.map(x => x.q), picks, qt, rm, cleared };
+  }
+
+  // This device's history and the account's, merged, saved to both. Run
+  // after each change, on sign-in and whenever the site comes back on screen.
+  function syncHist() {
+    if (typeof window.dcMergeUserDoc !== 'function') return;
+    const before = localStorage.getItem(HKEY) || '';
+    window.dcMergeUserDoc('searchHistory', cloud => mergeHist(cloud || {}, loadHist())).then(saved => {
+      if (!saved) return;
+      // Merged again with this device's copy, in case it changed meanwhile
+      const h = mergeHist(saved, loadHist());
+      const json = JSON.stringify(h);
+      if (json === before) return;
+      try { localStorage.setItem(HKEY, json); } catch (e) {}
+      // The window is open showing the history: show the merged one
+      if (root && !root.hidden && input && !input.value.trim()) render();
+    });
+  }
+  if (typeof window.dcOnAccountReturn === 'function') window.dcOnAccountReturn(syncHist);
+
   function remember(query, r) {
     const h = loadHist();
     const q = String(query || '').trim();
-    if (q) h.q = [q, ...h.q.filter(x => x.toLowerCase() !== q.toLowerCase())].slice(0, H_MAX);
+    if (q) {
+      h.q = [q, ...h.q.filter(x => x.toLowerCase() !== q.toLowerCase())].slice(0, H_MAX);
+      h.qt[q.toLowerCase()] = Date.now();
+    }
     const pick = { kind: r.kind, key: r.key, title: r.kind === 'artist' ? r.name : r.title, artist: r.kind === 'artist' ? '' : r.artist, ts: Date.now() };
     h.picks = [pick, ...h.picks.filter(p => !(p.kind === pick.kind && p.key === pick.key))].slice(0, H_MAX);
     saveHist(h);
@@ -315,12 +384,14 @@
       const [kind, key] = rm.dataset.rm.split('\u0001');
       const h = loadHist();
       h.picks = h.picks.filter(p => !(p.kind === kind && p.key === key));
+      h.rm[kind + '' + key] = Date.now();   // so another device's copy doesn't bring it back
       saveHist(h);
       render();
       input.focus();
       return;
     }
-    if (e.target.closest('[data-clear]')) { saveHist({ q: [], picks: [] }); render(); input.focus(); return; }
+    // Cleared everywhere: the time tells other devices to drop what they had before it
+    if (e.target.closest('[data-clear]')) { saveHist({ q: [], picks: [], qt: {}, rm: {}, cleared: Date.now() }); render(); input.focus(); return; }
     const chip = e.target.closest('[data-q]');
     if (chip) { input.value = chip.dataset.q; render(); input.focus(); return; }
     const it = e.target.closest('.lsx-item');
