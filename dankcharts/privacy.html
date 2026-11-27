@@ -272,10 +272,10 @@
   <main class="terms-page">
 
     <h1 class="terms-title">Privacy Policy</h1>
-    <p class="terms-meta">Effective date: May 14, 2026 &nbsp;·&nbsp; Last updated: November 1, 2026</p>
+    <p class="terms-meta">Effective date: May 14, 2026 &nbsp;·&nbsp; Last updated: November 27, 2026</p>
 
     <div class="info-box" style="margin-bottom:2.5rem; border-left-color: var(--green);">
-      <strong>TL;DR:</strong> Your music history stays in your browser — it never touches our servers. We only store your settings (theme, data source, etc.) if you sign in with Google. Analytics are cookie-free and collect no personal data. We don't sell your information to anyone.
+      <strong>TL;DR:</strong> Your full listening history is read and worked out in your browser — we don't keep a copy of it. If you sign in with Google, we save your settings and the things you make (awards, ratings, playlists, backups and so on) to your account so they follow you to other devices. Anything you choose to post publicly (Board posts, shared ceremony links) can be seen by others. To show artwork, videos, lyrics and genres, your browser asks outside services about the songs and artists on screen. Analytics are cookie-free. We don't sell your information to anyone.
     </div>
 
     <div class="terms-toc">
@@ -286,10 +286,11 @@
         <li><a href="#data-collected">Data We Collect</a></li>
         <li><a href="#legal-basis">Legal Basis for Processing</a></li>
         <li><a href="#data-use">How We Use Your Data</a></li>
-        <li><a href="#data-sharing">Data Sharing &amp; Third-Party Processors</a></li>
+        <li><a href="#data-sharing">Data Sharing &amp; Third Parties</a></li>
         <li><a href="#international">International Data Transfers</a></li>
         <li><a href="#data-retention">Data Retention &amp; Deletion</a></li>
-        <li><a href="#cookies">Cookies &amp; Local Storage</a></li>
+        <li><a href="#cookies">Cookies &amp; Browser Storage</a></li>
+        <li><a href="#security">Security</a></li>
         <li><a href="#gdpr">Your Rights — EU &amp; UK (GDPR)</a></li>
         <li><a href="#ccpa">Your Rights — California (CCPA)</a></li>
         <li><a href="#children">Children's Privacy</a></li>
@@ -308,22 +309,23 @@
         <p><strong>Email:</strong> <a href="mailto:yourdata@dankcharts.fm">yourdata@dankcharts.fm</a></p>
         <p><strong>Website:</strong> <a href="https://dankcharts.fm">dankcharts.fm</a></p>
       </div>
-      <p style="margin-top:1rem;">This Privacy Policy applies to personal data collected when you use dankcharts.fm (the "Service"). It supplements but does not replace the <a href="terms.html">Terms of Service</a>, which govern the conditions of use of the Service.</p>
+      <p style="margin-top:1rem;">This Privacy Policy applies to personal data collected when you use dankcharts.fm and its pages (the "Service"). It supplements but does not replace the <a href="terms.html">Terms of Service</a>, which govern the conditions of use of the Service.</p>
     </section>
 
     <!-- 2 -->
     <section class="terms-section" id="scope">
       <h2>2. Scope &amp; How the Service Works</h2>
-      <p>dankcharts.fm is a personal music chart visualization tool. It lets you explore your listening history by connecting to three data sources:</p>
+      <p>dankcharts.fm is a personal music chart tool. It lets you explore your listening history from one of three data sources:</p>
       <ul>
-        <li><strong>Last.fm</strong> — your scrobble history is fetched directly from Last.fm's public API using your username. The request goes from your browser to Last.fm; dankcharts.fm servers are never involved.</li>
-        <li><strong>Google Sheets</strong> — you provide a publicly shared spreadsheet URL; your browser reads it directly from Google. The data does not pass through our servers.</li>
-        <li><strong>File upload</strong> — you upload a local CSV, ZIP, or XLSX file; it is parsed entirely in your browser and never transmitted anywhere.</li>
+        <li><strong>Last.fm</strong> — your scrobble history is fetched by your browser from Last.fm's API using your username.</li>
+        <li><strong>Google Sheets</strong> — you provide a shared spreadsheet link and your browser reads it from Google. If Google blocks that direct read, the Service may fetch the sheet through our own server (see section 6) and pass it straight back to your browser. Our server does not keep a copy.</li>
+        <li><strong>File upload</strong> — you upload a CSV, ZIP or XLSX file (for example a Last.fm, Spotify, Apple Music or YouTube export). It is read in your browser and saved only in your browser's storage on that device.</li>
       </ul>
       <div class="info-box" style="border-left-color: var(--green);">
-        <strong>Your music data never passes through our servers.</strong> All listening history processing happens locally in your browser or is fetched directly from its source. We do not store, copy, or retain any of your music history.
+        <strong>We don't keep a copy of your full listening history.</strong> It is worked out in your browser and cached on your own device. The exceptions are described in section 3: the things you make and save to your account (which name songs, artists and albums), the weekly top 100 you choose to send to The Dank 100, and anything you post publicly.
       </div>
-      <p>Optional Google Sign-In allows the Service to remember your setup preferences across sessions. This is the only feature that involves storing personal data on our end.</p>
+      <p>To show pictures, videos, previews, lyrics, genres, concerts and other extras, your browser (or, for a few lookups, our server) sends song, album and artist names to outside services. These are listed in section 6.</p>
+      <p>Signing in with Google is optional. Without it, the Service still works, but nothing is saved to an account and nothing follows you to another device.</p>
     </section>
 
     <!-- 3 -->
@@ -331,178 +333,297 @@
       <h2>3. Data We Collect</h2>
 
       <h3>3.1 Account data — only when you sign in with Google</h3>
-      <p>When you choose to sign in via Google through Firebase Authentication, we receive the following from Google:</p>
+      <p>When you sign in with Google through Firebase Authentication, we receive the following from Google. We never see your Google password.</p>
       <table class="data-table">
         <thead>
           <tr><th>Data point</th><th>Why we receive it</th></tr>
         </thead>
         <tbody>
-          <tr><td>Display name</td><td>Shown in the UI to confirm you are signed in</td></tr>
-          <tr><td>Email address</td><td>Used as a human-readable identifier for your account</td></tr>
-          <tr><td>Profile photo URL</td><td>Shown as your avatar in the UI</td></tr>
-          <tr><td>Google UID</td><td>Unique identifier that links your preferences record in our database</td></tr>
+          <tr><td>Display name</td><td>Shown in the app to confirm you are signed in, and on anything you post publicly (see 3.4)</td></tr>
+          <tr><td>Email address</td><td>Identifies your account, and is used to send one welcome email when you first sign in (see 3.6)</td></tr>
+          <tr><td>Profile photo URL</td><td>Shown as your avatar in the app and next to your public Board posts</td></tr>
+          <tr><td>Google account ID (UID)</td><td>Links your saved data to your account</td></tr>
         </tbody>
       </table>
-      <p>Sign-in is entirely optional. If you never sign in, none of the above is collected.</p>
+      <p>If you never sign in, none of the above is collected.</p>
 
-      <h3>3.2 Preferences data — only when you sign in</h3>
-      <p>If you sign in, the following user preferences are stored in Firebase Firestore, linked to your Google UID:</p>
+      <h3>3.2 Settings and things you make — only when you sign in</h3>
+      <p>If you sign in, the following is stored in Google Firebase (Firestore), linked to your account, so it can follow you across devices. Only you can read it.</p>
       <ul>
-        <li>Data source type (Last.fm, Google Sheets, or file)</li>
-        <li>Last.fm username (if you provided one)</li>
-        <li>Google Sheets URL or ID (if you provided one)</li>
-        <li>Tab / sheet name (if applicable)</li>
-        <li>UI preferences: theme color, interface language, week start day</li>
+        <li><strong>Settings:</strong> data source, Last.fm username, Google Sheet link, ID and tab, the display name and time zone you set, theme, language, week start day, chart sizes and display options, auto-correct rules, release-type, album and certification settings, share-picture designs, and similar options.</li>
+        <li><strong>Connection keys you choose to add:</strong> your Last.fm scrobbling session (created when you connect Last.fm so you can add or love plays), your own Last.fm API key and secret, your Google Apps Script link for saving plays to your Sheet, and your own Gemini and Ticketmaster API keys. These are saved so the features keep working on your other devices. Anyone holding them could act on those services as you, so we keep them in your private account area only. You can remove them in Settings at any time.</li>
+        <li><strong>Your work:</strong> award picks for each year, song and album ratings, playlists, smart playlists and automatic chart playlists, your listening diary, genre edits, picture choices, saved comparisons, game progress, guide progress, recent searches, notifications, a cache of concert lookups, and the TV remote link between your devices (what is playing and the buttons you press).</li>
+        <li><strong>Backups:</strong> copies of your settings, awards and ratings, made automatically and when you ask, so a mistake can be undone from Settings → Profile. Up to 30 of each kind are kept; older ones are removed automatically.</li>
       </ul>
-      <p>This data is used exclusively to restore your setup when you return to the Service.</p>
+      <p>Because these items name songs, artists and albums, they say something about your music taste. They are used only to run the features you use.</p>
 
       <h3>3.3 The Dank 100 entries — only when you send one</h3>
-      <p>The Dank 100 is an optional shared weekly chart. If you are signed in and press <strong>Send my week</strong> (or switch on <em>Send my week automatically</em> in Settings → Charts), the following is stored in Firebase Firestore, linked to your Google UID, for that week:</p>
+      <p>The Dank 100 is an optional shared weekly chart. If you are signed in and press <strong>Send my week</strong> (or switch on <em>Send my week automatically</em> in Settings → Charts), the following is stored in Firebase, linked to your account, for that week:</p>
       <ul>
         <li>Your top 100 songs, artists and albums for the week (titles, artist names and how many times you played each)</li>
         <li>Your total number of plays that week</li>
         <li>When the entry was sent</li>
       </ul>
-      <p>Only you can read your own entry. Everyone's entries are added up on our server into one combined chart, and only that combined chart is public. It never shows who sent what. If very few people sent in a week, the combined chart can still look a lot like one person's chart. You can take an entry back while its week is open, and ask us to delete older ones (see section 8).</p>
+      <p>Only you can read your own entry. Everyone's entries are added up on our server into one combined chart, and only that combined chart is public. It never shows who sent what. If very few people sent in a week, the combined chart can still look a lot like one person's chart. To keep the chart fair, our server compares entries to spot duplicate or fake accounts, and we may leave an account out of the count. You can take an entry back while its week is open, and ask us to delete older ones (see section 8).</p>
 
-      <h3>3.4 Analytics data</h3>
-      <p>The Service uses <strong>GoatCounter</strong> for page-view analytics. GoatCounter is a privacy-respecting tool that:</p>
+      <h3>3.4 Things you choose to make public</h3>
+      <ul>
+        <li><strong>Board posts and replies:</strong> anything you post on the Board — the title, text, pictures you attach, any smart playlist you attach, votes, and the time — is <strong>public</strong>. Anyone can read it, with or without an account. It is shown with your display name and Google profile photo.</li>
+        <li><strong>Shared awards ceremonies:</strong> when you create a ceremony share link, a copy of that year's ceremony (the categories, nominees, winners and any names, play counts and pictures shown in it) is saved so that anyone with the link can watch it. The link is hard to guess but is not secret once you send it to someone. You can update or delete it at any time.</li>
+      </ul>
+      <p>Please don't post anything you want to keep private. Other people can copy or screenshot what they see.</p>
+
+      <h3>3.5 Support messages</h3>
+      <p>When you use <strong>Contact Support</strong>, we receive your email address and message, plus the page you were on, your interface language, your browser type, and — if you are signed in — your display name, account email and account ID. This is delivered to our inbox by Web3Forms (see section 6) and used only to answer you and fix problems.</p>
+
+      <h3>3.6 Welcome email</h3>
+      <p>The first time you sign in, your name and email address are sent to our server, which sends you one welcome email through our email provider, Resend. We do not send marketing emails or newsletters.</p>
+
+      <h3>3.7 Shared video cache</h3>
+      <p>When the player finds a YouTube video for a song, the song search (stored as a scrambled code) and the video ID are saved in a shared cache so the next person doesn't have to search again. This cache does not record who made the search.</p>
+
+      <h3>3.8 Analytics data</h3>
+      <p>The Service uses <strong>GoatCounter</strong> for page-view analytics. GoatCounter:</p>
       <ul>
         <li>Sets no cookies</li>
-        <li>Collects no personal data or persistent identifiers</li>
-        <li>Does not track you across sites or sessions</li>
-        <li>Records only aggregate counts (page views, referrer domain, browser language, screen size)</li>
+        <li>Does not store persistent identifiers or track you across sites</li>
+        <li>Records only overall counts (page views, referring site, browser, language, screen size, country)</li>
       </ul>
-      <p>Aggregate traffic counts are publicly visible at <a href="https://erwindank.goatcounter.com" target="_blank" rel="noopener">erwindank.goatcounter.com</a>. No personal data is included.</p>
+      <p>Overall traffic counts are publicly visible at <a href="https://erwindank.goatcounter.com" target="_blank" rel="noopener">erwindank.goatcounter.com</a>. They do not identify you.</p>
 
-      <h3>3.5 Data we do NOT collect</h3>
+      <h3>3.9 Technical data</h3>
+      <p>Like any website, the companies that host the Service (Cloudflare, Google Firebase and Render) receive your IP address, browser type and the time of each request, and may keep short-lived logs for security and to keep the Service running. We do not use this data to identify or track you.</p>
+
+      <h3>3.10 Data we do NOT collect</h3>
       <ul>
-        <li>Your listening history, scrobbles, or any music data, apart from the weekly top 100 you choose to send to The Dank 100 (section 3.3)</li>
-        <li>Spotify, Apple Music, or any other streaming service credentials</li>
-        <li>Payment information (the core Service is free; if paid features are introduced, payment processing would be handled by a third-party provider at that time)</li>
+        <li>A copy of your full listening history (only the items described in 3.2–3.4)</li>
+        <li>Your Google, Last.fm, Spotify, Apple Music or other passwords</li>
+        <li>Payment information (the Service is currently free; if paid features are introduced, payments will be handled by a payment provider and this policy will be updated first)</li>
         <li>Precise location data</li>
         <li>Device fingerprints or advertising identifiers</li>
-        <li>IP addresses beyond what Firebase may log as part of its standard infrastructure operation (see <a href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener">Firebase Privacy</a>)</li>
       </ul>
     </section>
 
     <!-- 4 -->
     <section class="terms-section" id="legal-basis">
       <h2>4. Legal Basis for Processing</h2>
-      <p>This section applies primarily to users in the European Union and United Kingdom, where a lawful basis is required under the GDPR for processing personal data.</p>
+      <p>This section applies mainly to users in the European Union and United Kingdom, where a lawful basis is required under the GDPR.</p>
       <table class="data-table">
         <thead>
           <tr><th>Processing activity</th><th>Lawful basis</th></tr>
         </thead>
         <tbody>
-          <tr><td>Account &amp; preferences data (signed-in users)</td><td><strong>Contract performance</strong> — you requested the settings-sync feature; processing your account data is necessary to provide it.</td></tr>
-          <tr><td>GoatCounter analytics</td><td><strong>No basis required</strong> — GoatCounter collects no personal data.</td></tr>
-          <tr><td>Cloudflare hosting infrastructure</td><td><strong>Legitimate interests</strong> — serving the website requires passing requests through Cloudflare's network.</td></tr>
+          <tr><td>Account, settings, your work and backups</td><td><strong>Contract performance</strong> — needed to provide the account features you asked for.</td></tr>
+          <tr><td>Song, album and artist lookups with outside services</td><td><strong>Contract performance</strong> — needed to show the artwork, videos, lyrics, genres and other extras you open.</td></tr>
+          <tr><td>The Dank 100 entries</td><td><strong>Consent</strong> — you choose to send each week (or switch on automatic sending). You can stop at any time.</td></tr>
+          <tr><td>Board posts and shared ceremonies</td><td><strong>Contract performance</strong> — you ask us to publish them.</td></tr>
+          <tr><td>Welcome email and support replies</td><td><strong>Legitimate interests</strong> — telling you about your new account and answering your questions.</td></tr>
+          <tr><td>Moderation, duplicate-account checks and security logs</td><td><strong>Legitimate interests</strong> — keeping the Service, the Board and The Dank 100 fair and safe.</td></tr>
+          <tr><td>GoatCounter analytics</td><td><strong>Legitimate interests</strong> — understanding overall use, with no cookies and no personal profiles.</td></tr>
+          <tr><td>Hosting (Cloudflare, Firebase, Render)</td><td><strong>Legitimate interests</strong> — serving the website requires passing requests through these networks.</td></tr>
         </tbody>
       </table>
-      <p>We do not use your data for advertising or automated profiling that produces legal effects.</p>
+      <p>We do not use your data for advertising or for automated decisions that have legal or similarly significant effects on you.</p>
     </section>
 
     <!-- 5 -->
     <section class="terms-section" id="data-use">
       <h2>5. How We Use Your Data</h2>
-      <p>The data described in Section 3 is used exclusively to:</p>
+      <p>The data described in section 3 is used only to:</p>
       <ul>
-        <li>Authenticate you and identify your stored preferences record</li>
-        <li>Restore your configuration (data source, sheet URL, theme, language, etc.) when you return to the Service</li>
-        <li>Understand aggregate, anonymous traffic patterns via GoatCounter</li>
+        <li>Sign you in and keep your settings and your work in sync across devices</li>
+        <li>Run the features you use (charts, awards, ratings, playlists, the player, the TV remote, backups and so on)</li>
+        <li>Build the combined Dank 100 chart and keep it fair</li>
+        <li>Show and moderate the Board and shared ceremonies</li>
+        <li>Send the one welcome email and answer support messages</li>
+        <li>Keep the Service secure and working, and understand overall traffic</li>
+        <li>Meet legal obligations</li>
       </ul>
       <p>We do not use your data for:</p>
       <ul>
         <li>Marketing or advertising (no ad network has access to your data)</li>
-        <li>Profiling or automated decision-making with legal or significant effects</li>
-        <li>Sharing, selling, or renting to third parties outside of the processors listed in Section 6</li>
+        <li>Selling, renting or trading to anyone</li>
+        <li>Training AI models</li>
       </ul>
     </section>
 
     <!-- 6 -->
     <section class="terms-section" id="data-sharing">
-      <h2>6. Data Sharing &amp; Third-Party Processors</h2>
-      <p>We share data only with the following sub-processors, solely to the extent necessary to provide the Service:</p>
+      <h2>6. Data Sharing &amp; Third Parties</h2>
+
+      <h3>6.1 Service providers that work for us</h3>
+      <p>These providers handle data on our behalf, only as needed to run the Service:</p>
       <table class="data-table">
         <thead>
-          <tr><th>Processor</th><th>Purpose</th><th>Data shared</th></tr>
+          <tr><th>Provider</th><th>Purpose</th><th>Data involved</th></tr>
         </thead>
         <tbody>
           <tr>
             <td><a href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener">Google Firebase</a></td>
-            <td>Authentication and Firestore database hosting</td>
-            <td>Account data, preferences data (signed-in users only)</td>
+            <td>Sign-in and database</td>
+            <td>Account data and everything in 3.2–3.4 and 3.7</td>
+          </tr>
+          <tr>
+            <td><a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noopener">Cloudflare</a></td>
+            <td>Website hosting, plus our small server functions (The Dank 100 tally, Grammy, Deezer and World Charts lookups)</td>
+            <td>Request data (IP, browser); Dank 100 entries; song and artist names being looked up</td>
+          </tr>
+          <tr>
+            <td><a href="https://render.com/privacy" target="_blank" rel="noopener">Render</a></td>
+            <td>Our backend server: Google Sheet fallback reads, YouTube searches, welcome email</td>
+            <td>Request data (IP, browser); your Sheet ID and its contents in transit (not stored); song searches; your name and email for the welcome email</td>
+          </tr>
+          <tr>
+            <td><a href="https://resend.com/legal/privacy-policy" target="_blank" rel="noopener">Resend</a></td>
+            <td>Sending the welcome email</td>
+            <td>Your name and email address</td>
+          </tr>
+          <tr>
+            <td><a href="https://web3forms.com/privacy" target="_blank" rel="noopener">Web3Forms</a></td>
+            <td>Delivering support messages to our inbox</td>
+            <td>Everything listed in 3.5</td>
           </tr>
           <tr>
             <td><a href="https://www.goatcounter.com/help/privacy" target="_blank" rel="noopener">GoatCounter</a></td>
-            <td>Privacy-first page-view analytics</td>
-            <td>No personal data — aggregate counts only</td>
-          </tr>
-          <tr>
-            <td><a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noopener">Cloudflare Pages</a></td>
-            <td>Static site hosting and CDN</td>
-            <td>Standard web request metadata (IP, user agent) as part of hosting</td>
-          </tr>
-          <tr>
-            <td><a href="https://www.last.fm/legal/privacy" target="_blank" rel="noopener">Last.fm</a></td>
-            <td>Music history API (direct browser-to-Last.fm)</td>
-            <td>Your Last.fm username is sent by your browser directly to Last.fm; dankcharts.fm is not involved</td>
+            <td>Cookie-free page-view counts</td>
+            <td>Overall counts only</td>
           </tr>
         </tbody>
       </table>
-      <p>We do not sell, rent, or trade your personal information to any third party.</p>
+
+      <h3>6.2 Outside services your browser talks to</h3>
+      <p>Some features work by having your browser contact other companies directly. Each of them receives your IP address and browser details along with the request, and handles that data under <strong>its own</strong> privacy policy, not ours:</p>
+      <table class="data-table">
+        <thead>
+          <tr><th>Service</th><th>When</th><th>What it receives</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><a href="https://www.last.fm/legal/privacy" target="_blank" rel="noopener">Last.fm</a></td>
+            <td>Loading your plays, artist info and genres; adding or loving plays if you connect scrobbling</td>
+            <td>Your username, song and artist names, plays you add, your scrobbling session</td>
+          </tr>
+          <tr>
+            <td><a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google</a> (Sheets, Apps Script, Fonts)</td>
+            <td>Reading your Sheet, saving plays to it through your Apps Script, loading fonts</td>
+            <td>Your Sheet link, plays you save</td>
+          </tr>
+          <tr>
+            <td><a href="https://policies.google.com/privacy" target="_blank" rel="noopener">YouTube</a></td>
+            <td>Playing songs in the player, video thumbnails</td>
+            <td>The video being played. YouTube may set its own cookies (see section 9). Use of the player is also subject to the <a href="https://www.youtube.com/t/terms" target="_blank" rel="noopener">YouTube Terms of Service</a>.</td>
+          </tr>
+          <tr>
+            <td><a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google Gemini</a></td>
+            <td>Genre lookups — only if you add your own Gemini key</td>
+            <td>Artist names, sent with your key</td>
+          </tr>
+          <tr>
+            <td><a href="https://privacy.ticketmaster.com/privacy-policy" target="_blank" rel="noopener">Ticketmaster</a></td>
+            <td>Concert lookups — only if you add your own key</td>
+            <td>Artist names, sent with your key</td>
+          </tr>
+          <tr>
+            <td>Apple (iTunes Search), Deezer</td>
+            <td>Artwork and short song previews</td>
+            <td>Song, album and artist names</td>
+          </tr>
+          <tr>
+            <td>MusicBrainz, Cover Art Archive, Wikipedia, Wikidata, TheAudioDB</td>
+            <td>Artwork, artist photos, release details</td>
+            <td>Song, album and artist names</td>
+          </tr>
+          <tr>
+            <td>LRCLIB, lyrics.ovh</td>
+            <td>Lyrics in the player</td>
+            <td>Song and artist names</td>
+          </tr>
+          <tr>
+            <td>jsDelivr, cdnjs, SheetJS</td>
+            <td>Loading code libraries the app uses</td>
+            <td>Standard request data</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>Links that take you to other sites (Spotify, Apple Music, Billboard, ticket sites and so on) are covered by those sites' own policies once you open them.</p>
+
+      <h3>6.3 Other disclosures</h3>
+      <p>We may disclose personal data if required by law, court order or a valid request from authorities, or where needed to protect the rights, safety or property of users, the public or the Service. If the Service is ever transferred to someone else, your data would pass to them under this policy, and we would tell signed-in users first.</p>
+      <p>We do not sell, rent or trade your personal information, and we do not "share" it for cross-context behavioral advertising.</p>
     </section>
 
     <!-- 7 -->
     <section class="terms-section" id="international">
       <h2>7. International Data Transfers</h2>
-      <p>dankcharts.fm is operated from Guatemala. If you are located in the European Economic Area (EEA) or United Kingdom, your data may be transferred to and processed in the United States (where Google Firebase's servers are located) and other countries.</p>
-      <p>Google Firebase relies on the EU–U.S. Data Privacy Framework and Standard Contractual Clauses as the legal mechanism for these transfers. You can review Google's data transfer safeguards in the <a href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener">Firebase Privacy documentation</a>.</p>
+      <p>dankcharts.fm is operated from Guatemala. Our providers (Google Firebase, Cloudflare, Render, Resend and Web3Forms) process data in the United States and other countries. If you are in the European Economic Area, the United Kingdom or Switzerland, your data will be transferred outside it.</p>
+      <p>Where these providers offer them, transfers rely on the EU–U.S. Data Privacy Framework (and its UK and Swiss extensions) or on Standard Contractual Clauses. You can read about each provider's safeguards in their privacy documents linked in section 6.</p>
     </section>
 
     <!-- 8 -->
     <section class="terms-section" id="data-retention">
       <h2>8. Data Retention &amp; Deletion</h2>
-      <p>Your account and preferences data in Firebase is retained for as long as you maintain a signed-in account with the Service.</p>
-      <p>The Dank 100 entries are kept with your account so the site can show which rows you helped chart. The combined weekly charts contain no personal data and are kept indefinitely.</p>
-      <p>To delete your data:</p>
+      <ul>
+        <li><strong>Account, settings, your work:</strong> kept until you delete it or ask us to delete your account.</li>
+        <li><strong>Backups:</strong> up to 30 of each kind; older ones are removed automatically. All are deleted with your account.</li>
+        <li><strong>The Dank 100 entries:</strong> kept with your account so the site can show which rows you helped chart. The combined weekly charts contain no personal data and are kept indefinitely.</li>
+        <li><strong>Board posts, replies and pictures:</strong> kept until you or a moderator delete them, or until your account is deleted.</li>
+        <li><strong>Shared ceremonies:</strong> kept until you delete the link, or until your account is deleted.</li>
+        <li><strong>Support messages:</strong> kept in our inbox for as long as needed to help you and keep a record, and deleted on request.</li>
+        <li><strong>Hosting logs:</strong> kept for short periods set by each hosting provider.</li>
+        <li><strong>GoatCounter counts and the shared video cache:</strong> contain no personal data and may be kept indefinitely.</li>
+      </ul>
+      <p>To delete your account and data:</p>
       <ol>
-        <li>Email <a href="mailto:yourdata@dankcharts.fm">yourdata@dankcharts.fm</a> with the subject line <strong>"Delete my account"</strong>.</li>
-        <li>We will permanently delete your Firestore record and Firebase Authentication entry within 30 days of your request.</li>
+        <li>Email <a href="mailto:yourdata@dankcharts.fm">yourdata@dankcharts.fm</a> from your account's email address with the subject line <strong>"Delete my account"</strong>.</li>
+        <li>Within 30 days we will permanently delete your sign-in record and everything stored under your account (section 3.2), your Dank 100 entries, your Board posts, replies and pictures, and your shared ceremony links. Copies in providers' own backups are removed on their normal schedule.</li>
       </ol>
-      <p>If you never signed in, no personal data was stored and no deletion action is needed.</p>
-      <p>GoatCounter analytics data contains no personal information and is retained indefinitely as aggregate statistics only.</p>
+      <p>Data kept in your own browser (your cached listening history, uploaded files and local settings) is not on our servers. You can remove it by clearing this site's data in your browser settings.</p>
     </section>
 
     <!-- 9 -->
     <section class="terms-section" id="cookies">
-      <h2>9. Cookies &amp; Local Storage</h2>
-      <p>The Service uses <strong>no advertising or tracking cookies</strong>. The only browser storage in use is:</p>
+      <h2>9. Cookies &amp; Browser Storage</h2>
+      <p>We use <strong>no advertising or tracking cookies</strong>. The Service stores the following in your browser, so it can work quickly and remember your choices:</p>
       <table class="data-table">
         <thead>
-          <tr><th>Storage type</th><th>What it holds</th><th>Leaves your device?</th></tr>
+          <tr><th>Storage</th><th>What it holds</th><th>Leaves your device?</th></tr>
         </thead>
         <tbody>
           <tr>
-            <td>localStorage</td>
-            <td>UI preferences: theme, language, source selection, chart settings</td>
-            <td>No — stays in your browser. Synced to Firebase only if you sign in.</td>
+            <td>localStorage / sessionStorage</td>
+            <td>Settings, connection keys, your work, and where you were in the app</td>
+            <td>Only if you sign in — then the items in 3.2 are saved to your account.</td>
           </tr>
           <tr>
-            <td>Firebase session cookie</td>
-            <td>Short-lived authentication token set by Firebase Auth</td>
-            <td>Yes — sent to Firebase on authenticated requests only. Not used for tracking.</td>
+            <td>IndexedDB</td>
+            <td>Your cached listening history, uploaded files and auto-correct rules</td>
+            <td>No — stays on this device.</td>
+          </tr>
+          <tr>
+            <td>Firebase sign-in storage</td>
+            <td>Your sign-in token, set by Firebase Authentication</td>
+            <td>Sent to Firebase to keep you signed in. Not used for tracking.</td>
+          </tr>
+          <tr>
+            <td>YouTube player (third party)</td>
+            <td>Cookies and storage set by YouTube when a video loads</td>
+            <td>Yes — to YouTube/Google, under <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google's Privacy Policy</a>.</td>
           </tr>
         </tbody>
       </table>
-      <p>GoatCounter does not use cookies or any persistent identifiers.</p>
-      <p>You can clear localStorage at any time via your browser's developer tools or settings. Clearing it will reset your local preferences; your synced preferences in Firebase (if signed in) will be unaffected.</p>
+      <p>GoatCounter does not use cookies. You can clear this site's storage at any time in your browser settings. That resets this device only; data saved to your account stays there.</p>
     </section>
 
     <!-- 10 -->
+    <section class="terms-section" id="security">
+      <h2>10. Security</h2>
+      <p>Sign-in is handled by Google. Database rules make sure only you can read and change your private account data, and only the server can see individual Dank 100 entries. All connections use HTTPS.</p>
+      <p>No online service is completely secure, and we cannot guarantee that data will never be accessed, lost or changed without permission. If we learn of a breach that affects your personal data, we will notify you and the authorities where the law requires. If you find a security problem, please email <a href="mailto:yourdata@dankcharts.fm">yourdata@dankcharts.fm</a>.</p>
+    </section>
+
+    <!-- 11 -->
     <section class="terms-section" id="gdpr">
-      <h2>10. Your Rights — EU &amp; UK (GDPR)</h2>
+      <h2>11. Your Rights — EU &amp; UK (GDPR)</h2>
       <p>If you are located in the European Union or United Kingdom, you have the following rights under the GDPR and UK GDPR:</p>
       <ul>
         <li><strong>Right of access</strong> — request a copy of the personal data we hold about you.</li>
@@ -511,42 +632,43 @@
         <li><strong>Right to restriction of processing</strong> — ask us to limit how we process your data.</li>
         <li><strong>Right to data portability</strong> — receive your data in a structured, machine-readable format (e.g., JSON).</li>
         <li><strong>Right to object</strong> — object to processing based on legitimate interests.</li>
-        <li><strong>Right to withdraw consent</strong> — where processing is based on consent, you may withdraw at any time without affecting the lawfulness of prior processing.</li>
+        <li><strong>Right to withdraw consent</strong> — where processing is based on consent (such as The Dank 100), you may withdraw at any time without affecting the lawfulness of earlier processing.</li>
       </ul>
-      <p>To exercise any of these rights, contact us at <a href="mailto:yourdata@dankcharts.fm">yourdata@dankcharts.fm</a>. We will respond within 30 days. For complex requests we may extend this by a further two months, and will notify you accordingly.</p>
-      <p>If you are not satisfied with our response, you have the right to lodge a complaint with your local data protection supervisory authority (e.g., your national DPA within the EU, or the ICO in the UK).</p>
-    </section>
-
-    <!-- 11 -->
-    <section class="terms-section" id="ccpa">
-      <h2>11. Your Rights — California (CCPA)</h2>
-      <p>If you are a California resident, the California Consumer Privacy Act (CCPA) grants you the following rights:</p>
-      <ul>
-        <li><strong>Right to know</strong> — request disclosure of the categories and specific pieces of personal information we have collected about you.</li>
-        <li><strong>Right to delete</strong> — request deletion of personal information we have collected from you, subject to certain exceptions.</li>
-        <li><strong>Right to opt out of sale</strong> — we do <em>not</em> sell personal information, so no opt-out mechanism is required or provided.</li>
-        <li><strong>Right to non-discrimination</strong> — we will not discriminate against you for exercising any of your CCPA rights.</li>
-      </ul>
-      <p>To exercise these rights, email <a href="mailto:yourdata@dankcharts.fm">yourdata@dankcharts.fm</a>. We will respond within 45 days as required by California law, with the option to extend by a further 45 days when reasonably necessary.</p>
+      <p>To exercise any of these rights, contact us at <a href="mailto:yourdata@dankcharts.fm">yourdata@dankcharts.fm</a>. We may need to confirm the request comes from the account owner. We will respond within one month; for complex requests we may extend this by a further two months and will tell you if so.</p>
+      <p>If you are not satisfied with our response, you have the right to lodge a complaint with your local data protection authority (e.g., your national DPA within the EU, or the ICO in the UK).</p>
     </section>
 
     <!-- 12 -->
-    <section class="terms-section" id="children">
-      <h2>12. Children's Privacy</h2>
-      <p>The Service is not directed at children under 13. We do not knowingly collect personal data from children under 13. If you are under 16 (or the applicable age of digital consent in your country), you must have parental or guardian consent before signing in or providing any personal data.</p>
-      <p>If you believe we have inadvertently collected personal data from a child under 13, please contact us at <a href="mailto:yourdata@dankcharts.fm">yourdata@dankcharts.fm</a> and we will delete it promptly.</p>
+    <section class="terms-section" id="ccpa">
+      <h2>12. Your Rights — California (CCPA)</h2>
+      <p>If you are a California resident, the California Consumer Privacy Act (CCPA), as amended by the CPRA, gives you the following rights:</p>
+      <ul>
+        <li><strong>Right to know</strong> — the categories and specific pieces of personal information we have collected about you. The categories are: identifiers (name, email, account ID), internet activity (request data), and the content you create (settings, ratings, awards, playlists, posts).</li>
+        <li><strong>Right to delete</strong> — request deletion of personal information we have collected from you, subject to certain exceptions.</li>
+        <li><strong>Right to correct</strong> — ask us to correct inaccurate personal information.</li>
+        <li><strong>Right to opt out of sale or sharing</strong> — we do <em>not</em> sell personal information or share it for cross-context behavioral advertising.</li>
+        <li><strong>Right to non-discrimination</strong> — we will not treat you differently for exercising any of your rights.</li>
+      </ul>
+      <p>To exercise these rights, email <a href="mailto:yourdata@dankcharts.fm">yourdata@dankcharts.fm</a>. We will respond within 45 days, with the option to extend by a further 45 days when reasonably necessary.</p>
     </section>
 
     <!-- 13 -->
-    <section class="terms-section" id="changes">
-      <h2>13. Changes to This Policy</h2>
-      <p>We may update this Privacy Policy from time to time. When we do, we will update the "Last updated" date at the top of this page. Continued use of the Service after changes take effect constitutes acknowledgment of the revised Policy.</p>
-      <p>For material changes that affect how your personal data is collected or used, we will make reasonable efforts to notify signed-in users (e.g., via a notice on the app's landing screen) before the changes take effect.</p>
+    <section class="terms-section" id="children">
+      <h2>13. Children's Privacy</h2>
+      <p>The Service is not directed at children under 13, and we do not knowingly collect personal data from children under 13. If you are under 16 (or the age of digital consent in your country), you must have a parent's or guardian's consent before signing in, posting on the Board or sending entries to The Dank 100.</p>
+      <p>If you believe a child under 13 has given us personal data, please contact <a href="mailto:yourdata@dankcharts.fm">yourdata@dankcharts.fm</a> and we will delete it promptly.</p>
     </section>
 
     <!-- 14 -->
+    <section class="terms-section" id="changes">
+      <h2>14. Changes to This Policy</h2>
+      <p>We may update this Privacy Policy as the Service changes. When we do, we will update the "Last updated" date at the top of this page.</p>
+      <p>For material changes to how your personal data is collected or used, we will make reasonable efforts to tell signed-in users in the app before the changes take effect. Where the law requires your consent to a change, we will ask for it.</p>
+    </section>
+
+    <!-- 15 -->
     <section class="terms-section" id="contact">
-      <h2>14. Contact &amp; Data Requests</h2>
+      <h2>15. Contact &amp; Data Requests</h2>
       <p>For any questions about this Privacy Policy, to exercise your data rights, or to report a privacy concern:</p>
       <div class="contact-card">
         <p><strong>Data Controller:</strong> Erwin Solorzano</p>
